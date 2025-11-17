@@ -1,0 +1,345 @@
+---
+const title = 'Configuración';
+
+const tabs = [
+  {
+    id: 'notificaciones',
+    label: 'Notificaciones',
+    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
+  },
+  {
+    id: 'preferencias',
+    label: 'Preferencias',
+    icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'
+  },
+  {
+    id: 'comunicacion',
+    label: 'Comunicación',
+    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+  },
+  {
+    id: 'privacidad',
+    label: 'Privacidad',
+    icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+  }
+];
+
+const activeTab = 'notificaciones';
+---
+
+<section class="space-y-6">
+  <!-- Barra de Tabs -->
+  <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-4 lg:p-6">
+    <div class="flex flex-wrap gap-2 lg:gap-3">
+      {tabs.map((tab) => {
+        const isActive = tab.id === activeTab;
+        return (
+          <button
+            type="button"
+            data-tab={tab.id}
+            class={`settings-tab flex items-center gap-2 px-4 py-2.5 lg:px-6 lg:py-3 rounded-xl font-semibold text-sm lg:text-base transition-all duration-300 ${
+              isActive
+                ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <svg
+              class={`w-5 h-5 lg:w-6 lg:h-6 ${isActive ? 'text-white' : 'text-gray-600'}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={tab.icon} />
+            </svg>
+            <span>{tab.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- Contenido de las Tabs -->
+  <div class="space-y-6">
+    <!-- Tab: Notificaciones -->
+    <div
+      id="tab-content-notificaciones"
+      data-tab-content="notificaciones"
+      class="settings-tab-content"
+    >
+      <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8 space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Notificaciones</h2>
+          <p class="text-gray-600">Gestiona cómo y cuándo recibes notificaciones</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Notificaciones por Email -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Notificaciones por Email</h3>
+                <p class="text-sm text-gray-600">Recibe actualizaciones importantes por correo</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <!-- Notificaciones Push -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Notificaciones Push</h3>
+                <p class="text-sm text-gray-600">Recibe notificaciones en tiempo real</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <!-- Notificaciones de Pedidos -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Notificaciones de Pedidos</h3>
+                <p class="text-sm text-gray-600">Actualizaciones sobre tus pedidos</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Preferencias -->
+    <div
+      id="tab-content-preferencias"
+      data-tab-content="preferencias"
+      class="settings-tab-content hidden"
+    >
+      <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8 space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Preferencias</h2>
+          <p class="text-gray-600">Personaliza tu experiencia en la plataforma</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Idioma -->
+          <div class="p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Idioma</label>
+            <select class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+
+          <!-- Zona Horaria -->
+          <div class="p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Zona Horaria</label>
+            <select class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
+              <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
+              <option value="America/New_York">Nueva York (GMT-5)</option>
+              <option value="America/Los_Angeles">Los Ángeles (GMT-8)</option>
+            </select>
+          </div>
+
+          <!-- Tema -->
+          <div class="p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Tema</label>
+            <div class="flex gap-3">
+              <button class="flex-1 px-4 py-3 rounded-lg border-2 border-purple-400 bg-purple-50 text-purple-700 font-medium">
+                Claro
+              </button>
+              <button class="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300">
+                Oscuro
+              </button>
+              <button class="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300">
+                Sistema
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Comunicación -->
+    <div
+      id="tab-content-comunicacion"
+      data-tab-content="comunicacion"
+      class="settings-tab-content hidden"
+    >
+      <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8 space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Comunicación</h2>
+          <p class="text-gray-600">Gestiona cómo te comunicamos contigo</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Newsletter -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Newsletter</h3>
+                <p class="text-sm text-gray-600">Recibe ofertas y novedades</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <!-- Promociones -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Promociones Especiales</h3>
+                <p class="text-sm text-gray-600">Ofertas exclusivas y descuentos</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Privacidad -->
+    <div
+      id="tab-content-privacidad"
+      data-tab-content="privacidad"
+      class="settings-tab-content hidden"
+    >
+      <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8 space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">Privacidad</h2>
+          <p class="text-gray-600">Controla tu privacidad y datos personales</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Perfil Público -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Perfil Público</h3>
+                <p class="text-sm text-gray-600">Permite que otros usuarios vean tu perfil</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <!-- Compartir Datos -->
+          <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900">Compartir Datos con Terceros</h3>
+                <p class="text-sm text-gray-600">Permite compartir datos para mejorar el servicio</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" />
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const tabButtons = document.querySelectorAll('.settings-tab');
+      const tabContents = document.querySelectorAll('.settings-tab-content');
+
+      function switchTab(tabId: string) {
+        // Actualizar botones
+        tabButtons.forEach((btn) => {
+          const btnTabId = btn.getAttribute('data-tab');
+          const isActive = btnTabId === tabId;
+          
+          if (isActive) {
+            btn.classList.remove('text-gray-700', 'hover:bg-gray-50');
+            btn.classList.add('bg-linear-to-r', 'from-purple-500', 'to-pink-500', 'text-white', 'shadow-lg');
+            const icon = btn.querySelector('svg');
+            if (icon) icon.classList.remove('text-gray-600');
+            if (icon) icon.classList.add('text-white');
+          } else {
+            btn.classList.remove('bg-linear-to-r', 'from-purple-500', 'to-pink-500', 'text-white', 'shadow-lg');
+            btn.classList.add('text-gray-700', 'hover:bg-gray-50');
+            const icon = btn.querySelector('svg');
+            if (icon) icon.classList.remove('text-white');
+            if (icon) icon.classList.add('text-gray-600');
+          }
+        });
+
+        // Actualizar contenidos
+        tabContents.forEach((content) => {
+          const contentTabId = content.getAttribute('data-tab-content');
+          if (contentTabId === tabId) {
+            content.classList.remove('hidden');
+          } else {
+            content.classList.add('hidden');
+          }
+        });
+      }
+
+      // Event listeners
+      tabButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const tabId = btn.getAttribute('data-tab');
+          if (tabId) {
+            switchTab(tabId);
+          }
+        });
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,512 @@
+---
+import Layout from '../layouts/Layout.astro';
+import productsData from '../data/products.json';
+
+// Obtener parámetros de la URL
+const url = Astro.url;
+const petFilter = url.searchParams.get('pet') || 'all';
+const filterType = url.searchParams.get('filter') || 'all';
+
+// Filtrar productos
+let filteredProducts = productsData.products;
+
+if (petFilter === 'dog') {
+  filteredProducts = filteredProducts.filter(p => p.category === 'dog');
+} else if (petFilter === 'cat') {
+  filteredProducts = filteredProducts.filter(p => p.category === 'cat');
+}
+
+if (filterType === 'discount') {
+  filteredProducts = filteredProducts.filter(p => p.discount > 0);
+} else if (filterType === 'new') {
+  // Simular productos nuevos (últimos 5)
+  filteredProducts = filteredProducts.slice(-5);
+}
+
+const getTitle = () => {
+  if (petFilter === 'dog') return 'Productos para Perros';
+  if (petFilter === 'cat') return 'Productos para Gatos';
+  return 'Productos';
+};
+
+const getSubtitle = () => {
+  if (petFilter === 'dog') return 'Explora nuestra selección especializada para perros.';
+  if (petFilter === 'cat') return 'Explora nuestra selección especializada para gatos.';
+  return 'Encuentra todo lo que necesitas para tu mascota.';
+};
+---
+
+<Layout>
+  <section class="py-8 lg:py-12 bg-white min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+        <div class="mb-4 lg:mb-0">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="bg-[#ffff11] rounded-lg p-1.5">
+              <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+                <path d="M16 8C16 8 10 2 4 8C-2 14 4 20 4 20L16 28L28 20C28 20 34 14 28 8C22 2 16 8 16 8Z" fill="#5d3fbb"/>
+                <circle cx="10" cy="12" r="2" fill="#fff"/>
+                <circle cx="22" cy="12" r="2" fill="#fff"/>
+                <path d="M16 18C16 18 14 20 10 20C6 20 4 18 4 18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                <path d="M16 18C16 18 18 20 22 20C26 20 28 18 28 18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h1 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb]">
+              {getTitle()}
+            </h1>
+          </div>
+          <p class="text-gray-600 text-sm lg:text-base ml-10">
+            {getSubtitle()}
+          </p>
+        </div>
+        
+        <!-- Controles de ordenamiento y vista -->
+        <div class="flex items-center gap-3">
+          <select 
+            id="sort-select"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all"
+          >
+            <option value="relevant">Más relevantes</option>
+            <option value="price-low">Precio: menor a mayor</option>
+            <option value="price-high">Precio: mayor a menor</option>
+            <option value="discount">Mayor descuento</option>
+          </select>
+          <div class="flex gap-1 border border-gray-300 rounded-lg p-1">
+            <button 
+              id="grid-view"
+              class="p-2 rounded hover:bg-purple-50 text-gray-600 hover:text-[#5d3fbb] transition-colors active"
+              aria-label="Vista de cuadrícula"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button 
+              id="list-view"
+              class="p-2 rounded hover:bg-purple-50 text-gray-600 hover:text-[#5d3fbb] transition-colors"
+              aria-label="Vista de lista"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <!-- Sidebar de Filtros -->
+        <aside class="lg:w-64 shrink-0">
+          <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+            <div class="mb-6">
+              <h2 class="text-xl font-bold text-[#5d3fbb] mb-1">Filtros</h2>
+              <p class="text-sm text-gray-600">Filtros pensados para tu mascota</p>
+            </div>
+
+            <!-- Filtro: Precio -->
+            <div class="mb-6">
+              <button 
+                id="price-filter-btn"
+                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="font-semibold text-gray-800">Precio</span>
+                </div>
+                <svg class="w-4 h-4 text-gray-400 transition-transform" id="price-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div id="price-filter-content" class="hidden mt-2 pl-8 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="0-100">
+                  <span class="text-sm text-gray-700">Bs. 0 - 100</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="100-200">
+                  <span class="text-sm text-gray-700">Bs. 100 - 200</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="200-300">
+                  <span class="text-sm text-gray-700">Bs. 200 - 300</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="300+">
+                  <span class="text-sm text-gray-700">Bs. 300+</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Filtro: Etapa de Vida -->
+            <div class="mb-6">
+              <button 
+                id="life-stage-filter-btn"
+                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  <span class="font-semibold text-gray-800">Etapa de Vida</span>
+                </div>
+                <svg class="w-4 h-4 text-gray-400 transition-transform" id="life-stage-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div id="life-stage-filter-content" class="hidden mt-2 pl-8 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="cachorro">
+                  <span class="text-sm text-gray-700">Cachorro</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="adulto">
+                  <span class="text-sm text-gray-700">Adulto</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="senior">
+                  <span class="text-sm text-gray-700">Senior</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Filtro: Tamaño de Raza -->
+            <div class="mb-6">
+              <button 
+                id="breed-size-filter-btn"
+                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                  <span class="font-semibold text-gray-800">Tamaño de Raza</span>
+                </div>
+                <svg class="w-4 h-4 text-gray-400 transition-transform" id="breed-size-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div id="breed-size-filter-content" class="hidden mt-2 pl-8 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="pequeña">
+                  <span class="text-sm text-gray-700">Pequeña</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="mediana">
+                  <span class="text-sm text-gray-700">Mediana</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="grande">
+                  <span class="text-sm text-gray-700">Grande</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="todos">
+                  <span class="text-sm text-gray-700">Todos los tamaños</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Filtro: Tipo -->
+            <div>
+              <button 
+                id="type-filter-btn"
+                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  <span class="font-semibold text-gray-800">Tipo</span>
+                </div>
+                <svg class="w-4 h-4 text-gray-400 transition-transform" id="type-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div id="type-filter-content" class="hidden mt-2 pl-8 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="food">
+                  <span class="text-sm text-gray-700">Alimento</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="toy">
+                  <span class="text-sm text-gray-700">Juguetes</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="cleaning">
+                  <span class="text-sm text-gray-700">Limpieza</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="accessory">
+                  <span class="text-sm text-gray-700">Accesorios</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Grid de Productos -->
+        <div class="flex-1">
+          <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((product) => (
+              <div 
+                class="product-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-[520px]"
+                data-category={product.category}
+                data-type={product.type}
+                data-life-stage={product.lifeStage}
+                data-breed-size={product.breedSize}
+                data-price={product.price}
+                data-discount={product.discount}
+              >
+                <div class="relative h-64 bg-gray-100 overflow-hidden shrink-0">
+                  {product.discount > 0 && (
+                    <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10 shadow-lg">
+                      -{product.discount}%
+                    </div>
+                  )}
+                  <button 
+                    class="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full p-2 z-10 transition-all hover:scale-110 shadow-lg"
+                    aria-label="Agregar a favoritos"
+                  >
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
+                  {product.weight && (
+                    <div class="absolute bottom-3 left-3 bg-[#5d3fbb] text-white px-3 py-1 rounded-lg text-xs font-bold z-10 shadow-lg">
+                      {product.weight}
+                    </div>
+                  )}
+                  <img 
+                    src={product.image} 
+                    alt={product.name}
+                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <div class="p-5 bg-linear-to-b from-white to-purple-50/30 flex flex-col grow min-h-0">
+                  <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{product.brand}</p>
+                  <h3 class="font-bold text-base text-gray-800 mb-2 line-clamp-2 min-h-10">{product.name}</h3>
+                  <div class="mb-4 min-h-8 flex items-center gap-2">
+                    <p class="text-2xl font-bold text-[#5d3fbb]">Bs. {product.price.toLocaleString()}</p>
+                    {product.originalPrice && (
+                      <p class="text-lg text-gray-400 line-through">Bs. {product.originalPrice.toLocaleString()}</p>
+                    )}
+                  </div>
+                  <a 
+                    href={`/product?id=${product.id}`}
+                    class="mt-auto w-full bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shrink-0 hover:scale-105 active:scale-95 relative z-20 cursor-pointer"
+                  >
+                    Ver Detalles
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredProducts.length === 0 && (
+            <div class="text-center py-16">
+              <p class="text-gray-500 text-lg">No se encontraron productos con los filtros seleccionados.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    #products-grid.list-view {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    #products-grid.list-view .product-card {
+      flex-direction: row;
+      height: auto;
+      max-height: 300px;
+    }
+
+    #products-grid.list-view .product-card > div:first-child {
+      width: 300px;
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    #products-grid.list-view .product-card > div:last-child {
+      flex: 1;
+    }
+  </style>
+
+  <script>
+    // Obtener los filtros de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const petFilter = urlParams.get('pet') || 'all';
+    const filterType = urlParams.get('filter') || 'all';
+
+    // Función para aplicar filtros
+    function applyFilters() {
+      const cards = document.querySelectorAll('.product-card');
+      
+      cards.forEach(card => {
+        let show = true;
+        
+        // Filtro por pet (categoría) - siempre aplicar si está en la URL
+        if (petFilter !== 'all') {
+          const cardCategory = card.getAttribute('data-category');
+          if (cardCategory !== petFilter) {
+            show = false;
+          }
+        }
+        
+        // Filtro por tipo (discount/new) - siempre aplicar si está en la URL
+        if (show && filterType !== 'all') {
+          if (filterType === 'discount') {
+            const discount = parseInt(card.getAttribute('data-discount') || '0');
+            if (discount <= 0) {
+              show = false;
+            }
+          } else if (filterType === 'new') {
+            // Para productos nuevos, mostrar los últimos 5 (esto se maneja en el servidor)
+            // Aquí solo verificamos que el producto esté visible
+          }
+        }
+        
+        // Solo aplicar otros filtros si el producto pasa los filtros de URL
+        if (show) {
+          // Filtro por tipo
+          const typeCheckboxes = document.querySelectorAll('#type-filter-content input:checked');
+          if (typeCheckboxes.length > 0) {
+            const types = Array.from(typeCheckboxes).map(cb => (cb as HTMLInputElement).value);
+            show = show && types.includes(card.getAttribute('data-type') || '');
+          }
+
+          // Filtro por etapa de vida
+          const lifeStageCheckboxes = document.querySelectorAll('#life-stage-filter-content input:checked');
+          if (lifeStageCheckboxes.length > 0) {
+            const stages = Array.from(lifeStageCheckboxes).map(cb => (cb as HTMLInputElement).value);
+            show = show && stages.includes(card.getAttribute('data-life-stage') || '');
+          }
+
+          // Filtro por tamaño de raza
+          const breedSizeCheckboxes = document.querySelectorAll('#breed-size-filter-content input:checked');
+          if (breedSizeCheckboxes.length > 0) {
+            const sizes = Array.from(breedSizeCheckboxes).map(cb => (cb as HTMLInputElement).value);
+            show = show && sizes.includes(card.getAttribute('data-breed-size') || '');
+          }
+
+          // Filtro por precio
+          const priceCheckboxes = document.querySelectorAll('#price-filter-content input:checked');
+          if (priceCheckboxes.length > 0) {
+            const price = parseFloat(card.getAttribute('data-price') || '0');
+            const priceRanges = Array.from(priceCheckboxes).map(cb => (cb as HTMLInputElement).value);
+            const matchesPrice = priceRanges.some(range => {
+              if (range === '300+') return price >= 300;
+              const [min, max] = range.split('-').map(Number);
+              return price >= min && price < max;
+            });
+            show = show && matchesPrice;
+          }
+        }
+
+        if (show) {
+          (card as HTMLElement).style.display = '';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    }
+
+    // Aplicar filtros iniciales al cargar la página
+    applyFilters();
+
+    // Toggle filtros
+    const filterButtons = [
+      { btn: 'price-filter-btn', content: 'price-filter-content', arrow: 'price-arrow' },
+      { btn: 'life-stage-filter-btn', content: 'life-stage-filter-content', arrow: 'life-stage-arrow' },
+      { btn: 'breed-size-filter-btn', content: 'breed-size-filter-content', arrow: 'breed-size-arrow' },
+      { btn: 'type-filter-btn', content: 'type-filter-content', arrow: 'type-arrow' }
+    ];
+
+    filterButtons.forEach(({ btn, content, arrow }) => {
+      const button = document.getElementById(btn);
+      const filterContent = document.getElementById(content);
+      const arrowIcon = document.getElementById(arrow);
+
+      button?.addEventListener('click', () => {
+        const isHidden = filterContent?.classList.contains('hidden');
+        if (isHidden) {
+          filterContent?.classList.remove('hidden');
+          arrowIcon?.classList.add('rotate-180');
+        } else {
+          filterContent?.classList.add('hidden');
+          arrowIcon?.classList.remove('rotate-180');
+        }
+      });
+    });
+
+    // Vista grid/lista
+    const gridViewBtn = document.getElementById('grid-view');
+    const listViewBtn = document.getElementById('list-view');
+    const productsGrid = document.getElementById('products-grid');
+
+    gridViewBtn?.addEventListener('click', () => {
+      productsGrid?.classList.remove('list-view');
+      gridViewBtn.classList.add('active', 'bg-purple-50', 'text-[#5d3fbb]');
+      gridViewBtn.classList.remove('text-gray-600');
+      listViewBtn?.classList.remove('active', 'bg-purple-50', 'text-[#5d3fbb]');
+      listViewBtn?.classList.add('text-gray-600');
+    });
+
+    listViewBtn?.addEventListener('click', () => {
+      productsGrid?.classList.add('list-view');
+      listViewBtn.classList.add('active', 'bg-purple-50', 'text-[#5d3fbb]');
+      listViewBtn.classList.remove('text-gray-600');
+      gridViewBtn?.classList.remove('active', 'bg-purple-50', 'text-[#5d3fbb]');
+      gridViewBtn?.classList.add('text-gray-600');
+    });
+
+    // Ordenamiento
+    const sortSelect = document.getElementById('sort-select');
+    sortSelect?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLSelectElement).value;
+      const cards = Array.from(document.querySelectorAll('.product-card'));
+      
+      cards.sort((a, b) => {
+        const priceA = parseFloat(a.getAttribute('data-price') || '0');
+        const priceB = parseFloat(b.getAttribute('data-price') || '0');
+        
+        switch(value) {
+          case 'price-low':
+            return priceA - priceB;
+          case 'price-high':
+            return priceB - priceA;
+          case 'discount':
+            const discountA = parseInt(a.querySelector('.bg-red-500')?.textContent?.replace('-', '').replace('%', '') || '0');
+            const discountB = parseInt(b.querySelector('.bg-red-500')?.textContent?.replace('-', '').replace('%', '') || '0');
+            return discountB - discountA;
+          default:
+            return 0;
+        }
+      });
+
+      const grid = document.getElementById('products-grid');
+      cards.forEach(card => grid?.appendChild(card));
+    });
+
+    // Filtros
+    const filterCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+    filterCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        applyFilters();
+      });
+    });
+  </script>
+</Layout>

@@ -1,11 +1,720 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import '../styles/global.css';
 ---
 
 <Layout>
-	<Welcome />
+  <!-- Hero Section con Carrusel -->
+  <section class="relative w-full h-[600px] lg:h-[700px] overflow-hidden">
+    <!-- Slides del carrusel -->
+    <div id="carousel" class="relative w-full h-full">
+      <!-- Slide 1: Perro -->
+      <div class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-500" data-slide="0">
+        <div class="relative w-full h-full bg-linear-to-r from-[#5d3fbb]/70 to-[#6d4fcc]/60">
+          <img 
+            src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=1920&q=80" 
+            alt="Perro feliz" 
+            class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
+          />
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center px-4 sm:px-6 lg:px-8 max-w-4xl z-10">
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 animate-fade-in">
+				Encuentra todo para tu mascota
+			</h1>
+              <p class="text-lg sm:text-xl lg:text-2xl text-white/90 mb-6 animate-fade-in-delay">
+				Los mejores productos al mejor precio
+
+			</p>
+              <a 
+                href="/products?pet=dog" 
+                class="inline-block bg-[#ffff11] text-[#5d3fbb] font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-fade-in-delay-2"
+                data-astro-prefetch
+              >
+                Ver Productos para Perros →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Gato -->
+      <div class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-500" data-slide="1">
+        <div class="relative w-full h-full bg-linear-to-r from-[#6d4fcc]/70 to-[#5d3fbb]/60">
+          <img 
+            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=1920&q=80" 
+            alt="Gato elegante" 
+            class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
+          />
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center px-4 sm:px-6 lg:px-8 max-w-4xl z-10">
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 animate-fade-in">
+                Cuidado felino de primera calidad
+              </h1>
+              <p class="text-lg sm:text-xl lg:text-2xl text-white/90 mb-6 animate-fade-in-delay">
+                Todo lo que tu gato necesita para estar saludable y feliz
+              </p>
+              <a 
+                href="/products?pet=cat" 
+                class="inline-block bg-[#ffff11] text-[#5d3fbb] font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-fade-in-delay-2"
+                data-astro-prefetch
+              >
+                Explorar Productos para Gatos →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Mascotas juntas -->
+      <div class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-500" data-slide="2">
+        <div class="relative w-full h-full bg-linear-to-r from-[#5d3fbb]/70 to-[#6d4fcc]/60">
+          <img 
+            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1920&q=80" 
+            alt="Mascotas felices" 
+            class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
+          />
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center px-4 sm:px-6 lg:px-8 max-w-4xl z-10">
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 animate-fade-in">
+                Ofertas especiales para toda la familia
+              </h1>
+              <p class="text-lg sm:text-xl lg:text-2xl text-white/90 mb-6 animate-fade-in-delay">
+                Descuentos increíbles en productos seleccionados
+              </p>
+              <a 
+                href="/products?filter=discount" 
+                class="inline-block bg-[#ffff11] text-[#5d3fbb] font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-fade-in-delay-2"
+                data-astro-prefetch
+              >
+                Ver Ofertas Especiales →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de navegación -->
+    <button 
+      id="prev-btn" 
+      class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95"
+      aria-label="Slide anterior"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <button 
+      id="next-btn" 
+      class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95"
+      aria-label="Siguiente slide"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <!-- Indicadores -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      <button 
+        class="carousel-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300 active"
+        data-slide="0"
+        aria-label="Ir a slide 1"
+      ></button>
+      <button 
+        class="carousel-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300"
+        data-slide="1"
+        aria-label="Ir a slide 2"
+      ></button>
+      <button 
+        class="carousel-indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300"
+        data-slide="2"
+        aria-label="Ir a slide 3"
+      ></button>
+    </div>
+  </section>
+
+  <!-- Categorías -->
+  <section class="py-12 lg:py-16 bg-gray-50">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <!-- Card 1: Alimentos para Perro -->
+        <a 
+          href="/products?pet=dog&category=food" 
+          class="group relative h-48 lg:h-56 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          data-astro-prefetch
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800&q=80" 
+            alt="Alimentos para Perro" 
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div class="absolute inset-0 flex items-end p-6">
+            <h3 class="text-2xl lg:text-3xl font-bold text-white z-10">Alimentos para Perro</h3>
+          </div>
+        </a>
+
+        <!-- Card 2: Alimentos para Gato -->
+        <a 
+          href="/products?pet=cat&category=food" 
+          class="group relative h-48 lg:h-56 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          data-astro-prefetch
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1545529468-42764ef8c85f?w=800&q=80" 
+            alt="Alimentos para Gato" 
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div class="absolute inset-0 flex items-end p-6">
+            <h3 class="text-2xl lg:text-3xl font-bold text-white z-10">Alimentos para Gato</h3>
+          </div>
+        </a>
+
+        <!-- Card 3: Descuentos -->
+        <a 
+          href="/products?filter=discount" 
+          class="group relative h-48 lg:h-56 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          data-astro-prefetch
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&q=80" 
+            alt="Descuentos" 
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div class="absolute top-4 left-4 bg-[#ffff11] px-4 py-2 rounded-lg shadow-lg z-10">
+            <span class="text-2xl font-bold text-[#5d3fbb]">-30%</span>
+          </div>
+          <div class="absolute inset-0 flex items-end p-6">
+            <h3 class="text-2xl lg:text-3xl font-bold text-white z-10">Descuentos</h3>
+          </div>
+        </a>
+
+        <!-- Card 4: Novedades -->
+        <a 
+          href="/products?filter=new" 
+          class="group relative h-48 lg:h-56 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          data-astro-prefetch
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&q=80" 
+            alt="Novedades" 
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div class="absolute top-4 right-4 bg-[#ffff11] px-4 py-2 rounded-lg shadow-lg z-10">
+            <span class="text-lg font-bold text-[#5d3fbb]">NUEVO</span>
+          </div>
+          <div class="absolute inset-0 flex items-end p-6">
+            <h3 class="text-2xl lg:text-3xl font-bold text-white z-10">Novedades</h3>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Los Más Vendidos -->
+  <section class="py-12 lg:py-16 bg-linear-to-b from-white to-purple-50/30">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Título y controles -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-3xl lg:text-4xl font-bold text-[#5d3fbb] mb-2">
+            Los Más Vendidos del Momento
+          </h2>
+          <p class="text-gray-600 text-sm lg:text-base">
+            Descubre los productos preferidos por nuestra comunidad pet lover y aprovecha las ofertas destacadas.
+          </p>
+        </div>
+        <!-- Botones de navegación -->
+        <div class="hidden lg:flex gap-2">
+          <button 
+            id="products-prev-btn"
+            class="w-10 h-10 rounded-lg bg-purple-100 hover:bg-purple-200 text-[#5d3fbb] transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center"
+            aria-label="Anterior"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button 
+            id="products-next-btn"
+            class="w-10 h-10 rounded-lg bg-purple-100 hover:bg-purple-200 text-[#5d3fbb] transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center"
+            aria-label="Siguiente"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Carrusel de productos -->
+      <div class="relative">
+        <div id="products-carousel" class="flex gap-4 lg:gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+          <!-- Producto 1 -->
+          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
+              <img 
+                src="https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80" 
+                alt="Van Camps 20Kg" 
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
+              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Van Camps</h3>
+              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">20Kg - Adulto Raza Med. y Grande / Ecopet</p>
+              <div class="mb-4 min-h-8 flex items-center">
+                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 315.00</p>
+              </div>
+              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+
+          <!-- Producto 2 -->
+          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
+              <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
+                -11%
+              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&q=80" 
+                alt="Van Camps Premium" 
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
+              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Van Camps</h3>
+              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">Alimento Premium Perro Adulto 15kg</p>
+              <div class="mb-4 min-h-8 flex items-center gap-2">
+                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 285.00</p>
+                <p class="text-lg text-gray-400 line-through">Bs. 320.00</p>
+              </div>
+              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+
+          <!-- Producto 3 -->
+          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
+              <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
+                -7%
+              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&q=80" 
+                alt="Sofia 20kg" 
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
+              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Sofia</h3>
+              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">20kg - Adulto Toda Raza Sabor Cordero / Premium</p>
+              <div class="mb-4 min-h-8 flex items-center gap-2">
+                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 335.00</p>
+                <p class="text-lg text-gray-400 line-through">Bs. 360.00</p>
+              </div>
+              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+
+          <!-- Producto 4 -->
+          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
+              <img 
+                src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80" 
+                alt="Podium 23Kg" 
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
+              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Podium</h3>
+              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">23Kg - Adulto Raza Pequeña / Podium</p>
+              <div class="mb-4 min-h-8 flex items-center">
+                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 425.00</p>
+              </div>
+              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+
+          <!-- Producto 5 -->
+          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
+            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
+              <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
+                -10%
+              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&q=80" 
+                alt="Cibau Adulto" 
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
+              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Cibau</h3>
+              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">Cibau Adulto 15kg</p>
+              <div class="mb-4 min-h-8 flex items-center gap-2">
+                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 295.00</p>
+                <p class="text-lg text-gray-400 line-through">Bs. 330.00</p>
+              </div>
+              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categorías más Vendidas -->
+  <section class="py-12 lg:py-16 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <h2 class="text-3xl lg:text-4xl font-bold text-[#5d3fbb] text-center mb-10">
+        Categorías más Vendidas
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Adopciones -->
+        <a 
+          href="/adoptions" 
+          class="group relative h-64 lg:h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-linear-to-br from-pink-100 to-pink-50"
+          data-astro-prefetch
+        >
+          <div class="absolute inset-0 p-6 lg:p-8 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb] mb-2">Adopciones</h3>
+              <p class="text-gray-600 text-sm lg:text-base">Dale una nueva oportunidad a una mascota</p>
+            </div>
+            <div class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8">
+              <svg class="w-16 h-16 lg:w-20 lg:h-20 text-red-500 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Perdidos y Encontrados -->
+        <a 
+          href="/lost-found" 
+          class="group relative h-64 lg:h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-linear-to-r from-blue-100 via-purple-100 to-purple-50"
+          data-astro-prefetch
+        >
+          <div class="absolute inset-0 p-6 lg:p-8 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb] mb-2">Perdidos y Encontrados</h3>
+              <p class="text-gray-600 text-sm lg:text-base">Ayuda a reunir mascotas con sus familias</p>
+            </div>
+            <div class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8">
+              <svg class="w-16 h-16 lg:w-20 lg:h-20 text-blue-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Servicios Veterinarios -->
+        <a 
+          href="/services" 
+          class="group relative h-64 lg:h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-linear-to-br from-green-100 to-green-50"
+          data-astro-prefetch
+        >
+          <div class="absolute inset-0 p-6 lg:p-8 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb] mb-2">Servicios Veterinarios</h3>
+              <p class="text-gray-600 text-sm lg:text-base">Consulta, vacunación y cuidado profesional</p>
+            </div>
+            <div class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8">
+              <svg class="w-16 h-16 lg:w-20 lg:h-20 text-green-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Medicamentos -->
+        <a 
+          href="/products?category=medicines" 
+          class="group relative h-64 lg:h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-linear-to-br from-yellow-100 to-yellow-50"
+          data-astro-prefetch
+        >
+          <div class="absolute inset-0 p-6 lg:p-8 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb] mb-2">Medicamentos</h3>
+              <p class="text-gray-600 text-sm lg:text-base">Fármacos y suplementos para la salud</p>
+            </div>
+            <div class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8">
+              <svg class="w-16 h-16 lg:w-20 lg:h-20 text-yellow-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Accesorios -->
+        <a 
+          href="/products?category=accessories" 
+          class="group relative h-64 lg:h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-linear-to-br from-purple-100 to-purple-50"
+          data-astro-prefetch
+        >
+          <div class="absolute inset-0 p-6 lg:p-8 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb] mb-2">Accesorios</h3>
+              <p class="text-gray-600 text-sm lg:text-base">Collares, correas y más para tu mascota</p>
+            </div>
+            <div class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8">
+              <svg class="w-16 h-16 lg:w-20 lg:h-20 text-purple-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Juguetes -->
+        <a 
+          href="/products?category=toys" 
+          class="group relative h-64 lg:h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-linear-to-br from-orange-100 to-orange-50"
+          data-astro-prefetch
+        >
+          <div class="absolute inset-0 p-6 lg:p-8 flex flex-col justify-between">
+            <div>
+              <h3 class="text-2xl lg:text-3xl font-bold text-[#5d3fbb] mb-2">Juguetes</h3>
+              <p class="text-gray-600 text-sm lg:text-base">Diversión y entretenimiento para tu mascota</p>
+            </div>
+            <div class="absolute bottom-6 right-6 lg:bottom-8 lg:right-8">
+              <svg class="w-16 h-16 lg:w-20 lg:h-20 text-orange-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    .animate-fade-in-delay {
+      animation: fadeIn 0.8s ease-out 0.2s both;
+    }
+
+    .animate-fade-in-delay-2 {
+      animation: fadeIn 0.8s ease-out 0.4s both;
+    }
+
+    .carousel-slide.active {
+      opacity: 1;
+      z-index: 10;
+    }
+
+    .carousel-indicator.active {
+      background-color: white;
+      width: 2rem;
+    }
+
+    #products-carousel {
+      cursor: grab;
+    }
+
+    #products-carousel:active {
+      cursor: grabbing;
+    }
+
+    .scrollbar-hide {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+    const indicators = document.querySelectorAll('.carousel-indicator');
+    const totalSlides = slides.length;
+    let autoPlayInterval: ReturnType<typeof setInterval> | null = null;
+
+    function showSlide(index: number) {
+      // Remover active de todos los slides e indicadores
+      slides.forEach(slide => slide.classList.remove('active'));
+      indicators.forEach(indicator => indicator.classList.remove('active'));
+
+      // Agregar active al slide e indicador actual
+      slides[index].classList.add('active');
+      indicators[index].classList.add('active');
+      
+      currentSlide = index;
+    }
+
+    function nextSlide() {
+      const next = (currentSlide + 1) % totalSlides;
+      showSlide(next);
+    }
+
+    function prevSlide() {
+      const prev = (currentSlide - 1 + totalSlides) % totalSlides;
+      showSlide(prev);
+    }
+
+    function startAutoPlay() {
+      autoPlayInterval = setInterval(nextSlide, 5000); // Cambia cada 5 segundos
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayInterval) {
+        clearInterval(autoPlayInterval);
+        autoPlayInterval = null;
+      }
+    }
+
+    // Event listeners
+    document.getElementById('next-btn')?.addEventListener('click', () => {
+      nextSlide();
+      stopAutoPlay();
+      startAutoPlay();
+    });
+
+    document.getElementById('prev-btn')?.addEventListener('click', () => {
+      prevSlide();
+      stopAutoPlay();
+      startAutoPlay();
+    });
+
+    // Indicadores
+    indicators.forEach((indicator, index) => {
+      indicator.addEventListener('click', () => {
+        showSlide(index);
+        stopAutoPlay();
+        startAutoPlay();
+      });
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      showSlide(0);
+      startAutoPlay();
+
+      // Pausar autoplay al hacer hover
+      const carousel = document.getElementById('carousel');
+      if (carousel) {
+        carousel.addEventListener('mouseenter', stopAutoPlay);
+        carousel.addEventListener('mouseleave', startAutoPlay);
+      }
+
+      // Carrusel de productos
+      const productsCarousel = document.getElementById('products-carousel');
+      const productsPrevBtn = document.getElementById('products-prev-btn');
+      const productsNextBtn = document.getElementById('products-next-btn');
+
+      if (productsCarousel && productsPrevBtn && productsNextBtn) {
+        const getScrollAmount = () => {
+          const firstCard = productsCarousel.querySelector('div');
+          if (firstCard) {
+            return firstCard.offsetWidth + 24; // card width + gap
+          }
+          return 324; // fallback
+        };
+
+        productsNextBtn.addEventListener('click', () => {
+          const scrollAmount = getScrollAmount();
+          productsCarousel.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+          });
+        });
+
+        productsPrevBtn.addEventListener('click', () => {
+          const scrollAmount = getScrollAmount();
+          productsCarousel.scrollBy({
+            left: -scrollAmount,
+            behavior: 'smooth'
+          });
+        });
+
+        // Scroll horizontal con mouse (drag)
+        let isDown = false;
+        let startX: number;
+        let scrollLeft: number;
+
+        productsCarousel.addEventListener('mousedown', (e: MouseEvent) => {
+          isDown = true;
+          productsCarousel.style.cursor = 'grabbing';
+          startX = e.pageX - productsCarousel.offsetLeft;
+          scrollLeft = productsCarousel.scrollLeft;
+        });
+
+        productsCarousel.addEventListener('mouseleave', () => {
+          isDown = false;
+          productsCarousel.style.cursor = 'grab';
+        });
+
+        productsCarousel.addEventListener('mouseup', () => {
+          isDown = false;
+          productsCarousel.style.cursor = 'grab';
+        });
+
+        productsCarousel.addEventListener('mousemove', (e: MouseEvent) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - productsCarousel.offsetLeft;
+          const walk = (x - startX) * 2;
+          productsCarousel.scrollLeft = scrollLeft - walk;
+        });
+      }
+    });
+  </script>
 </Layout>

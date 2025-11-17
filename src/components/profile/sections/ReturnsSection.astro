@@ -1,0 +1,531 @@
+---
+const title = 'Devoluciones';
+
+// Datos de ejemplo - en producción vendrían de una API o base de datos
+const activeReturns = [
+  {
+    id: 'RET-001',
+    orderId: '12345',
+    date: '20 de enero de 2025',
+    status: 'En revisión',
+    statusColor: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+    product: {
+      name: 'Royal Canin Puppy 15kg',
+      image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=100&h=100&fit=crop',
+      quantity: 1,
+      reason: 'Producto defectuoso',
+      description: 'El producto llegó con el empaque dañado y parte del contenido estaba expuesto.',
+      sku: 'RC-PUPPY-15KG-001'
+    },
+    total: 150.00,
+    refundMethod: 'Tarjeta de crédito',
+    address: 'Av. Principal 123, Col. Centro, Ciudad de México, CDMX 06000',
+    timeline: [
+      { date: '20 de enero de 2025', time: '14:30', status: 'Solicitud creada', completed: true },
+      { date: '21 de enero de 2025', time: '10:15', status: 'En revisión', completed: true },
+      { date: '22 de enero de 2025', time: '09:00', status: 'Aprobación pendiente', completed: false },
+      { date: '', time: '', status: 'Reembolso procesado', completed: false }
+    ]
+  },
+  {
+    id: 'RET-002',
+    orderId: '12346',
+    date: '18 de enero de 2025',
+    status: 'Aprobada',
+    statusColor: 'bg-green-50 text-green-700 border border-green-200',
+    product: {
+      name: 'Collar Antipulgas para Perros',
+      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=100&h=100&fit=crop',
+      quantity: 1,
+      reason: 'Pedido incorrecto',
+      description: 'Se recibió un collar de tamaño incorrecto. Se solicitó tamaño mediano pero llegó pequeño.',
+      sku: 'COL-ANTI-MED-002'
+    },
+    total: 85.50,
+    refundMethod: 'Transferencia bancaria',
+    address: 'Calle Reforma 456, Col. Del Valle, Ciudad de México, CDMX 03100',
+    timeline: [
+      { date: '18 de enero de 2025', time: '16:45', status: 'Solicitud creada', completed: true },
+      { date: '19 de enero de 2025', time: '11:20', status: 'En revisión', completed: true },
+      { date: '20 de enero de 2025', time: '15:30', status: 'Aprobada', completed: true },
+      { date: '21 de enero de 2025', time: '08:00', status: 'Reembolso procesado', completed: true }
+    ]
+  }
+];
+---
+
+<section class="space-y-6">
+  <!-- Política de Devoluciones -->
+  <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8">
+    <!-- Header con icono y título -->
+    <div class="flex items-center gap-4 mb-6">
+      <div class="shrink-0 w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center">
+        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900">Política de Devoluciones</h2>
+    </div>
+
+    <!-- Contenido de la política -->
+    <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
+      <!-- Sección: Aceptamos devoluciones -->
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="shrink-0 w-8 h-8 rounded bg-green-500 flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">Aceptamos devoluciones de:</h3>
+        </div>
+        <ul class="space-y-2.5 ml-11">
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Productos defectuosos o dañados</span>
+          </li>
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Pedidos incorrectos</span>
+          </li>
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Productos que no coinciden con la descripción</span>
+          </li>
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Dentro de 30 días desde la entrega</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Sección: No aceptamos devoluciones -->
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="shrink-0 w-8 h-8 rounded bg-red-500 flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">No aceptamos devoluciones de:</h3>
+        </div>
+        <ul class="space-y-2.5 ml-11">
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Alimentos abiertos o consumidos</span>
+          </li>
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Productos de higiene usados</span>
+          </li>
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Artículos personalizados</span>
+          </li>
+          <li class="flex items-start gap-2 text-gray-700">
+            <span class="text-gray-400 mt-1.5">•</span>
+            <span>Productos en oferta o liquidación</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Devoluciones Activas -->
+  <div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold text-gray-900">Devoluciones Activas ({activeReturns.length})</h2>
+    </div>
+
+    {activeReturns.length > 0 ? (
+      <div class="space-y-4">
+        {activeReturns.map((returnItem) => (
+          <div class="profile-section-card rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow p-5 lg:p-6">
+            <div class="flex flex-col lg:flex-row gap-4 lg:gap-6">
+              <!-- Imagen del producto -->
+              <div class="shrink-0">
+                <img
+                  src={returnItem.product.image}
+                  alt={returnItem.product.name}
+                  class="w-20 h-20 lg:w-24 lg:h-24 rounded-xl object-cover border border-gray-200"
+                />
+              </div>
+
+              <!-- Información de la devolución -->
+              <div class="flex-1 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{returnItem.product.name}</h3>
+                    <p class="text-sm text-gray-600">Pedido #{returnItem.orderId}</p>
+                    <p class="text-sm text-gray-600">Solicitud: {returnItem.date}</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      <span class="font-medium">Motivo:</span> {returnItem.product.reason}
+                    </p>
+                  </div>
+                  <div class="flex flex-col items-start sm:items-end gap-2">
+                    <span class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${returnItem.statusColor}`}>
+                      {returnItem.status}
+                    </span>
+                    <p class="text-lg font-bold text-gray-900">${returnItem.total.toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <!-- Acciones -->
+                <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    data-return-id={returnItem.id}
+                    data-action="details"
+                    class="return-details-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    Ver Detalles
+                  </button>
+                  <button
+                    type="button"
+                    data-return-id={returnItem.id}
+                    data-action="tracking"
+                    class="return-tracking-btn px-4 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                  >
+                    Seguimiento
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="profile-section-card rounded-2xl border border-gray-200 bg-white shadow-sm p-8 lg:p-12 text-center">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-600 text-lg font-medium mb-2">No tienes devoluciones activas</p>
+        <p class="text-gray-500 text-sm">Tus solicitudes de devolución aparecerán aquí</p>
+      </div>
+    )}
+  </div>
+
+  <!-- Modal de Detalles de Devolución -->
+  <div id="return-details-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Detalles de Devolución</h2>
+        <button
+          type="button"
+          id="close-details-modal-btn"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido del modal -->
+      <div id="return-details-content" class="space-y-6">
+        <!-- Se cargará dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Seguimiento de Devolución -->
+  <div id="return-tracking-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Seguimiento de Devolución</h2>
+        <button
+          type="button"
+          id="close-tracking-modal-btn"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido del modal -->
+      <div id="return-tracking-content" class="space-y-6">
+        <!-- Se cargará dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Data attribute para pasar los datos al script -->
+  <script type="application/json" id="returns-data-json" set:html={JSON.stringify(activeReturns)}></script>
+
+  <script>
+    (function() {
+      // Obtener datos de los returns
+      let returnsData: any[] = [];
+      const dataScript = document.getElementById('returns-data-json');
+      if (dataScript && dataScript.textContent) {
+        try {
+          returnsData = JSON.parse(dataScript.textContent);
+        } catch (e) {
+          console.error('Error parsing returns data:', e);
+        }
+      }
+      
+      const detailsModal = document.getElementById('return-details-modal');
+      const trackingModal = document.getElementById('return-tracking-modal');
+      const closeDetailsBtn = document.getElementById('close-details-modal-btn');
+      const closeTrackingBtn = document.getElementById('close-tracking-modal-btn');
+      const detailsContent = document.getElementById('return-details-content');
+      const trackingContent = document.getElementById('return-tracking-content');
+
+      // Función para abrir modal de detalles
+      function openReturnDetailsModal(returnId: string) {
+        const returnItem = returnsData.find((r: any) => r.id === returnId);
+        if (!returnItem || !detailsModal || !detailsContent) return;
+
+        detailsContent.innerHTML = `
+          <!-- Información del producto -->
+          <div class="flex gap-4 pb-6 border-b border-gray-200">
+            <img
+              src="${returnItem.product.image}"
+              alt="${returnItem.product.name}"
+              class="w-24 h-24 rounded-xl object-cover border border-gray-200 shrink-0"
+            />
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">${returnItem.product.name}</h3>
+              <p class="text-sm text-gray-600 mb-1"><span class="font-medium">SKU:</span> ${returnItem.product.sku}</p>
+              <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Cantidad:</span> ${returnItem.product.quantity}</p>
+              <p class="text-sm text-gray-600"><span class="font-medium">Precio:</span> $${returnItem.total.toFixed(2)}</p>
+            </div>
+          </div>
+
+          <!-- Información de la devolución -->
+          <div class="space-y-4">
+            <div>
+              <h4 class="text-sm font-semibold text-gray-700 mb-2">Información de la Devolución</h4>
+              <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">ID de Devolución:</span>
+                  <span class="text-sm font-medium text-gray-900">${returnItem.id}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Pedido Original:</span>
+                  <span class="text-sm font-medium text-gray-900">#${returnItem.orderId}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Fecha de Solicitud:</span>
+                  <span class="text-sm font-medium text-gray-900">${returnItem.date}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Estado:</span>
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
+                    ${returnItem.status}
+                  </span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-sm text-gray-600">Monto a Reembolsar:</span>
+                  <span class="text-sm font-bold text-gray-900">$${returnItem.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Motivo y descripción -->
+            <div>
+              <h4 class="text-sm font-semibold text-gray-700 mb-2">Motivo de la Devolución</h4>
+              <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-sm font-medium text-gray-900 mb-2">${returnItem.product.reason}</p>
+                <p class="text-sm text-gray-600">${returnItem.product.description}</p>
+              </div>
+            </div>
+
+            <!-- Dirección de recogida -->
+            <div>
+              <h4 class="text-sm font-semibold text-gray-700 mb-2">Dirección de Recogida</h4>
+              <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-sm text-gray-600">${returnItem.address}</p>
+              </div>
+            </div>
+
+            <!-- Método de reembolso -->
+            <div>
+              <h4 class="text-sm font-semibold text-gray-700 mb-2">Método de Reembolso</h4>
+              <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-sm text-gray-600">${returnItem.refundMethod}</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        detailsModal.classList.remove('hidden');
+        detailsModal.classList.add('flex');
+        detailsModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      };
+
+      // Función para abrir modal de seguimiento
+      function openReturnTrackingModal(returnId: string) {
+        const returnItem = returnsData.find((r: any) => r.id === returnId);
+        if (!returnItem || !trackingModal || !trackingContent) return;
+
+        const timelineHTML = returnItem.timeline.map((step: any, index: number) => {
+          const isLast = index === returnItem.timeline.length - 1;
+          const iconColor = step.completed ? 'bg-green-500' : 'bg-gray-300';
+          const textColor = step.completed ? 'text-gray-900' : 'text-gray-500';
+          
+          return `
+            <div class="flex gap-4 ${!isLast ? 'pb-6' : ''}">
+              <div class="shrink-0">
+                <div class="w-10 h-10 rounded-full ${iconColor} flex items-center justify-center">
+                  ${step.completed ? `
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ` : `
+                    <div class="w-3 h-3 rounded-full bg-white"></div>
+                  `}
+                </div>
+                ${!isLast ? '<div class="w-0.5 h-full bg-gray-200 mx-auto mt-2"></div>' : ''}
+              </div>
+              <div class="flex-1 pb-2">
+                <p class="text-sm font-semibold ${textColor} mb-1">${step.status}</p>
+                ${step.date ? `
+                  <p class="text-xs text-gray-500">${step.date} a las ${step.time}</p>
+                ` : '<p class="text-xs text-gray-400">Pendiente</p>'}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        trackingContent.innerHTML = `
+          <!-- Información del producto -->
+          <div class="flex gap-4 pb-6 border-b border-gray-200">
+            <img
+              src="${returnItem.product.image}"
+              alt="${returnItem.product.name}"
+              class="w-20 h-20 rounded-xl object-cover border border-gray-200 shrink-0"
+            />
+            <div class="flex-1">
+              <h3 class="text-base font-semibold text-gray-900 mb-1">${returnItem.product.name}</h3>
+              <p class="text-xs text-gray-600 mb-2">Devolución #${returnItem.id}</p>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
+                ${returnItem.status}
+              </span>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-700 mb-4">Estado del Proceso</h4>
+            <div class="space-y-0">
+              ${timelineHTML}
+            </div>
+          </div>
+
+          <!-- Información adicional -->
+          <div class="pt-4 border-t border-gray-200">
+            <div class="bg-blue-50 rounded-xl p-4">
+              <div class="flex gap-3">
+                <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-blue-900 mb-1">¿Necesitas ayuda?</p>
+                  <p class="text-xs text-blue-700">Si tienes alguna pregunta sobre tu devolución, contáctanos a través de nuestro servicio de atención al cliente.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        trackingModal.classList.remove('hidden');
+        trackingModal.classList.add('flex');
+        trackingModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      };
+
+      // Función para cerrar modal de detalles
+      function closeDetailsModal() {
+        if (!detailsModal) return;
+        detailsModal.classList.add('hidden');
+        detailsModal.classList.remove('flex');
+        detailsModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // Función para cerrar modal de seguimiento
+      function closeTrackingModal() {
+        if (!trackingModal) return;
+        trackingModal.classList.add('hidden');
+        trackingModal.classList.remove('flex');
+        trackingModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // Event listeners
+      if (closeDetailsBtn) {
+        closeDetailsBtn.addEventListener('click', closeDetailsModal);
+      }
+
+      if (closeTrackingBtn) {
+        closeTrackingBtn.addEventListener('click', closeTrackingModal);
+      }
+
+      // Cerrar modales al hacer clic fuera
+      if (detailsModal) {
+        detailsModal.addEventListener('click', (e) => {
+          if (e.target === detailsModal) {
+            closeDetailsModal();
+          }
+        });
+      }
+
+      if (trackingModal) {
+        trackingModal.addEventListener('click', (e) => {
+          if (e.target === trackingModal) {
+            closeTrackingModal();
+          }
+        });
+      }
+
+      // Cerrar modales con ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (detailsModal && !detailsModal.classList.contains('hidden')) {
+            closeDetailsModal();
+          }
+          if (trackingModal && !trackingModal.classList.contains('hidden')) {
+            closeTrackingModal();
+          }
+        }
+      });
+
+      // Event listeners para los botones
+      function initButtons() {
+        document.querySelectorAll('.return-details-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const returnId = btn.getAttribute('data-return-id');
+            if (returnId) {
+              openReturnDetailsModal(returnId);
+            }
+          });
+        });
+
+        document.querySelectorAll('.return-tracking-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const returnId = btn.getAttribute('data-return-id');
+            if (returnId) {
+              openReturnTrackingModal(returnId);
+            }
+          });
+        });
+      }
+
+      // Inicializar cuando el DOM esté listo
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initButtons);
+      } else {
+        initButtons();
+      }
+    })();
+  </script>
+</section>

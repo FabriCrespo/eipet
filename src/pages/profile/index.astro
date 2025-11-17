@@ -1,0 +1,111 @@
+---
+import UserLayout from '../../layouts/UserLayout.astro';
+import InfoSection from '../../components/profile/sections/InfoSection.astro';
+import OrdersSection from '../../components/profile/sections/OrdersSection.astro';
+import AddressesSection from '../../components/profile/sections/AddressesSection.astro';
+import PaymentSection from '../../components/profile/sections/PaymentSection.astro';
+import FavoritesSection from '../../components/profile/sections/FavoritesSection.astro';
+import HistorySection from '../../components/profile/sections/HistorySection.astro';
+import ReturnsSection from '../../components/profile/sections/ReturnsSection.astro';
+import SettingsSection from '../../components/profile/sections/SettingsSection.astro';
+import SecuritySection from '../../components/profile/sections/SecuritySection.astro';
+
+const sectionConfig = [
+  { id: 'info', title: 'Mi Perfil', Component: InfoSection },
+  { id: 'orders', title: 'Mis Pedidos', Component: OrdersSection },
+  { id: 'addresses', title: 'Mis Direcciones', Component: AddressesSection },
+  { id: 'payment', title: 'Métodos de Pago', Component: PaymentSection },
+  { id: 'favorites', title: 'Favoritos', Component: FavoritesSection },
+  { id: 'returns', title: 'Devoluciones', Component: ReturnsSection },
+  { id: 'settings', title: 'Configuración', Component: SettingsSection },
+  { id: 'security', title: 'Seguridad', Component: SecuritySection }
+] as const;
+
+const initialSection = 'info';
+const sectionIds = sectionConfig.map((section) => section.id);
+---
+
+<UserLayout currentSection={initialSection} sectionConfig={sectionConfig}>
+  <section
+    class="space-y-6"
+    id="profile-content-panel"
+    data-section-ids={JSON.stringify(sectionIds)}
+    data-initial-section={initialSection}
+  >
+    {sectionConfig.map(({ id, Component }) => (
+      <article
+        id={`profile-section-${id}`}
+        data-profile-section={id}
+        class={`profile-section-panel ${id === initialSection ? '' : 'hidden'}`}
+        aria-hidden={id === initialSection ? 'false' : 'true'}
+      >
+        <Component />
+      </article>
+    ))}
+  </section>
+
+  <script>
+    type ProfileWindow = Window &
+      typeof globalThis & {
+        currentProfileSection?: string;
+        updateProfileSidebarSection?: (section: string) => void;
+        onProfileSectionChange?: (section: string) => void;
+      };
+
+    const profileWindow = typeof window !== 'undefined' ? (window as ProfileWindow) : undefined;
+
+    function initProfileContent() {
+      const container = document.getElementById('profile-content-panel');
+      if (!container) return;
+
+      const sectionIdsAttr = container.getAttribute('data-section-ids');
+      const initialSectionAttr = container.getAttribute('data-initial-section');
+
+      const sectionIds: string[] = sectionIdsAttr ? JSON.parse(sectionIdsAttr) : [];
+      const defaultSection = initialSectionAttr || sectionIds[0] || 'info';
+
+      const setActiveProfileSection = (sectionId: string) => {
+        sectionIds.forEach((id) => {
+          const el = document.querySelector<HTMLElement>(`[data-profile-section="${id}"]`);
+          if (!el) return;
+          const isActive = id === sectionId;
+          el.classList.toggle('hidden', !isActive);
+          el.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+        if (profileWindow?.updateProfileSidebarSection) {
+          profileWindow.updateProfileSidebarSection(sectionId);
+        }
+      };
+
+      const resolveInitialSection = () => {
+        if (profileWindow?.currentProfileSection && sectionIds.includes(profileWindow.currentProfileSection)) {
+          return profileWindow.currentProfileSection;
+        }
+        return defaultSection;
+      };
+
+      const applySection = (sectionId: string) => {
+        if (!sectionIds.includes(sectionId)) return;
+        profileWindow && (profileWindow.currentProfileSection = sectionId);
+        setActiveProfileSection(sectionId);
+      };
+
+      const initialActiveSection = resolveInitialSection();
+      applySection(initialActiveSection);
+
+      if (profileWindow) {
+        profileWindow.onProfileSectionChange = (sectionId: string) => {
+          applySection(sectionId);
+        };
+      }
+    }
+
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProfileContent, { once: true });
+      } else {
+        initProfileContent();
+      }
+    }
+  </script>
+</UserLayout>

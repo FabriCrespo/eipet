@@ -1,0 +1,569 @@
+---
+const title = 'Historial';
+
+// Datos de ejemplo - en producción vendrían de una API o base de datos
+const historyProducts = [
+  {
+    id: '1',
+    name: 'Royal Canin Puppy 15kg',
+    price: 450.00,
+    originalPrice: 520.00,
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
+    category: 'Alimentos',
+    brand: 'Royal Canin',
+    rating: 4.8,
+    reviews: 124,
+    inStock: true,
+    discount: 13
+  },
+  {
+    id: '2',
+    name: 'Collar Antipulgas para Perros',
+    price: 85.50,
+    originalPrice: 95.00,
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop',
+    category: 'Accesorios',
+    brand: 'Seresto',
+    rating: 4.6,
+    reviews: 89,
+    inStock: true,
+    discount: 10
+  },
+  {
+    id: '3',
+    name: 'Juguete Pelota Interactiva',
+    price: 45.00,
+    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
+    category: 'Juguetes',
+    brand: 'Kong',
+    rating: 4.9,
+    reviews: 256,
+    inStock: true
+  },
+  {
+    id: '4',
+    name: 'Cama Ortopédica para Perros Grandes',
+    price: 320.00,
+    originalPrice: 380.00,
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop',
+    category: 'Camas',
+    brand: 'PetFusion',
+    rating: 4.7,
+    reviews: 67,
+    inStock: true,
+    discount: 16
+  },
+  {
+    id: '5',
+    name: 'Shampoo Antipulgas',
+    price: 65.00,
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
+    category: 'Higiene',
+    brand: 'Frontline',
+    rating: 4.5,
+    reviews: 142,
+    inStock: true
+  },
+  {
+    id: '6',
+    name: 'Comedero Automático Inteligente',
+    price: 280.00,
+    originalPrice: 350.00,
+    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
+    category: 'Accesorios',
+    brand: 'PetSafe',
+    rating: 4.8,
+    reviews: 203,
+    inStock: true,
+    discount: 20
+  }
+];
+
+const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Juguetes', 'Camas', 'Higiene'];
+---
+
+<section class="space-y-6">
+  <!-- Título -->
+  <div class="mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900">{title}</h1>
+    <p class="text-gray-600 mt-2">Gestiona tu historial de visualizaciones</p>
+  </div>
+
+  <!-- Barra de búsqueda y filtros -->
+  <div class="flex flex-col sm:flex-row gap-4 mb-8">
+    <!-- Barra de búsqueda -->
+    <div class="flex-1 relative">
+      <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Buscar en historial..."
+        class="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-rose-400 focus:outline-none focus:ring-4 focus:ring-rose-100 transition-all duration-300 text-sm md:text-base"
+      />
+    </div>
+
+    <!-- Dropdown de filtros -->
+    <div class="relative w-full sm:w-auto" id="filter-dropdown-container">
+      <button
+        type="button"
+        id="category-filter-btn"
+        class="w-full sm:w-auto flex items-center gap-2 px-5 py-3.5 sm:min-w-[200px] rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-rose-50 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-100 justify-between"
+      >
+        <span id="category-filter-text" class="text-sm md:text-base">Todas las categorías</span>
+        <svg class="h-5 w-5 text-gray-400 transition-transform duration-200 shrink-0" id="category-filter-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      <!-- Menú dropdown -->
+      <div
+        id="category-dropdown-menu"
+        class="hidden absolute top-full left-0 right-0 sm:right-auto mt-2 w-full sm:w-auto sm:min-w-[200px] bg-white border-2 border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+      >
+        {categoryOptions.map((category) => (
+          <button
+            type="button"
+            class="filter-option w-full text-left px-5 py-3 hover:bg-rose-50 transition-colors duration-200 flex items-center justify-between text-sm md:text-base"
+            data-category={category === 'Todas las categorías' ? 'all' : category.toLowerCase()}
+          >
+            <span>{category}</span>
+            <svg class="h-4 w-4 text-rose-600 check-icon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={category === 'Todas las categorías' ? '' : 'display: none;'}>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de productos del historial -->
+  <div id="products-container" class="min-h-[400px] flex flex-col gap-6">
+    <!-- Los productos se renderizarán aquí con JavaScript -->
+  </div>
+
+  <!-- Mensaje cuando no hay historial -->
+  <div id="no-products-message" class="hidden text-center py-16">
+    <div class="max-w-md mx-auto">
+      <div class="w-24 h-24 mx-auto mb-6 bg-rose-100 rounded-full flex items-center justify-center">
+        <svg class="w-12 h-12 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">No tienes historial de visualizaciones</h3>
+      <p class="text-gray-600 mb-6">Los productos que veas aparecerán aquí para que puedas encontrarlos fácilmente</p>
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition-all duration-200 hover:shadow-lg"
+        onclick="document.getElementById('search-input')?.focus()"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Buscar Productos
+      </button>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-gray-200">
+    <div class="text-sm text-gray-600 order-2 sm:order-1">
+      Mostrando <span id="pagination-start" class="font-semibold">0</span> - <span id="pagination-end" class="font-semibold">0</span> de <span id="pagination-total" class="font-semibold">0</span> productos
+    </div>
+    <div class="flex items-center gap-2 order-1 sm:order-2">
+      <button
+        id="prev-page-btn"
+        type="button"
+        class="px-4 py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-rose-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white"
+        disabled
+        aria-label="Página anterior"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <div id="pagination-numbers" class="flex items-center gap-1 flex-wrap justify-center">
+        <!-- Los números de página se generarán con JavaScript -->
+      </div>
+      <button
+        id="next-page-btn"
+        type="button"
+        class="px-4 py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-rose-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white"
+        aria-label="Página siguiente"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script define:vars={{ historyData: historyProducts }}>
+    (function() {
+      // Datos de productos del historial
+      const initialProducts = historyData || [];
+      
+      // Esperar a que el DOM esté listo
+      function init() {
+        // Configuración
+        const PRODUCTS_PER_PAGE = 6;
+        let allProducts = [...initialProducts];
+        let filteredProducts = [...allProducts];
+        let currentPage = 1;
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Elementos del DOM
+        const productsContainer = document.getElementById('products-container');
+        const noProductsMessage = document.getElementById('no-products-message');
+        const paginationContainer = document.getElementById('pagination-container');
+        const searchInput = document.getElementById('search-input');
+        const categoryFilterBtn = document.getElementById('category-filter-btn');
+        const categoryFilterText = document.getElementById('category-filter-text');
+        const categoryFilterArrow = document.getElementById('category-filter-arrow');
+        const categoryDropdownMenu = document.getElementById('category-dropdown-menu');
+        const filterDropdownContainer = document.getElementById('filter-dropdown-container');
+        const prevPageBtn = document.getElementById('prev-page-btn');
+        const nextPageBtn = document.getElementById('next-page-btn');
+        const paginationNumbers = document.getElementById('pagination-numbers');
+        const paginationStart = document.getElementById('pagination-start');
+        const paginationEnd = document.getElementById('pagination-end');
+        const paginationTotal = document.getElementById('pagination-total');
+
+        if (!productsContainer || !noProductsMessage || !paginationContainer || !searchInput || 
+            !categoryFilterBtn || !categoryFilterText || !categoryFilterArrow || !categoryDropdownMenu ||
+            !filterDropdownContainer || !prevPageBtn || !nextPageBtn || !paginationNumbers ||
+            !paginationStart || !paginationEnd || !paginationTotal) {
+          console.error('No se pudieron encontrar todos los elementos necesarios');
+          return;
+        }
+
+        // Cargar productos
+        function loadProducts() {
+          // Los datos ya están disponibles en initialProducts
+          allProducts = [...initialProducts];
+          
+          if (allProducts && allProducts.length > 0) {
+            filteredProducts = [...allProducts];
+            renderProducts();
+            updatePagination();
+          } else {
+            // Si no hay productos, mostrar mensaje
+            if (productsContainer) productsContainer.classList.add('hidden');
+            if (noProductsMessage) noProductsMessage.classList.remove('hidden');
+            if (paginationContainer) paginationContainer.classList.add('hidden');
+          }
+        }
+
+        // Filtrar productos
+        function filterProducts() {
+          filteredProducts = allProducts.filter((product) => {
+            // Filtro por categoría
+            if (currentFilter !== 'all') {
+              const productCategory = product.category.toLowerCase();
+              if (productCategory !== currentFilter) {
+                return false;
+              }
+            }
+
+            // Filtro por búsqueda
+            if (currentSearch.trim() !== '') {
+              const searchLower = currentSearch.toLowerCase();
+              const productName = product.name.toLowerCase();
+              const productBrand = (product.brand || '').toLowerCase();
+              if (!productName.includes(searchLower) && !productBrand.includes(searchLower)) {
+                return false;
+              }
+            }
+
+            return true;
+          });
+
+          currentPage = 1;
+          renderProducts();
+          updatePagination();
+        }
+
+        // Renderizar productos
+        function renderProducts() {
+          if (!productsContainer || !noProductsMessage || !paginationContainer) return;
+          
+          const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+          const end = start + PRODUCTS_PER_PAGE;
+          const productsToShow = filteredProducts.slice(start, end);
+
+          if (productsToShow.length === 0) {
+            productsContainer.classList.add('hidden');
+            noProductsMessage.classList.remove('hidden');
+            paginationContainer.classList.add('hidden');
+            return;
+          }
+
+          productsContainer.classList.remove('hidden');
+          noProductsMessage.classList.add('hidden');
+          paginationContainer.classList.remove('hidden');
+
+          productsContainer.innerHTML = productsToShow.map((product) => {
+            const escapeHtml = (text) => {
+              const div = document.createElement('div');
+              div.textContent = text;
+              return div.innerHTML;
+            };
+
+            const discountBadge = product.discount ? 
+              '<span class="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-lg z-10">-' + product.discount + '%</span>' : '';
+            
+            const originalPriceHtml = product.originalPrice ? 
+              '<p class="text-xs md:text-sm text-gray-400 line-through">Bs. ' + product.originalPrice.toFixed(2) + '</p>' : '';
+
+            const starsHtml = Array.from({ length: 5 }, (_, i) => 
+              '<svg class="w-4 h-4 ' + (i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300') + '" fill="currentColor" viewBox="0 0 24 24">' +
+              '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />' +
+              '</svg>'
+            ).join('');
+
+            const stockBadge = product.inStock ? 
+              '<span class="flex items-center gap-1.5 text-xs text-green-600 bg-green-50 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">' +
+              '<svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>' +
+              'Disponible</span>' :
+              '<span class="text-xs text-red-600 bg-red-50 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">Agotado</span>';
+
+            // Card principal - cada producto en su propia card separada
+            return `
+              <div class="bg-white rounded-2xl border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group w-full" data-product-id="${product.id}">
+                <div class="flex flex-col md:flex-row">
+                  <!-- Imagen del producto -->
+                  <div class="relative bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden md:w-64 lg:w-72 shrink-0">
+                    <div class="aspect-square md:aspect-auto md:h-full">
+                      <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      ${discountBadge}
+                      <button type="button" class="remove-history-btn absolute top-3 right-3 p-2.5 bg-red-500/90 backdrop-blur-sm rounded-full hover:bg-red-600 text-white transition-all duration-200 shadow-lg z-20 group/btn" data-product-id="${product.id}" aria-label="Eliminar del historial">
+                        <svg class="w-5 h-5 text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Contenido de la card -->
+                  <div class="flex-1 p-5 md:p-6 lg:p-8 flex flex-col justify-between min-h-[200px]">
+                    <div class="flex-1">
+                      <!-- Categoría y stock -->
+                      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <span class="text-xs text-rose-600 bg-rose-50 px-3 py-1 rounded-full font-semibold uppercase tracking-wide">${escapeHtml(product.category)}</span>
+                        ${stockBadge}
+                      </div>
+                      <!-- Nombre del producto -->
+                      <h3 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 leading-tight line-clamp-2">${escapeHtml(product.name)}</h3>
+                      <!-- Marca -->
+                      <p class="text-sm md:text-base text-gray-600 mb-3 font-medium">${escapeHtml(product.brand)}</p>
+                      <!-- Rating -->
+                      <div class="flex items-center gap-2 mb-4 flex-wrap">
+                        <div class="flex items-center gap-0.5">
+                          ${starsHtml}
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">${product.rating.toFixed(1)}</span>
+                        <span class="text-xs text-gray-500">(${product.reviews})</span>
+                      </div>
+                    </div>
+                    <!-- Precio y botones -->
+                    <div class="pt-4 border-t border-gray-100 mt-auto">
+                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-baseline gap-2">
+                          ${originalPriceHtml}
+                          <p class="text-2xl md:text-3xl font-bold text-gray-900">Bs. ${product.price.toFixed(2)}</p>
+                        </div>
+                        <div class="flex gap-2 sm:gap-3">
+                          <button type="button" class="flex-1 sm:flex-none px-5 md:px-6 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base whitespace-nowrap">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Agregar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          attachEventListeners();
+        }
+
+        // Asignar event listeners
+        function attachEventListeners() {
+          document.querySelectorAll('.remove-history-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const target = e.currentTarget;
+              if (target && target instanceof HTMLButtonElement) {
+                const productId = target.getAttribute('data-product-id');
+                if (productId && confirm('¿Estás seguro de eliminar este producto del historial?')) {
+                  removeFromHistory(productId);
+                }
+              }
+            });
+          });
+        }
+
+        // Eliminar del historial
+        function removeFromHistory(productId) {
+          allProducts = allProducts.filter((p) => p.id !== productId);
+          filteredProducts = filteredProducts.filter((p) => p.id !== productId);
+          renderProducts();
+          updatePagination();
+        }
+
+        // Actualizar paginación
+        function updatePagination() {
+          const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+          const start = (currentPage - 1) * PRODUCTS_PER_PAGE + 1;
+          const end = Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length);
+
+          if (paginationStart) {
+            paginationStart.textContent = String(filteredProducts.length > 0 ? start : 0);
+          }
+          if (paginationEnd) {
+            paginationEnd.textContent = String(end);
+          }
+          if (paginationTotal) {
+            paginationTotal.textContent = String(filteredProducts.length);
+          }
+
+          // Botones anterior/siguiente
+          if (prevPageBtn instanceof HTMLButtonElement) {
+            prevPageBtn.disabled = currentPage === 1;
+          }
+          if (nextPageBtn instanceof HTMLButtonElement) {
+            nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+          }
+
+          // Números de página
+          if (paginationNumbers) {
+            paginationNumbers.innerHTML = '';
+          }
+          const maxVisiblePages = 5;
+          let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+          if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+          }
+
+          for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.type = 'button';
+            pageBtn.className = `px-3 md:px-4 py-2 rounded-xl border-2 transition-all duration-200 text-sm md:text-base ${
+              i === currentPage
+                ? 'border-rose-600 bg-rose-600 text-white shadow-md'
+                : 'border-gray-200 bg-white text-gray-700 hover:border-rose-400 hover:bg-rose-50'
+            }`;
+            pageBtn.textContent = String(i);
+            pageBtn.setAttribute('aria-label', `Ir a página ${i}`);
+            pageBtn.addEventListener('click', () => {
+              currentPage = i;
+              renderProducts();
+              updatePagination();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            if (paginationNumbers) {
+              paginationNumbers.appendChild(pageBtn);
+            }
+          }
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', (e) => {
+          const target = e.target;
+          if (target && target instanceof HTMLInputElement) {
+            currentSearch = target.value;
+            filterProducts();
+          }
+        });
+
+        categoryFilterBtn.addEventListener('click', () => {
+          categoryDropdownMenu.classList.toggle('hidden');
+          categoryFilterArrow.classList.toggle('rotate-180');
+        });
+
+        document.querySelectorAll('.filter-option').forEach(option => {
+          option.addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            if (!target || !(target instanceof HTMLButtonElement)) return;
+            
+            const category = target.dataset.category || 'all';
+            const span = target.querySelector('span');
+            const categoryText = span ? span.textContent : 'Todas las categorías';
+            
+            currentFilter = category;
+            if (categoryFilterText) {
+              categoryFilterText.textContent = categoryText || 'Todas las categorías';
+            }
+            categoryDropdownMenu.classList.add('hidden');
+            categoryFilterArrow.classList.remove('rotate-180');
+            
+            // Actualizar checkmarks
+            document.querySelectorAll('.filter-option').forEach(opt => {
+              const checkIcon = opt.querySelector('.check-icon');
+              if (checkIcon && checkIcon instanceof SVGElement) {
+                checkIcon.style.display = 'none';
+              }
+            });
+            const currentCheckIcon = target.querySelector('.check-icon');
+            if (currentCheckIcon && currentCheckIcon instanceof SVGElement) {
+              currentCheckIcon.style.display = 'block';
+            }
+            
+            filterProducts();
+          });
+        });
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', (e) => {
+          const target = e.target;
+          if (target && filterDropdownContainer && target instanceof Node && !filterDropdownContainer.contains(target)) {
+            categoryDropdownMenu.classList.add('hidden');
+            categoryFilterArrow.classList.remove('rotate-180');
+          }
+        });
+
+        prevPageBtn.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage--;
+            renderProducts();
+            updatePagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+
+        nextPageBtn.addEventListener('click', () => {
+          const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+          if (currentPage < totalPages) {
+            currentPage++;
+            renderProducts();
+            updatePagination();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+
+        // Inicializar
+        loadProducts();
+      }
+
+      // Ejecutar cuando el DOM esté listo
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        // DOM ya está listo
+        init();
+      }
+    })();
+  </script>
+</section>
+

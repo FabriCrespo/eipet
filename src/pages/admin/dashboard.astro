@@ -1,0 +1,326 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Funciones helper para formatear números
+function formatCurrency(value: number): string {
+  return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatNumber(value: number): string {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Datos de ejemplo - en producción vendrían de una API
+const stats = {
+  totalSales: 45280.50,
+  totalOrders: 1247,
+  totalUsers: 3421,
+  totalProducts: 156,
+  pendingOrders: 23,
+  lowStock: 8,
+  todaySales: 3240.00,
+  todayOrders: 18
+};
+
+const recentOrders = [
+  {
+    id: '12389',
+    customer: 'María González',
+    date: '25 de enero, 14:30',
+    total: 156.80,
+    status: 'Pendiente',
+    statusColor: 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+  },
+  {
+    id: '12388',
+    customer: 'Juan Pérez',
+    date: '25 de enero, 13:15',
+    total: 342.90,
+    status: 'Procesando',
+    statusColor: 'bg-blue-50 text-blue-700 border border-blue-200'
+  },
+  {
+    id: '12387',
+    customer: 'Ana Martínez',
+    date: '25 de enero, 12:00',
+    total: 89.50,
+    status: 'En camino',
+    statusColor: 'bg-purple-50 text-purple-700 border border-purple-200'
+  },
+  {
+    id: '12386',
+    customer: 'Carlos López',
+    date: '25 de enero, 11:30',
+    total: 278.30,
+    status: 'Entregado',
+    statusColor: 'bg-green-50 text-green-700 border border-green-200'
+  }
+];
+
+const topProducts = [
+  { name: 'Royal Canin Puppy 15kg', sales: 145, revenue: 21750.00 },
+  { name: 'Collar Antipulgas', sales: 98, revenue: 8379.00 },
+  { name: 'Juguete Pelota Interactiva', sales: 87, revenue: 3915.00 },
+  { name: 'Shampoo Antipulgas', sales: 76, revenue: 4940.00 }
+];
+---
+
+<Layout>
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Header -->
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p class="text-gray-600">Bienvenido al panel de administración</p>
+        </div>
+        <div class="flex gap-3">
+          <a
+            href="/admin/users"
+            class="px-6 py-3 bg-linear-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <span>Usuarios</span>
+          </a>
+          <a
+            href="/admin/products"
+            class="px-6 py-3 bg-linear-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span>Productos</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Tarjetas de Métricas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Ventas Totales -->
+        <div class="bg-linear-to-br from-purple-500 to-pink-500 rounded-3xl p-6 text-white shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-white/80">+12.5%</span>
+          </div>
+          <p class="text-sm text-white/80 mb-1">Ventas Totales</p>
+          <p class="text-3xl font-bold">Bs. {formatCurrency(stats.totalSales)}</p>
+        </div>
+
+        <!-- Pedidos Totales -->
+        <div class="bg-linear-to-br from-blue-500 to-cyan-500 rounded-3xl p-6 text-white shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-white/80">+8.2%</span>
+          </div>
+          <p class="text-sm text-white/80 mb-1">Pedidos Totales</p>
+          <p class="text-3xl font-bold">{formatNumber(stats.totalOrders)}</p>
+        </div>
+
+        <!-- Usuarios -->
+        <div class="bg-linear-to-br from-green-500 to-emerald-500 rounded-3xl p-6 text-white shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-white/80">+15.3%</span>
+          </div>
+          <p class="text-sm text-white/80 mb-1">Usuarios Registrados</p>
+          <p class="text-3xl font-bold">{formatNumber(stats.totalUsers)}</p>
+        </div>
+
+        <!-- Productos -->
+        <div class="bg-linear-to-br from-orange-500 to-red-500 rounded-3xl p-6 text-white shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-white/80">{stats.lowStock} bajo stock</span>
+          </div>
+          <p class="text-sm text-white/80 mb-1">Productos Activos</p>
+          <p class="text-3xl font-bold">{stats.totalProducts}</p>
+        </div>
+      </div>
+
+      <!-- Segunda Fila de Métricas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Ventas de Hoy -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Ventas de Hoy</p>
+              <p class="text-2xl font-bold text-gray-900">Bs. {formatCurrency(stats.todaySales)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pedidos de Hoy -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Pedidos de Hoy</p>
+              <p class="text-2xl font-bold text-gray-900">{stats.todayOrders}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pedidos Pendientes -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Pendientes</p>
+              <p class="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Productos Bajo Stock -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Bajo Stock</p>
+              <p class="text-2xl font-bold text-gray-900">{stats.lowStock}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos y Tablas -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Gráfico de Ventas -->
+        <div class="bg-white rounded-3xl border border-gray-200 shadow-md p-6 lg:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Ventas de los Últimos 7 Días</h2>
+            <select class="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100">
+              <option>7 días</option>
+              <option>30 días</option>
+              <option>90 días</option>
+            </select>
+          </div>
+          <div class="h-64 flex items-end justify-between gap-2">
+            {[65, 80, 45, 90, 70, 85, 95].map((height, index) => (
+              <div class="flex-1 flex flex-col items-center gap-2">
+                <div
+                  class="w-full bg-linear-to-t from-purple-500 to-pink-500 rounded-t-lg transition-all hover:opacity-80"
+                  style={`height: ${height}%`}
+                ></div>
+                <span class="text-xs text-gray-500">{['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][index]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Productos Más Vendidos -->
+        <div class="bg-white rounded-3xl border border-gray-200 shadow-md p-6 lg:p-8">
+          <h2 class="text-xl font-bold text-gray-900 mb-6">Productos Más Vendidos</h2>
+          <div class="space-y-4">
+            {topProducts.map((product, index) => (
+              <div class="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3 flex-1">
+                  <div class="w-8 h-8 rounded-lg bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+                    {index + 1}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 truncate">{product.name}</p>
+                    <p class="text-sm text-gray-600">{product.sales} ventas</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-bold text-gray-900">Bs. {formatCurrency(product.revenue)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Pedidos Recientes -->
+      <div class="bg-white rounded-3xl border border-gray-200 shadow-md p-6 lg:p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-900">Pedidos Recientes</h2>
+          <a href="/admin/orders" class="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1">
+            Ver todos
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">ID</th>
+                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Cliente</th>
+                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Fecha</th>
+                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Total</th>
+                <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Estado</th>
+                <th class="text-right py-3 px-4 text-sm font-semibold text-gray-700">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order) => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td class="py-4 px-4">
+                    <span class="font-semibold text-gray-900">#{order.id}</span>
+                  </td>
+                  <td class="py-4 px-4">
+                    <p class="text-gray-900">{order.customer}</p>
+                  </td>
+                  <td class="py-4 px-4">
+                    <p class="text-sm text-gray-600">{order.date}</p>
+                  </td>
+                  <td class="py-4 px-4">
+                    <p class="font-semibold text-gray-900">Bs. {order.total.toFixed(2)}</p>
+                  </td>
+                  <td class="py-4 px-4">
+                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${order.statusColor}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td class="py-4 px-4 text-right">
+                    <button class="text-purple-600 hover:text-purple-700 font-medium text-sm">
+                      Ver detalles
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

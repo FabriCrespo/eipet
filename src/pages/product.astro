@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProductDetail from '../components/ProductDetail.astro';
+
+// Obtener el ID del producto de la URL
+const url = Astro.url;
+const productIdParam = url.searchParams.get('id');
+
+// Parsear el ID y validar
+let productId = 0;
+if (productIdParam) {
+  const parsed = parseInt(productIdParam, 10);
+  if (!isNaN(parsed) && parsed > 0) {
+    productId = parsed;
+  }
+}
+
+// Debug temporal - verificar valores
+// console.log('URL completa:', url.href);
+// console.log('ProductIdParam:', productIdParam);
+// console.log('ProductId parseado:', productId);
+---
+
+<Layout>
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 flex items-center gap-2 text-sm text-gray-600">
+        <a href="/" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Inicio</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="/products" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Productos</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-800 font-medium">Detalle del Producto</span>
+      </nav>
+
+      <!-- Componente de Detalle del Producto -->
+      <ProductDetail productId={productId} />
+    </div>
+  </section>
+</Layout>
+

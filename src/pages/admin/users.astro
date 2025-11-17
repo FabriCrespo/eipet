@@ -1,0 +1,306 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Funciones helper
+function formatCurrency(value: number): string {
+  return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatNumber(value: number): string {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Datos de ejemplo - en producción vendrían de una API
+const users = [
+  {
+    id: 'USR-001',
+    name: 'María González',
+    email: 'maria.gonzalez@email.com',
+    phone: '+591 71234567',
+    orders: 24,
+    totalSpent: 3420.50,
+    status: 'Activo',
+    statusColor: 'bg-green-50 text-green-700 border border-green-200',
+    registeredDate: '15 de enero, 2024',
+    lastOrder: '20 de enero, 2025'
+  },
+  {
+    id: 'USR-002',
+    name: 'Juan Pérez',
+    email: 'juan.perez@email.com',
+    phone: '+591 72345678',
+    orders: 18,
+    totalSpent: 2890.30,
+    status: 'Activo',
+    statusColor: 'bg-green-50 text-green-700 border border-green-200',
+    registeredDate: '22 de enero, 2024',
+    lastOrder: '18 de enero, 2025'
+  },
+  {
+    id: 'USR-003',
+    name: 'Ana Martínez',
+    email: 'ana.martinez@email.com',
+    phone: '+591 73456789',
+    orders: 12,
+    totalSpent: 1567.80,
+    status: 'Activo',
+    statusColor: 'bg-green-50 text-green-700 border border-green-200',
+    registeredDate: '10 de febrero, 2024',
+    lastOrder: '15 de enero, 2025'
+  },
+  {
+    id: 'USR-004',
+    name: 'Carlos López',
+    email: 'carlos.lopez@email.com',
+    phone: '+591 74567890',
+    orders: 8,
+    totalSpent: 890.40,
+    status: 'Inactivo',
+    statusColor: 'bg-gray-50 text-gray-700 border border-gray-200',
+    registeredDate: '5 de marzo, 2024',
+    lastOrder: '10 de diciembre, 2024'
+  },
+  {
+    id: 'USR-005',
+    name: 'Laura Sánchez',
+    email: 'laura.sanchez@email.com',
+    phone: '+591 75678901',
+    orders: 31,
+    totalSpent: 4520.90,
+    status: 'Activo',
+    statusColor: 'bg-green-50 text-green-700 border border-green-200',
+    registeredDate: '8 de enero, 2024',
+    lastOrder: '24 de enero, 2025'
+  },
+  {
+    id: 'USR-006',
+    name: 'Roberto Torres',
+    email: 'roberto.torres@email.com',
+    phone: '+591 76789012',
+    orders: 5,
+    totalSpent: 456.20,
+    status: 'Suspendido',
+    statusColor: 'bg-red-50 text-red-700 border border-red-200',
+    registeredDate: '20 de marzo, 2024',
+    lastOrder: '5 de enero, 2025'
+  }
+];
+
+const stats = {
+  totalUsers: users.length,
+  activeUsers: users.filter(u => u.status === 'Activo').length,
+  inactiveUsers: users.filter(u => u.status === 'Inactivo').length,
+  suspendedUsers: users.filter(u => u.status === 'Suspendido').length
+};
+---
+
+<Layout>
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Header -->
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Gestión de Usuarios</h1>
+          <p class="text-gray-600">Administra los usuarios registrados en la plataforma</p>
+        </div>
+        <button class="px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Nuevo Usuario</span>
+        </button>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Usuarios -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Total Usuarios</p>
+              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.totalUsers)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usuarios Activos -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Activos</p>
+              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.activeUsers)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usuarios Inactivos -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Inactivos</p>
+              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.inactiveUsers)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usuarios Suspendidos -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Suspendidos</p>
+              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.suspendedUsers)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Búsqueda y Filtros -->
+      <div class="bg-white rounded-3xl border border-gray-200 shadow-md p-6 mb-8">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <!-- Búsqueda -->
+          <div class="flex-1 relative">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar por nombre, email o teléfono..."
+              class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+            />
+          </div>
+
+          <!-- Filtro por Estado -->
+          <select class="px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
+            <option value="all">Todos los estados</option>
+            <option value="active">Activos</option>
+            <option value="inactive">Inactivos</option>
+            <option value="suspended">Suspendidos</option>
+          </select>
+
+          <!-- Filtro por Orden -->
+          <select class="px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
+            <option value="recent">Más recientes</option>
+            <option value="oldest">Más antiguos</option>
+            <option value="orders">Más pedidos</option>
+            <option value="spent">Mayor gasto</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabla de Usuarios -->
+      <div class="bg-white rounded-3xl border border-gray-200 shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Usuario</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Contacto</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Pedidos</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Total Gastado</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Estado</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Último Pedido</th>
+                <th class="text-right py-4 px-6 text-sm font-semibold text-gray-700">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td class="py-4 px-6">
+                    <div>
+                      <p class="font-semibold text-gray-900">{user.name}</p>
+                      <p class="text-sm text-gray-500">ID: {user.id}</p>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6">
+                    <div>
+                      <p class="text-sm text-gray-900">{user.email}</p>
+                      <p class="text-sm text-gray-500">{user.phone}</p>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6">
+                    <span class="font-semibold text-gray-900">{user.orders}</span>
+                  </td>
+                  <td class="py-4 px-6">
+                    <p class="font-semibold text-gray-900">Bs. {formatCurrency(user.totalSpent)}</p>
+                  </td>
+                  <td class="py-4 px-6">
+                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${user.statusColor}`}>
+                      {user.status}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6">
+                    <p class="text-sm text-gray-600">{user.lastOrder}</p>
+                  </td>
+                  <td class="py-4 px-6 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <button class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Ver detalles">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 border-t border-gray-200">
+          <div class="text-sm text-gray-600">
+            Mostrando <span class="font-semibold">1</span> - <span class="font-semibold">{users.length}</span> de <span class="font-semibold">{users.length}</span> usuarios
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="px-4 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button class="px-4 py-2 rounded-lg border-2 border-purple-400 bg-purple-50 text-purple-700 font-semibold">1</button>
+            <button class="px-4 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50 transition-all">2</button>
+            <button class="px-4 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50 transition-all">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+

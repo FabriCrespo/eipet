@@ -1,0 +1,620 @@
+---
+interface Props {
+  currentSection?: string;
+  helpLink?: string;
+  homeLink?: string;
+  onSectionChange?: (section: string) => void;
+  onLogout?: () => void;
+  sectionConfig?: ReadonlyArray<{ readonly id: string; readonly title: string; readonly Component: any }>;
+}
+
+const {
+  currentSection = 'info',
+  helpLink = '/ayuda',
+  homeLink = '/',
+  onSectionChange,
+  onLogout,
+  sectionConfig = []
+} = Astro.props;
+
+// Mapeo de iconos y colores para cada sección
+const sectionMetadata: Record<string, { icon: string; description: string; color: string }> = {
+  info: {
+    icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+    description: 'Información personal',
+    color: 'from-blue-500 to-indigo-600'
+  },
+  orders: {
+    icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+    description: 'Historial y seguimiento',
+    color: 'from-purple-500 to-pink-600'
+  },
+  addresses: {
+    icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z',
+    description: 'Gestionar direcciones',
+    color: 'from-green-500 to-emerald-600'
+  },
+  payment: {
+    icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+    description: 'Tarjetas guardadas',
+    color: 'from-yellow-500 to-orange-600'
+  },
+  favorites: {
+    icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+    description: 'Productos guardados',
+    color: 'from-pink-500 to-red-600'
+  },
+  history: {
+    icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+    description: 'Productos vistos',
+    color: 'from-indigo-500 to-purple-600'
+  },
+  returns: {
+    icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
+    description: 'Solicitar devolución',
+    color: 'from-orange-500 to-red-600'
+  },
+  settings: {
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+    description: 'Preferencias de cuenta',
+    color: 'from-gray-500 to-gray-700'
+  },
+  security: {
+    icon: 'M9 12v2m0 0h6m-6 0v6m0-6V9a6 6 0 0112 0v3m0 0v6m0-6h-6m6 0H9',
+    description: 'Contraseña y acceso',
+    color: 'from-cyan-500 to-blue-600'
+  }
+};
+
+// Separar secciones principales y secundarias
+const mainSections = sectionConfig.filter(s => ['info', 'orders', 'addresses', 'payment', 'favorites', 'history', 'returns'].includes(s.id));
+const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includes(s.id));
+---
+
+---
+
+<!-- Mobile Menu Button -->
+<button
+  id="profile-mobile-menu-btn"
+  type="button"
+  aria-label="Abrir menú de cuenta"
+  aria-controls="profile-sidebar"
+  aria-expanded="false"
+  data-state="closed"
+  class="lg:hidden fixed bottom-6 right-6 z-60 bg-linear-to-r from-purple-600 to-pink-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 focus-visible:ring-4 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-purple-500 flex items-center justify-center min-w-[56px] min-h-[56px] overflow-hidden"
+  style="display: flex !important; visibility: visible !important; opacity: 1 !important;"
+>
+  <span class="sr-only">Abrir menú de cuenta</span>
+  <span aria-hidden="true" class="absolute inset-0 bg-white/10 blur-lg opacity-0 transition-opacity duration-300" id="menu-btn-glow"></span>
+  <svg class="w-6 h-6 relative" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+</button>
+
+<!-- Sidebar -->
+<aside
+  id="profile-sidebar"
+  class="fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-72 lg:w-72 xl:w-80 bg-white/95 lg:bg-transparent transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none lg:shrink-0 backdrop-blur-xl border-r border-white/40 lg:border-transparent overflow-visible"
+  data-initial-section={currentSection}
+>
+  <div aria-hidden="true" class="absolute inset-0 pointer-events-none hidden lg:block">
+    <div class="absolute -top-16 -right-10 w-44 h-44 rounded-full bg-pink-400/10 blur-3xl"></div>
+    <div class="absolute -bottom-10 -left-8 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl"></div>
+  </div>
+  <div class="h-full flex flex-col overflow-y-auto overscroll-contain pb-24 lg:pb-8">
+    <!-- Mobile Header -->
+    <div class="lg:hidden flex items-center justify-between p-6 border-b bg-linear-to-r from-purple-600 to-pink-600">
+      <h2 class="font-bold text-white text-xl">Mi Cuenta</h2>
+      <button
+        id="close-sidebar-btn"
+        class="p-2 hover:bg-white/20 rounded-lg transition-colors"
+      >
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- User Info Card - Desktop -->
+    <div class="hidden lg:block bg-white rounded-2xl shadow-lg border border-purple-100 p-4 mb-4 lg:shrink-0">
+      <div class="flex items-center gap-3 mb-3" id="user-info-card">
+        <!-- Se llenará con JavaScript -->
+      </div>
+      <a
+        href={homeLink}
+        class="flex items-center justify-center gap-2 w-full bg-linear-to-r from-purple-100 to-pink-100 text-purple-700 py-2 rounded-xl font-medium hover:shadow-md hover:from-purple-200 hover:to-pink-200 transition-all duration-300 text-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        Volver a la tienda
+      </a>
+    </div>
+
+    <!-- Menu Items -->
+    <nav class="flex-1 p-6 lg:p-0 space-y-1 overflow-y-auto overflow-x-hidden pr-2 lg:pr-0 scroll-smooth" id="profile-menu">
+      <!-- Se llenará con JavaScript -->
+    </nav>
+
+    <!-- Logout Button -->
+    <div class="p-6 lg:p-0 lg:mt-3 lg:shrink-0 m-2">
+      <button
+        id="logout-btn"
+        class="flex items-center justify-center gap-2 w-full bg-linear-to-r from-red-500 to-orange-600 text-white py-2.5 rounded-xl font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Cerrar Sesión
+      </button>
+    </div>
+
+    <!-- Help Section -->
+    <div class="p-6 lg:p-0 lg:mt-3 lg:shrink-0">
+      <div class="bg-linear-to-br from-purple-600 to-pink-600 rounded-2xl p-4 text-white relative overflow-hidden">
+        <div class="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+        <div class="relative">
+          <h3 class="font-bold text-sm mb-1">¿Necesitas ayuda?</h3>
+          <p class="text-xs mb-2.5 opacity-90">
+            Nuestro equipo está disponible para asistirte
+          </p>
+          <a
+            href={helpLink}
+            class="block w-full bg-white text-purple-600 text-center py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-xs"
+          >
+            Centro de Ayuda
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Datos de secciones para JavaScript -->
+<script define:vars={{ sectionConfigData: sectionConfig, sectionMetadataData: sectionMetadata, mainSectionsData: mainSections, bottomSectionsData: bottomSections }} is:inline>
+  window.sectionConfigData = sectionConfigData;
+  window.sectionMetadataData = sectionMetadataData;
+  window.mainSectionsData = mainSectionsData;
+  window.bottomSectionsData = bottomSectionsData;
+</script>
+
+<!-- Overlay for mobile -->
+<div
+  id="sidebar-overlay"
+  class="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"
+></div>
+
+<style>
+  :global(.sr-only) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  #profile-sidebar .menu-item {
+    position: relative;
+    isolation: isolate;
+  }
+
+  #profile-sidebar .menu-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    opacity: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.4), transparent);
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+
+  #profile-sidebar .menu-item:hover::after {
+    opacity: 1;
+  }
+
+  @media (max-width: 1023px) {
+    #profile-sidebar {
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25);
+    }
+
+    #profile-sidebar .menu-item {
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #profile-mobile-menu-btn,
+    #profile-sidebar,
+    #sidebar-overlay,
+    #profile-sidebar .menu-item {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  // Tipos e interfaces
+  interface User {
+    id?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    birthdate?: string;
+    avatar?: string;
+    newsletter?: boolean;
+    notifications?: boolean;
+    firstName?: string;
+  }
+
+  // @ts-ignore
+  const allSectionIds = (window.sectionConfigData || []).map((s: any) => s.id) as string[];
+  type Section = string;
+
+  type ProfileWindow = Window &
+    typeof globalThis & {
+      currentProfileSection?: Section;
+      onProfileSectionChange?: (section: Section) => void;
+      updateProfileSidebarSection?: (section: Section) => void;
+      onProfileLogout?: () => void;
+      openProfileSidebar?: (event?: Event) => void;
+      closeProfileSidebar?: (event?: Event) => void;
+    };
+
+  const profileWindow = typeof window !== 'undefined' ? (window as ProfileWindow) : undefined;
+
+  // Estado del sidebar
+  let currentSectionState: Section = 'info';
+  let currentUser: User | null = null;
+  let isSidebarOpen = false;
+
+  // Obtener datos dinámicos de secciones
+  // @ts-ignore
+  const mainSectionsData = (window.mainSectionsData || []) as Array<{ id: string; title: string }>;
+  // @ts-ignore
+  const bottomSectionsData = (window.bottomSectionsData || []) as Array<{ id: string; title: string }>;
+  // @ts-ignore
+  const sectionMetadataData = (window.sectionMetadataData || {}) as Record<string, { icon: string; description: string; color: string }>;
+
+  // Construir menuItems dinámicamente
+  const menuItems = mainSectionsData.map(section => {
+    const metadata = sectionMetadataData[section.id] || {
+      icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
+      description: section.title,
+      color: 'from-gray-500 to-gray-600'
+    };
+    return {
+      title: section.title,
+      icon: metadata.icon,
+      href: `/profile/${section.id}`,
+      section: section.id,
+      description: metadata.description,
+      color: metadata.color
+    };
+  });
+
+  // Construir bottomMenuItems dinámicamente
+  const bottomMenuItems = bottomSectionsData.map(section => {
+    const metadata = sectionMetadataData[section.id] || {
+      icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
+      description: section.title,
+      color: 'from-gray-500 to-gray-600'
+    };
+    return {
+      title: section.title,
+      icon: metadata.icon,
+      href: `/profile/${section.id}`,
+      section: section.id,
+      description: metadata.description,
+      color: metadata.color
+    };
+  });
+
+  // Elementos DOM
+  const profileSidebar = document.getElementById('profile-sidebar');
+  const profileMobileMenuBtn = document.getElementById('profile-mobile-menu-btn');
+  const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const profileMenu = document.getElementById('profile-menu');
+  const userInfoCard = document.getElementById('user-info-card');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  // Cargar usuario desde localStorage
+  function loadUser(): void {
+    try {
+      const userStr = localStorage.getItem('currentUser');
+      if (userStr) {
+        currentUser = JSON.parse(userStr) as User;
+      } else {
+        // Usuario mock para desarrollo
+        currentUser = {
+          id: '1',
+          name: 'Usuario Demo',
+          email: 'usuario@demo.com',
+          phone: '+591 71234567',
+          birthdate: '1990-05-15',
+          avatar: 'https://ui-avatars.com/api/?name=Usuario+Demo&background=5d3fbb&color=fff&size=128'
+        };
+      }
+      renderUserInfo();
+    } catch (error) {
+      console.error('Error loading user:', error);
+      currentUser = null;
+    }
+  }
+
+  // Renderizar información del usuario
+  function renderUserInfo() {
+    if (!userInfoCard || !currentUser) return;
+
+    userInfoCard.innerHTML = `
+      <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+        ${currentUser.name?.charAt(0) || 'U'}
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="font-bold text-gray-800 text-base truncate">${currentUser.name || 'Usuario'}</h3>
+        <p class="text-xs text-gray-600">Mi cuenta</p>
+      </div>
+    `;
+  }
+
+  // Renderizar menú
+  function renderMenu() {
+    if (!profileMenu) return;
+
+    let menuHTML = '';
+
+    menuItems.forEach((item) => {
+      const isActive = currentSectionState === item.section;
+      menuHTML += `
+        <a
+          href="#"
+          class="menu-item m-2 flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 group flex-shrink-0 ${
+            isActive
+              ? 'bg-gradient-to-r ' + item.color + ' text-white shadow-lg transform scale-[1.02]'
+              : 'hover:bg-gray-100 text-gray-700 hover:shadow-md hover:translate-x-1'
+          }"
+          data-section="${item.section}"
+        >
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0 ${
+            isActive
+              ? 'bg-white/20'
+              : 'bg-gradient-to-br ' + item.color + ' text-white group-hover:scale-110 group-hover:rotate-3'
+          }">
+            <svg class="w-5 h-5 ${isActive ? 'text-white' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${item.icon}" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate">${item.title}</p>
+            <p class="text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} truncate">
+              ${item.description}
+            </p>
+          </div>
+          <svg class="w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:translate-x-1'} transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      `;
+    });
+
+    menuHTML += '<div class="my-3 border-t border-gray-200"></div>';
+
+    bottomMenuItems.forEach((item) => {
+      const isActive = currentSectionState === item.section;
+      menuHTML += `
+        <a
+          href="#"
+          class="menu-item m-2 flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 group flex-shrink-0 ${
+            isActive
+              ? 'bg-gradient-to-r ' + item.color + ' text-white shadow-lg transform scale-[1.02]'
+              : 'hover:bg-gray-100 text-gray-700 hover:shadow-md hover:translate-x-1'
+          }"
+          data-section="${item.section}"
+        >
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0 ${
+            isActive
+              ? 'bg-white/20'
+              : 'bg-gradient-to-br ' + item.color + ' text-white group-hover:scale-110 group-hover:rotate-3'
+          }">
+            <svg class="w-5 h-5 ${isActive ? 'text-white' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${item.icon}" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate">${item.title}</p>
+            <p class="text-xs ${isActive ? 'text-white/80' : 'text-gray-500'} truncate">
+              ${item.description}
+            </p>
+          </div>
+          <svg class="w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:translate-x-1'} transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      `;
+    });
+
+    profileMenu.innerHTML = menuHTML;
+
+    // Agregar event listeners
+    // @ts-ignore
+    const allSectionIds = (window.sectionConfigData || []).map((s: any) => s.id);
+    document.querySelectorAll('.menu-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = item.getAttribute('data-section');
+        if (section && allSectionIds.includes(section)) {
+          currentSectionState = section as Section;
+          renderMenu();
+          closeMobileSidebar();
+          
+          // Llamar callback si existe
+          if (profileWindow?.onProfileSectionChange) {
+            profileWindow.onProfileSectionChange(section);
+          }
+        }
+      });
+    });
+  }
+
+  // Abrir/cerrar sidebar móvil
+  function setMenuButtonState(isOpen: boolean) {
+    if (!profileMobileMenuBtn) return;
+    profileMobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    profileMobileMenuBtn.dataset.state = isOpen ? 'open' : 'closed';
+    const glow = document.getElementById('menu-btn-glow');
+    if (glow) {
+      glow.style.opacity = isOpen ? '1' : '0';
+    }
+  }
+
+  function handleResponsiveState() {
+    if (!profileWindow) return;
+    const viewportWidth = profileWindow.innerWidth ?? 0;
+    const isDesktop = viewportWidth >= 1024;
+
+    if (profileMobileMenuBtn) {
+      if (isDesktop) {
+        profileMobileMenuBtn.style.display = 'none';
+      } else {
+        profileMobileMenuBtn.style.display = 'flex';
+        profileMobileMenuBtn.style.visibility = 'visible';
+        profileMobileMenuBtn.style.opacity = '1';
+      }
+    }
+
+    if (isDesktop) {
+      if (profileSidebar) {
+        profileSidebar.classList.remove('-translate-x-full');
+      }
+      if (sidebarOverlay) {
+        sidebarOverlay.classList.add('hidden');
+        sidebarOverlay.classList.remove('opacity-100');
+      }
+      document.body.style.overflow = '';
+      isSidebarOpen = false;
+      setMenuButtonState(false);
+    }
+  }
+
+  function openMobileSidebar(e?: Event) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (profileSidebar) {
+      profileSidebar.classList.remove('-translate-x-full');
+      isSidebarOpen = true;
+    }
+    if (sidebarOverlay) {
+      sidebarOverlay.classList.remove('hidden');
+      profileWindow?.requestAnimationFrame(() => sidebarOverlay?.classList.add('opacity-100'));
+    }
+    setMenuButtonState(true);
+    // Prevenir scroll del body cuando el sidebar está abierto
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileSidebar(e?: Event) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (profileSidebar) {
+      profileSidebar.classList.add('-translate-x-full');
+      isSidebarOpen = false;
+    }
+    if (sidebarOverlay) {
+      sidebarOverlay.classList.remove('opacity-100');
+      setTimeout(() => sidebarOverlay?.classList.add('hidden'), 250);
+    }
+    setMenuButtonState(false);
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+  }
+
+  // Función pública para actualizar la sección activa
+  function updateActiveSection(section: Section) {
+    currentSectionState = section;
+    renderMenu();
+  }
+
+  // Event Listeners
+  if (profileMobileMenuBtn) {
+    profileMobileMenuBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openMobileSidebar(e);
+    });
+    
+    profileWindow?.addEventListener('resize', () => {
+      handleResponsiveState();
+    });
+  }
+
+  if (closeSidebarBtn) {
+    closeSidebarBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMobileSidebar(e);
+    });
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMobileSidebar(e);
+    });
+  }
+
+  // Cerrar sidebar al presionar ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isSidebarOpen) {
+      closeMobileSidebar(e);
+    }
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        localStorage.removeItem('currentUser');
+        
+        // Llamar callback si existe
+        if (profileWindow?.onProfileLogout) {
+          profileWindow.onProfileLogout();
+        } else {
+          profileWindow && (profileWindow.location.href = '/');
+        }
+      }
+    });
+  }
+
+  // Inicializar
+  const initialSectionAttr = profileSidebar?.getAttribute('data-initial-section');
+  const initialSection = ((profileWindow?.currentProfileSection) || initialSectionAttr || 'info') as Section;
+  currentSectionState = initialSection;
+  loadUser();
+  renderMenu();
+  handleResponsiveState();
+
+  // Asegurar que el botón móvil sea visible después de la carga
+  setTimeout(() => {
+    const btn = document.getElementById('profile-mobile-menu-btn');
+    if (btn) {
+      handleResponsiveState();
+    }
+  }, 100);
+
+  // Exponer funciones globalmente
+  if (profileWindow) {
+    profileWindow.updateProfileSidebarSection = updateActiveSection;
+    profileWindow.openProfileSidebar = openMobileSidebar;
+    profileWindow.closeProfileSidebar = closeMobileSidebar;
+  }
+</script>
+

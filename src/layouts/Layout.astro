@@ -1,3 +1,9 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -8,15 +14,13 @@
 		<title>Astro Basics</title>
 	</head>
 	<body>
-		<slot />
-	</body>
+		<div class="min-h-screen flex flex-col bg-gray-50">
+		  <Header />
+		  <main class="grow bg-gray-100">
+			<slot />
+		  </main>
+		  <Footer />
+		</div>
+	  </body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
