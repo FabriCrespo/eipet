@@ -119,7 +119,7 @@ import '../styles/global.css';
               Favoritos
             </a>
             <div id="admin-link" class="hidden">
-              <a href="/admin" class="flex items-center gap-3 px-5 py-3.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-transparent transition-all duration-200 font-medium" data-astro-prefetch>
+              <a href="/admin/dashboard" class="flex items-center gap-3 px-5 py-3.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-transparent transition-all duration-200 font-medium" data-astro-prefetch>
                 <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
@@ -129,13 +129,27 @@ import '../styles/global.css';
             <hr class="my-1 border-gray-200" />
             <button 
               id="logout-btn" 
-              class="w-full flex items-center gap-3 px-5 py-3.5 text-red-600 hover:bg-red-50 transition-all duration-200 font-medium text-left"
+              class="w-full items-center gap-3 px-5 py-3.5 text-red-600 hover:bg-red-50 transition-all duration-200 font-medium text-left hidden"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               Cerrar Sesión
             </button>
+            <div id="login-menu-items" class="hidden">
+              <a href="/login" class="flex items-center gap-3 px-5 py-3.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-transparent transition-all duration-200 font-medium" data-astro-prefetch>
+                <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Iniciar Sesión
+              </a>
+              <a href="/signup" class="flex items-center gap-3 px-5 py-3.5 text-gray-700 hover:bg-linear-to-r hover:from-purple-50 hover:to-transparent transition-all duration-200 font-medium" data-astro-prefetch>
+                <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Crear Cuenta
+              </a>
+            </div>
           </div>
         </div>
 
@@ -214,7 +228,7 @@ import '../styles/global.css';
           ❤️ Favoritos
         </a>
         <div id="mobile-admin-link" class="hidden">
-          <a href="/admin" class="px-6 py-3 text-white font-semibold hover:bg-white/10 transition-all duration-200 rounded-lg mx-2" data-astro-prefetch>
+          <a href="/admin/dashboard" class="px-6 py-3 text-white font-semibold hover:bg-white/10 transition-all duration-200 rounded-lg mx-2" data-astro-prefetch>
             ⚙️ Panel Admin
           </a>
         </div>
@@ -222,9 +236,9 @@ import '../styles/global.css';
         <button id="mobile-logout-btn" class="px-6 py-3 text-red-300 font-semibold hover:bg-red-500/20 transition-all duration-200 rounded-lg mx-2 text-left hidden">
           🚪 Cerrar Sesión
         </button>
-        <button id="mobile-login-btn" class="px-6 py-3 text-white font-semibold hover:bg-white/10 transition-all duration-200 rounded-lg mx-2 text-left">
+        <a href="/login" id="mobile-login-btn" class="px-6 py-3 text-white font-semibold hover:bg-white/10 transition-all duration-200 rounded-lg mx-2 text-left" data-astro-prefetch>
           🔐 Iniciar Sesión
-        </button>
+        </a>
       </div>
     </nav>
   </div>
@@ -287,6 +301,9 @@ import '../styles/global.css';
   document.addEventListener('DOMContentLoaded', () => {
     // Verificar autenticación
     const token = localStorage.getItem('token');
+    const loginMenuItems = document.getElementById('login-menu-items');
+    const userMenuItems = document.querySelectorAll('a[href="/profile"], a[href="/profile/orders"], a[href="/profile/favorites"]');
+    
     if (token) {
       const userData = localStorage.getItem('user');
       if (userData) {
@@ -295,12 +312,36 @@ import '../styles/global.css';
           const userName = document.getElementById('user-name');
           if (userName) userName.textContent = user.firstName || 'Usuario';
           logoutBtn?.classList.remove('hidden');
+          logoutBtn?.classList.add('flex');
           mobileLogoutBtn?.classList.remove('hidden');
           document.getElementById('mobile-login-btn')?.classList.add('hidden');
+          loginMenuItems?.classList.add('hidden');
+          
+          // Show/hide admin link based on role
+          const adminLink = document.getElementById('admin-link');
+          const mobileAdminLink = document.getElementById('mobile-admin-link');
+          if (user.role === 'admin') {
+            adminLink?.classList.remove('hidden');
+            mobileAdminLink?.classList.remove('hidden');
+          } else {
+            adminLink?.classList.add('hidden');
+            mobileAdminLink?.classList.add('hidden');
+          }
+          
+          // Show user menu items
+          userMenuItems.forEach(item => item.classList.remove('hidden'));
         } catch (e) {
           console.error('Error parsing user:', e);
         }
       }
+    } else {
+      // No token - show login options
+      logoutBtn?.classList.add('hidden');
+      mobileLogoutBtn?.classList.add('hidden');
+      document.getElementById('mobile-login-btn')?.classList.remove('hidden');
+      loginMenuItems?.classList.remove('hidden');
+      // Hide user menu items
+      userMenuItems.forEach(item => item.classList.add('hidden'));
     }
 
     // Carrito
