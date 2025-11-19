@@ -10,59 +10,20 @@ function formatNumber(value: number): string {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// Datos de ejemplo - en producción vendrían de una API
+// Datos iniciales - se cargarán desde Firestore
 const stats = {
-  totalSales: 45280.50,
-  totalOrders: 1247,
-  totalUsers: 3421,
-  totalProducts: 156,
-  pendingOrders: 23,
-  lowStock: 8,
-  todaySales: 3240.00,
-  todayOrders: 18
+  totalSales: 0,
+  totalOrders: 0,
+  totalUsers: 0,
+  totalProducts: 0,
+  pendingOrders: 0,
+  lowStock: 0,
+  todaySales: 0,
+  todayOrders: 0
 };
 
-const recentOrders = [
-  {
-    id: '12389',
-    customer: 'María González',
-    date: '25 de enero, 14:30',
-    total: 156.80,
-    status: 'Pendiente',
-    statusColor: 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-  },
-  {
-    id: '12388',
-    customer: 'Juan Pérez',
-    date: '25 de enero, 13:15',
-    total: 342.90,
-    status: 'Procesando',
-    statusColor: 'bg-blue-50 text-blue-700 border border-blue-200'
-  },
-  {
-    id: '12387',
-    customer: 'Ana Martínez',
-    date: '25 de enero, 12:00',
-    total: 89.50,
-    status: 'En camino',
-    statusColor: 'bg-purple-50 text-purple-700 border border-purple-200'
-  },
-  {
-    id: '12386',
-    customer: 'Carlos López',
-    date: '25 de enero, 11:30',
-    total: 278.30,
-    status: 'Entregado',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200'
-  }
-];
-
-const topProducts = [
-  { name: 'Royal Canin Puppy 15kg', sales: 145, revenue: 21750.00 },
-  { name: 'Collar Antipulgas', sales: 98, revenue: 8379.00 },
-  { name: 'Juguete Pelota Interactiva', sales: 87, revenue: 3915.00 },
-  { name: 'Shampoo Antipulgas', sales: 76, revenue: 4940.00 }
-];
+const recentOrders: any[] = [];
+const topProducts: any[] = [];
 ---
 
 <Layout>
@@ -109,7 +70,7 @@ const topProducts = [
             <span class="text-sm font-medium text-white/80">+12.5%</span>
           </div>
           <p class="text-sm text-white/80 mb-1">Ventas Totales</p>
-          <p class="text-3xl font-bold">Bs. {formatCurrency(stats.totalSales)}</p>
+          <p class="text-3xl font-bold" id="total-sales">Bs. {formatCurrency(stats.totalSales)}</p>
         </div>
 
         <!-- Pedidos Totales -->
@@ -123,7 +84,7 @@ const topProducts = [
             <span class="text-sm font-medium text-white/80">+8.2%</span>
           </div>
           <p class="text-sm text-white/80 mb-1">Pedidos Totales</p>
-          <p class="text-3xl font-bold">{formatNumber(stats.totalOrders)}</p>
+          <p class="text-3xl font-bold" id="total-orders">{formatNumber(stats.totalOrders)}</p>
         </div>
 
         <!-- Usuarios -->
@@ -137,7 +98,7 @@ const topProducts = [
             <span class="text-sm font-medium text-white/80">+15.3%</span>
           </div>
           <p class="text-sm text-white/80 mb-1">Usuarios Registrados</p>
-          <p class="text-3xl font-bold">{formatNumber(stats.totalUsers)}</p>
+          <p class="text-3xl font-bold" id="total-users">{formatNumber(stats.totalUsers)}</p>
         </div>
 
         <!-- Productos -->
@@ -151,7 +112,7 @@ const topProducts = [
             <span class="text-sm font-medium text-white/80">{stats.lowStock} bajo stock</span>
           </div>
           <p class="text-sm text-white/80 mb-1">Productos Activos</p>
-          <p class="text-3xl font-bold">{stats.totalProducts}</p>
+          <p class="text-3xl font-bold" id="total-products">{stats.totalProducts}</p>
         </div>
       </div>
 
@@ -167,7 +128,7 @@ const topProducts = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Ventas de Hoy</p>
-              <p class="text-2xl font-bold text-gray-900">Bs. {formatCurrency(stats.todaySales)}</p>
+              <p class="text-2xl font-bold text-gray-900" id="today-sales">Bs. {formatCurrency(stats.todaySales)}</p>
             </div>
           </div>
         </div>
@@ -182,7 +143,7 @@ const topProducts = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Pedidos de Hoy</p>
-              <p class="text-2xl font-bold text-gray-900">{stats.todayOrders}</p>
+              <p class="text-2xl font-bold text-gray-900" id="today-orders">{stats.todayOrders}</p>
             </div>
           </div>
         </div>
@@ -197,7 +158,7 @@ const topProducts = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Pendientes</p>
-              <p class="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
+              <p class="text-2xl font-bold text-gray-900" id="pending-orders">{stats.pendingOrders}</p>
             </div>
           </div>
         </div>
@@ -212,7 +173,7 @@ const topProducts = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Bajo Stock</p>
-              <p class="text-2xl font-bold text-gray-900">{stats.lowStock}</p>
+              <p class="text-2xl font-bold text-gray-900" id="low-stock">{stats.lowStock}</p>
             </div>
           </div>
         </div>
@@ -279,7 +240,7 @@ const topProducts = [
           </a>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table id="recent-orders" class="w-full">
             <thead>
               <tr class="border-b border-gray-200">
                 <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">ID</th>
@@ -324,3 +285,170 @@ const topProducts = [
     </div>
   </section>
 </Layout>
+
+<script>
+  (async () => {
+    // Dynamic imports
+    const { getAllOrders } = await import('../../lib/db/orders');
+    const { getProducts } = await import('../../lib/db/products');
+    const { getCurrentUser, getCurrentUserData } = await import('../../lib/auth');
+    const { collection, getDocs } = await import('firebase/firestore');
+    const { db } = await import('../../lib/firebase');
+    
+    // Check if user is admin
+    const firebaseUser = getCurrentUser();
+    if (!firebaseUser) {
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+    
+    const userDataResult = await getCurrentUserData();
+    if (!userDataResult.success || !userDataResult.user || userDataResult.user.role !== 'admin') {
+      alert('No tienes permisos para acceder a esta página');
+      window.location.href = '/';
+      return;
+    }
+    
+    try {
+      // Load all orders
+      const ordersResult = await getAllOrders();
+      const allOrders = ordersResult.data || [];
+      
+      // Calculate stats
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayOrders = allOrders.filter((order: any) => {
+        const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || 0);
+        return orderDate >= today;
+      });
+      
+      const pendingOrders = allOrders.filter((order: any) => order.status === 'pending');
+      
+      const totalSales = allOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+      const todaySales = todayOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+      
+      // Load products
+      const productsResult = await getProducts();
+      const allProducts = productsResult.data || [];
+      
+      const lowStock = allProducts.filter((p: any) => (p.stock || 0) < 10).length;
+      
+      // Load users count
+      const usersSnapshot = await getDocs(collection(db, 'users'));
+      const totalUsers = usersSnapshot.size;
+      
+      // Get recent orders (last 4)
+      const sortedOrders = [...allOrders].sort((a: any, b: any) => {
+        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      const recentOrdersData = sortedOrders.slice(0, 4).map((order: any) => {
+        const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || Date.now());
+        const formattedDate = new Intl.DateTimeFormat('es-ES', {
+          day: 'numeric',
+          month: 'long',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(orderDate);
+        
+        const statusMap: any = {
+          'pending': { text: 'Pendiente', color: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+          'processing': { text: 'Procesando', color: 'bg-blue-50 text-blue-700 border border-blue-200' },
+          'shipped': { text: 'En camino', color: 'bg-purple-50 text-purple-700 border border-purple-200' },
+          'delivered': { text: 'Entregado', color: 'bg-green-50 text-green-700 border border-green-200' },
+          'cancelled': { text: 'Cancelado', color: 'bg-red-50 text-red-700 border border-red-200' }
+        };
+        
+        const statusInfo = statusMap[order.status] || { text: order.status, color: 'bg-gray-50 text-gray-700 border border-gray-200' };
+        
+        // Get customer name from order or user
+        const customerName = order.customerName || order.userName || 'Cliente';
+        
+        return {
+          id: order.id || order.orderNumber || '',
+          customer: customerName,
+          date: formattedDate,
+          total: order.total || 0,
+          status: statusInfo.text,
+          statusColor: statusInfo.color
+        };
+      });
+      
+      // Calculate top products (simplified - would need order items aggregation)
+      const topProductsData: any[] = [];
+      // This would require aggregating order items, which is complex
+      // For now, we'll leave it empty or use a simplified approach
+      
+      // Update DOM
+      const updateStats = () => {
+        const elements: any = {
+          'total-sales': totalSales.toFixed(2),
+          'total-orders': allOrders.length,
+          'total-users': totalUsers,
+          'total-products': allProducts.length,
+          'pending-orders': pendingOrders.length,
+          'low-stock': lowStock,
+          'today-sales': todaySales.toFixed(2),
+          'today-orders': todayOrders.length
+        };
+        
+        Object.keys(elements).forEach(key => {
+          const el = document.getElementById(key);
+          if (el) {
+            if (key.includes('sales')) {
+              el.textContent = `Bs. ${elements[key]}`;
+            } else {
+              el.textContent = elements[key].toString();
+            }
+          }
+        });
+      };
+      
+      const updateRecentOrders = () => {
+        const tbody = document.querySelector('#recent-orders tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = recentOrdersData.map(order => `
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+            <td class="py-4 px-4">
+              <p class="text-gray-900">#${order.id}</p>
+            </td>
+            <td class="py-4 px-4">
+              <p class="text-gray-900">${order.customer}</p>
+            </td>
+            <td class="py-4 px-4">
+              <p class="text-sm text-gray-600">${order.date}</p>
+            </td>
+            <td class="py-4 px-4">
+              <p class="font-semibold text-gray-900">Bs. ${order.total.toFixed(2)}</p>
+            </td>
+            <td class="py-4 px-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${order.statusColor}">
+                ${order.status}
+              </span>
+            </td>
+            <td class="py-4 px-4 text-right">
+              <button class="text-purple-600 hover:text-purple-700 font-medium text-sm">
+                Ver detalles
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      };
+      
+      updateStats();
+      updateRecentOrders();
+      
+      // Hide loading if exists
+      const loadingEl = document.getElementById('dashboard-loading');
+      if (loadingEl) loadingEl.classList.add('hidden');
+      
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      alert('Error al cargar los datos del dashboard');
+    }
+  })();
+</script>

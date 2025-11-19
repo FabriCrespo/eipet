@@ -175,5 +175,83 @@ service cloud.firestore {
       // Solo admin puede crear/actualizar/eliminar
       allow create, update, delete: if isAdmin();
     }
+    
+    // ============================================================================
+    // DEVOLUCIONES
+    // ============================================================================
+    
+    match /returns/{returnId} {
+      // Solo el dueño de la devolución o admin puede leer
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Solo usuarios autenticados pueden crear devoluciones (y solo para sí mismos)
+      allow create: if isAuthenticated() && 
+                       userExists() && 
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Solo admin puede actualizar devoluciones (cambiar estado, etc.)
+      // El usuario puede actualizar su devolución solo si está en estado 'pending'
+      allow update: if isAdmin() || 
+                       (isOwner(resource.data.userId) && 
+                        resource.data.status == 'pending' && 
+                        request.resource.data.status == 'cancelled');
+      
+      // Solo admin puede eliminar devoluciones
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // HISTORIAL DE PRODUCTOS VISTOS
+    // ============================================================================
+    
+    match /viewHistory/{userId} {
+      // Solo el dueño o admin puede leer
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Solo el dueño puede crear/actualizar (solo para sí mismo)
+      allow create, update: if isAuthenticated() && 
+                               userExists() && 
+                               request.auth.uid == userId;
+      
+      // Solo el dueño o admin puede eliminar
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // ============================================================================
+    // CONFIGURACIONES DE USUARIO
+    // ============================================================================
+    
+    match /settings/{userId} {
+      // Solo el dueño o admin puede leer
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Solo el dueño puede crear/actualizar (solo para sí mismo)
+      allow create, update: if isAuthenticated() && 
+                               userExists() && 
+                               request.auth.uid == userId;
+      
+      // Solo admin puede eliminar configuraciones
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // CALIFICACIONES (RATINGS/REVIEWS)
+    // ============================================================================
+    
+    match /ratings/{ratingId} {
+      // Cualquiera puede leer calificaciones (para mostrar en productos)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden crear calificaciones (y solo para sí mismos)
+      allow create: if isAuthenticated() && 
+                       userExists() && 
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Solo el dueño de la calificación o admin puede actualizar
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Solo admin puede eliminar calificaciones
+      allow delete: if isAdmin();
+    }
   }
 }

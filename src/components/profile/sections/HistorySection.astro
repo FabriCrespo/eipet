@@ -1,85 +1,5 @@
 ---
 const title = 'Historial';
-
-// Datos de ejemplo - en producción vendrían de una API o base de datos
-const historyProducts = [
-  {
-    id: '1',
-    name: 'Royal Canin Puppy 15kg',
-    price: 450.00,
-    originalPrice: 520.00,
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
-    category: 'Alimentos',
-    brand: 'Royal Canin',
-    rating: 4.8,
-    reviews: 124,
-    inStock: true,
-    discount: 13
-  },
-  {
-    id: '2',
-    name: 'Collar Antipulgas para Perros',
-    price: 85.50,
-    originalPrice: 95.00,
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop',
-    category: 'Accesorios',
-    brand: 'Seresto',
-    rating: 4.6,
-    reviews: 89,
-    inStock: true,
-    discount: 10
-  },
-  {
-    id: '3',
-    name: 'Juguete Pelota Interactiva',
-    price: 45.00,
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
-    category: 'Juguetes',
-    brand: 'Kong',
-    rating: 4.9,
-    reviews: 256,
-    inStock: true
-  },
-  {
-    id: '4',
-    name: 'Cama Ortopédica para Perros Grandes',
-    price: 320.00,
-    originalPrice: 380.00,
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop',
-    category: 'Camas',
-    brand: 'PetFusion',
-    rating: 4.7,
-    reviews: 67,
-    inStock: true,
-    discount: 16
-  },
-  {
-    id: '5',
-    name: 'Shampoo Antipulgas',
-    price: 65.00,
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
-    category: 'Higiene',
-    brand: 'Frontline',
-    rating: 4.5,
-    reviews: 142,
-    inStock: true
-  },
-  {
-    id: '6',
-    name: 'Comedero Automático Inteligente',
-    price: 280.00,
-    originalPrice: 350.00,
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
-    category: 'Accesorios',
-    brand: 'PetSafe',
-    rating: 4.8,
-    reviews: 203,
-    inStock: true,
-    discount: 20
-  }
-];
-
-const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Juguetes', 'Camas', 'Higiene'];
 ---
 
 <section class="space-y-6">
@@ -140,9 +60,26 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
     </div>
   </div>
 
+  <!-- Loading State -->
+  <div id="history-loading" class="text-center py-16">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
+    <p class="mt-4 text-gray-600">Cargando historial...</p>
+  </div>
+
   <!-- Contenedor de productos del historial -->
-  <div id="products-container" class="min-h-[400px] flex flex-col gap-6">
+  <div id="products-container" class="min-h-[400px] flex flex-col gap-6 hidden">
     <!-- Los productos se renderizarán aquí con JavaScript -->
+  </div>
+  
+  <!-- Botón Limpiar Historial -->
+  <div id="clear-history-container" class="hidden mt-6 text-center">
+    <button
+      type="button"
+      id="clear-history-btn"
+      class="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all duration-200 hover:shadow-lg"
+    >
+      Limpiar Historial
+    </button>
   </div>
 
   <!-- Mensaje cuando no hay historial -->
@@ -202,20 +139,129 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
     </div>
   </div>
 
-  <script define:vars={{ historyData: historyProducts }}>
-    (function() {
-      // Datos de productos del historial
-      const initialProducts = historyData || [];
+  <script>
+    (async function() {
+      // Dynamic imports
+      let getViewHistory: any, removeFromViewHistory: any, clearViewHistory: any, getProductById: any, getCurrentUser: any;
+      let currentUser: any = null;
+      let allProducts: any[] = [];
+      let filteredProducts: any[] = [];
+      
+      try {
+        const historyModule = await import('../../../lib/db/history');
+        getViewHistory = historyModule.getViewHistory;
+        removeFromViewHistory = historyModule.removeFromViewHistory;
+        clearViewHistory = historyModule.clearViewHistory;
+        
+        const productsModule = await import('../../../lib/db/products');
+        getProductById = productsModule.getProductById;
+        
+        const authModule = await import('../../../lib/auth');
+        getCurrentUser = authModule.getCurrentUser;
+        
+        const firebaseUser = getCurrentUser();
+        if (!firebaseUser) {
+          const loadingEl = document.getElementById('history-loading');
+          if (loadingEl) loadingEl.classList.add('hidden');
+          return;
+        }
+        
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            currentUser = JSON.parse(userData);
+          } catch (e) {
+            console.error('Error parsing user:', e);
+          }
+        }
+        
+        if (!currentUser) {
+          const loadingEl = document.getElementById('history-loading');
+          if (loadingEl) loadingEl.classList.add('hidden');
+          return;
+        }
+        
+        await loadHistory();
+        init();
+      } catch (error) {
+        console.error('Error loading history:', error);
+        const loadingEl = document.getElementById('history-loading');
+        if (loadingEl) loadingEl.classList.add('hidden');
+      }
+      
+      // Función para cargar historial desde Firestore
+      async function loadHistory() {
+        const loadingEl = document.getElementById('history-loading');
+        const containerEl = document.getElementById('products-container');
+        
+        if (!getViewHistory || !getProductById || !currentUser) {
+          if (loadingEl) loadingEl.classList.add('hidden');
+          return;
+        }
+        
+        try {
+          const historyResult = await getViewHistory(currentUser.id);
+          
+          if (historyResult.error) {
+            console.error('Error loading history:', historyResult.error);
+            if (loadingEl) loadingEl.classList.add('hidden');
+            return;
+          }
+          
+          const historyItems = historyResult.data || [];
+          
+          // Cargar detalles de productos
+          allProducts = [];
+          for (const item of historyItems) {
+            try {
+              const productResult = await getProductById(item.productId);
+              if (productResult.data) {
+                const product = productResult.data;
+                allProducts.push({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  originalPrice: product.originalPrice,
+                  image: product.image,
+                  category: product.category || 'Otros',
+                  brand: product.brand || '',
+                  inStock: (product.stock || 0) > 0,
+                  discount: product.discount || 0,
+                  viewedAt: item.viewedAt
+                });
+              }
+            } catch (error) {
+              console.error('Error loading product:', item.productId, error);
+            }
+          }
+          
+          filteredProducts = [...allProducts];
+          
+          if (loadingEl) loadingEl.classList.add('hidden');
+          if (containerEl && allProducts.length > 0) {
+            containerEl.classList.remove('hidden');
+          }
+          
+          const clearBtnContainer = document.getElementById('clear-history-container');
+          if (clearBtnContainer) {
+            clearBtnContainer.classList.toggle('hidden', allProducts.length === 0);
+          }
+        } catch (error) {
+          console.error('Error loading history:', error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+        }
+      }
       
       // Esperar a que el DOM esté listo
       function init() {
         // Configuración
         const PRODUCTS_PER_PAGE = 6;
-        let allProducts = [...initialProducts];
-        let filteredProducts = [...allProducts];
         let currentPage = 1;
         let currentFilter = 'all';
         let currentSearch = '';
+        
+        // Obtener categorías únicas de los productos
+        const categoryOptions = ['Todas las categorías', ...new Set(allProducts.map(p => p.category))];
 
         // Elementos del DOM
         const productsContainer = document.getElementById('products-container');
@@ -242,21 +288,32 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
           return;
         }
 
-        // Cargar productos
-        function loadProducts() {
-          // Los datos ya están disponibles en initialProducts
-          allProducts = [...initialProducts];
-          
-          if (allProducts && allProducts.length > 0) {
-            filteredProducts = [...allProducts];
-            renderProducts();
-            updatePagination();
-          } else {
-            // Si no hay productos, mostrar mensaje
-            if (productsContainer) productsContainer.classList.add('hidden');
-            if (noProductsMessage) noProductsMessage.classList.remove('hidden');
-            if (paginationContainer) paginationContainer.classList.add('hidden');
-          }
+        // Actualizar opciones de categoría en el dropdown
+        const categoryDropdownMenu = document.getElementById('category-dropdown-menu');
+        if (categoryDropdownMenu) {
+          categoryDropdownMenu.innerHTML = categoryOptions.map((category) => `
+            <button
+              type="button"
+              class="filter-option w-full text-left px-5 py-3 hover:bg-rose-50 transition-colors duration-200 flex items-center justify-between text-sm md:text-base"
+              data-category="${category === 'Todas las categorías' ? 'all' : category.toLowerCase()}"
+            >
+              <span>${category}</span>
+              <svg class="h-4 w-4 text-rose-600 check-icon shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="${category === 'Todas las categorías' ? '' : 'display: none;'}">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          `).join('');
+        }
+        
+        // Renderizar productos inicialmente
+        if (allProducts && allProducts.length > 0) {
+          renderProducts();
+          updatePagination();
+        } else {
+          // Si no hay productos, mostrar mensaje
+          if (productsContainer) productsContainer.classList.add('hidden');
+          if (noProductsMessage) noProductsMessage.classList.remove('hidden');
+          if (paginationContainer) paginationContainer.classList.add('hidden');
         }
 
         // Filtrar productos
@@ -405,19 +462,75 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
               if (target && target instanceof HTMLButtonElement) {
                 const productId = target.getAttribute('data-product-id');
                 if (productId && confirm('¿Estás seguro de eliminar este producto del historial?')) {
-                  removeFromHistory(productId);
+                  removeFromHistoryFn(productId);
                 }
               }
             });
           });
+          
+          const clearHistoryBtn = document.getElementById('clear-history-btn');
+          if (clearHistoryBtn) {
+            clearHistoryBtn.addEventListener('click', clearHistoryFn);
+          }
         }
 
         // Eliminar del historial
-        function removeFromHistory(productId) {
-          allProducts = allProducts.filter((p) => p.id !== productId);
-          filteredProducts = filteredProducts.filter((p) => p.id !== productId);
-          renderProducts();
-          updatePagination();
+        async function removeFromHistoryFn(productId: string) {
+          if (!removeFromViewHistory || !currentUser) return;
+          
+          try {
+            const result = await removeFromViewHistory(currentUser.id, productId);
+            if (result.success) {
+              allProducts = allProducts.filter((p) => p.id !== productId);
+              filteredProducts = filteredProducts.filter((p) => p.id !== productId);
+              renderProducts();
+              updatePagination();
+              
+              const clearBtnContainer = document.getElementById('clear-history-container');
+              if (clearBtnContainer) {
+                clearBtnContainer.classList.toggle('hidden', allProducts.length === 0);
+              }
+            } else {
+              alert('Error al eliminar del historial');
+            }
+          } catch (error) {
+            console.error('Error removing from history:', error);
+            alert('Error al eliminar del historial');
+          }
+        }
+        
+        // Limpiar historial completo
+        async function clearHistoryFn() {
+          if (!clearViewHistory || !currentUser) return;
+          
+          if (!confirm('¿Estás seguro de limpiar todo el historial? Esta acción no se puede deshacer.')) {
+            return;
+          }
+          
+          try {
+            const result = await clearViewHistory(currentUser.id);
+            if (result.success) {
+              allProducts = [];
+              filteredProducts = [];
+              renderProducts();
+              updatePagination();
+              
+              const containerEl = document.getElementById('products-container');
+              const noProductsMessage = document.getElementById('no-products-message');
+              const paginationContainer = document.getElementById('pagination-container');
+              const clearBtnContainer = document.getElementById('clear-history-container');
+              
+              if (containerEl) containerEl.classList.add('hidden');
+              if (noProductsMessage) noProductsMessage.classList.remove('hidden');
+              if (paginationContainer) paginationContainer.classList.add('hidden');
+              if (clearBtnContainer) clearBtnContainer.classList.add('hidden');
+            } else {
+              alert('Error al limpiar el historial');
+            }
+          } catch (error) {
+            console.error('Error clearing history:', error);
+            alert('Error al limpiar el historial');
+          }
         }
 
         // Actualizar paginación
@@ -492,37 +605,42 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
           categoryFilterArrow.classList.toggle('rotate-180');
         });
 
-        document.querySelectorAll('.filter-option').forEach(option => {
-          option.addEventListener('click', (e) => {
-            const target = e.currentTarget;
-            if (!target || !(target instanceof HTMLButtonElement)) return;
-            
-            const category = target.dataset.category || 'all';
-            const span = target.querySelector('span');
-            const categoryText = span ? span.textContent : 'Todas las categorías';
-            
-            currentFilter = category;
-            if (categoryFilterText) {
-              categoryFilterText.textContent = categoryText || 'Todas las categorías';
-            }
-            categoryDropdownMenu.classList.add('hidden');
-            categoryFilterArrow.classList.remove('rotate-180');
-            
-            // Actualizar checkmarks
-            document.querySelectorAll('.filter-option').forEach(opt => {
-              const checkIcon = opt.querySelector('.check-icon');
-              if (checkIcon && checkIcon instanceof SVGElement) {
-                checkIcon.style.display = 'none';
+        // Re-attach filter options listeners after DOM update
+        function attachFilterListeners() {
+          document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+              const target = e.currentTarget;
+              if (!target || !(target instanceof HTMLButtonElement)) return;
+              
+              const category = target.dataset.category || 'all';
+              const span = target.querySelector('span');
+              const categoryText = span ? span.textContent : 'Todas las categorías';
+              
+              currentFilter = category;
+              if (categoryFilterText) {
+                categoryFilterText.textContent = categoryText || 'Todas las categorías';
               }
+              if (categoryDropdownMenu) categoryDropdownMenu.classList.add('hidden');
+              if (categoryFilterArrow) categoryFilterArrow.classList.remove('rotate-180');
+              
+              // Actualizar checkmarks
+              document.querySelectorAll('.filter-option').forEach(opt => {
+                const checkIcon = opt.querySelector('.check-icon');
+                if (checkIcon && checkIcon instanceof SVGElement) {
+                  checkIcon.style.display = 'none';
+                }
+              });
+              const currentCheckIcon = target.querySelector('.check-icon');
+              if (currentCheckIcon && currentCheckIcon instanceof SVGElement) {
+                currentCheckIcon.style.display = 'block';
+              }
+              
+              filterProducts();
             });
-            const currentCheckIcon = target.querySelector('.check-icon');
-            if (currentCheckIcon && currentCheckIcon instanceof SVGElement) {
-              currentCheckIcon.style.display = 'block';
-            }
-            
-            filterProducts();
           });
-        });
+        }
+        
+        attachFilterListeners();
 
         // Cerrar dropdown al hacer clic fuera
         document.addEventListener('click', (e) => {

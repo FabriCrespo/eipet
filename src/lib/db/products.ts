@@ -274,3 +274,108 @@ export async function adjustStock(id: string, adjustment: number): Promise<Write
   }
 }
 
+/**
+ * Obtener productos más vendidos basado en pedidos completados
+ */
+export async function getMostSoldProducts(limit: number = 10): Promise<QueryResult<Product>> {
+  try {
+    // Importar funciones de orders dinámicamente para evitar dependencias circulares
+    const { getAllOrders } = await import('./orders');
+    
+    // Obtener todos los pedidos entregados o completados
+    const ordersResult = await getAllOrders();
+    if (ordersResult.error || !ordersResult.data) {
+      return { data: [], error: ordersResult.error };
+    }
+    
+    // Filtrar solo pedidos entregados/completados
+    const completedOrders = ordersResult.data.filter((order: any) => 
+      order.status === 'delivered' || order.status === 'completed'
+    );
+    
+    // Contar ventas por producto
+    const productSales: Map<string, { quantity: number; revenue: number }> = new Map();
+    
+    for (const order of completedOrders) {
+      if (order.items && Array.isArray(order.items)) {
+        for (const item of order.items) {
+          const productId = item.productId;
+          if (productId) {
+            const current = productSales.get(productId) || { quantity: 0, revenue: 0 };
+            productSales.set(productId, {
+              quantity: current.quantity + (item.quantity || 0),
+              revenue: current.revenue + (item.subtotal || 0)
+            });
+          }
+        }
+      }
+    }
+    
+    // Convertir a array y ordenar por cantidad vendida
+    const sortedProducts = Array.from(productSales.entries())
+      .sort((a, b) => b[1].quantity - a[1].quantity)
+      .slice(0, limit);
+    
+    // Obtener información completa de los productos
+    const products: Product[] = [];
+    for (const [productId, sales] of sortedProducts) {
+      const productResult = await getProductById(productId);
+      if (productResult.data) {
+        products.push(productResult.data);
+      }
+    }
+    
+    return { data: products };
+  } catch (error) {
+    console.error('Error getting most sold products:', error);
+    return { data: [], error: error as Error };
+  }
+}
+
+/**
+ * Obtener estadísticas de ventas para un producto específico
+ */
+export async function getProductSalesStats(productId: string): Promise<{
+  sales: number; // Cantidad total vendida
+  revenue: number; // Ingresos totales
+}> {
+  try {
+    // Importar funciones de orders dinámicamente
+    const { getAllOrders } = await import('./orders');
+    
+    // Obtener todos los pedidos entregados o completados
+    const ordersResult = await getAllOrders();
+    if (ordersResult.error || !ordersResult.data) {
+      return { sales: 0, revenue: 0 };
+    }
+    
+    // Filtrar solo pedidos entregados/completados
+    const completedOrders = ordersResult.data.filter((order: any) => 
+      order.status === 'delivered' || order.status === 'completed'
+    );
+    
+    let totalSales = 0;
+    let totalRevenue = 0;
+    
+    // Calcular ventas y revenue para este producto
+    for (const order of completedOrders) {
+      if (order.items && Array.isArray(order.items)) {
+        for (const item of order.items) {
+          if (item.productId === productId) {
+            totalSales += item.quantity || 0;
+            totalRevenue += item.subtotal || 0;
+          }
+        }
+      }
+    }
+    
+    return {
+      sales: totalSales,
+      revenue: totalRevenue
+    };
+  } catch (error) {
+    console.error('Error getting product sales stats:', error);
+    return { sales: 0, revenue: 0 };
+  }
+}
+

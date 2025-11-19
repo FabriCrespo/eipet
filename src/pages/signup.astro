@@ -214,6 +214,16 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <script>
+    // Dynamic imports for client-side
+    let register: any, getCurrentUserData: any, onAuthStateChange: any;
+    
+    (async () => {
+      const authModule = await import('../lib/auth');
+      register = authModule.register;
+      getCurrentUserData = authModule.getCurrentUserData;
+      onAuthStateChange = authModule.onAuthStateChange;
+    })();
+
     // Toggle password visibility
     const togglePassword = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
@@ -252,8 +262,17 @@ import Layout from '../layouts/Layout.astro';
     const signupForm = document.getElementById('signup-form');
     const errorMessage = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
+    const submitButton = signupForm?.querySelector('button[type="submit"]') as HTMLButtonElement;
 
     signupForm?.addEventListener('submit', async (e) => {
+      // Wait for auth module to load
+      if (!register || !getCurrentUserData) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!register || !getCurrentUserData) {
+          showError('Error al cargar el módulo de autenticación. Por favor, recarga la página.');
+          return;
+        }
+      }
       e.preventDefault();
       
       const firstName = (document.getElementById('firstName') as HTMLInputElement)?.value.trim();
@@ -288,35 +307,79 @@ import Layout from '../layouts/Layout.astro';
         return;
       }
 
-      // Simulate API call (replace with actual API endpoint)
-      try {
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/auth/signup', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ firstName, lastName, email, phone, password })
-        // });
-        
-        // For now, simulate successful signup
-        // All signups create client users (role: 'user')
-        const mockUser = {
-          id: 'user-' + Date.now(),
-          email: email,
-          firstName: firstName,
-          lastName: lastName,
-          phone: phone,
-          role: 'user' // Always 'user' for new signups
-        };
+      // Disable submit button
+      if (submitButton) {
+        submitButton.disabled = true;
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = `
+          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Creando cuenta...</span>
+        `;
+      }
 
-        // Store token and user data
-        localStorage.setItem('token', 'mock-token-' + Date.now());
-        localStorage.setItem('user', JSON.stringify(mockUser));
+      try {
+        // Register with Firebase Auth and create user in Firestore
+        const result = await register(email, password, {
+          firstName,
+          lastName,
+          phone,
+          role: 'user', // Always 'user' for new signups
+        });
+
+        if (!result.success) {
+          showError(result.error || 'Error al crear la cuenta');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              <span>Crear Cuenta</span>
+            `;
+          }
+          return;
+        }
+
+        // Get user data from Firestore
+        const userDataResult = await getCurrentUserData();
+        if (!userDataResult.success || !userDataResult.user) {
+          showError('Error al obtener los datos del usuario');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              <span>Crear Cuenta</span>
+            `;
+          }
+          return;
+        }
+
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(userDataResult.user));
+        if (result.user) {
+          // Store Firebase Auth token if needed
+          const token = await result.user.getIdToken();
+          localStorage.setItem('token', token);
+        }
 
         // Redirect to profile (clients always go to profile)
         window.location.href = '/profile';
       } catch (error) {
         showError('Error al crear la cuenta. Por favor, intenta de nuevo.');
         console.error('Signup error:', error);
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+            <span>Crear Cuenta</span>
+          `;
+        }
       }
     });
 
@@ -326,11 +389,20 @@ import Layout from '../layouts/Layout.astro';
     }
 
     // Check if already logged in
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        window.location.href = '/profile';
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wait for auth module to load
+      while (!onAuthStateChange || !getCurrentUserData) {
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
+      
+      onAuthStateChange(async (firebaseUser) => {
+        if (firebaseUser) {
+          const userDataResult = await getCurrentUserData();
+          if (userDataResult.success && userDataResult.user) {
+            window.location.href = '/profile';
+          }
+        }
+      });
     });
   </script>
 </Layout>

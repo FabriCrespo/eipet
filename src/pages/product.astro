@@ -1,32 +1,13 @@
 ---
-
-/*
-utlizar el script para llamar el producto dentro del html de abajo, se tiene que llamar despues de generar el DOM usando un etiqueta script
-*/
-
-
-
-
 import Layout from '../layouts/Layout.astro';
 import ProductDetail from '../components/ProductDetail.astro';
 
 // Obtener el ID del producto de la URL
 const url = Astro.url;
-const productIdParam = url.searchParams.get('id');
+const productIdParam = url.searchParams.get('id') || '';
 
-// Parsear el ID y validar
-let productId = 0;
-if (productIdParam) {
-  const parsed = parseInt(productIdParam, 10);
-  if (!isNaN(parsed) && parsed > 0) {
-    productId = parsed;
-  }
-}
-
-// Debug temporal - verificar valores
-// console.log('URL completa:', url.href);
-// console.log('ProductIdParam:', productIdParam);
-// console.log('ProductId parseado:', productId);
+// Pasar el ID como string (Firestore usa strings)
+const productId = productIdParam;
 ---
 
 <Layout>
@@ -50,4 +31,3 @@ if (productIdParam) {
     </div>
   </section>
 </Layout>
-

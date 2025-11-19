@@ -1,84 +1,5 @@
 ---
 const title = 'Favoritos';
-
-// Datos de ejemplo - en producción vendrían de una API o base de datos
-const favoriteProducts = [
-  {
-    id: '1',
-    name: 'Royal Canin Puppy 15kg',
-    price: 450.00,
-    originalPrice: 520.00,
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
-    category: 'Alimentos',
-    brand: 'Royal Canin',
-    rating: 4.8,
-    reviews: 124,
-    inStock: true,
-    discount: 13
-  },
-  {
-    id: '2',
-    name: 'Collar Antipulgas para Perros',
-    price: 85.50,
-    originalPrice: 95.00,
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop',
-    category: 'Accesorios',
-    brand: 'Seresto',
-    rating: 4.6,
-    reviews: 89,
-    inStock: true,
-    discount: 10
-  },
-  {
-    id: '3',
-    name: 'Juguete Pelota Interactiva',
-    price: 45.00,
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
-    category: 'Juguetes',
-    brand: 'Kong',
-    rating: 4.9,
-    reviews: 256,
-    inStock: true
-  },
-  {
-    id: '4',
-    name: 'Cama Ortopédica para Perros Grandes',
-    price: 320.00,
-    originalPrice: 380.00,
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=400&fit=crop',
-    category: 'Camas',
-    brand: 'PetFusion',
-    rating: 4.7,
-    reviews: 67,
-    inStock: true,
-    discount: 16
-  },
-  {
-    id: '5',
-    name: 'Shampoo Antipulgas',
-    price: 65.00,
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&h=400&fit=crop',
-    category: 'Higiene',
-    brand: 'Frontline',
-    rating: 4.5,
-    reviews: 142,
-    inStock: true
-  },
-  {
-    id: '6',
-    name: 'Comedero Automático Inteligente',
-    price: 280.00,
-    originalPrice: 350.00,
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
-    category: 'Accesorios',
-    brand: 'PetSafe',
-    rating: 4.8,
-    reviews: 203,
-    inStock: true,
-    discount: 20
-  }
-];
-
 const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Juguetes', 'Camas', 'Higiene'];
 ---
 
@@ -89,10 +10,11 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
     <p class="text-gray-600 mt-2">Gestiona tus productos favoritos</p>
   </div>
 
-  <!-- Datos de productos favoritos para JavaScript -->
-  <script define:vars={{ favoritesData: favoriteProducts }} is:inline>
-    window.favoritesData = favoritesData;
-  </script>
+  <!-- Loading State -->
+  <div id="favorites-loading" class="text-center py-16">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500"></div>
+    <p class="mt-4 text-gray-600">Cargando favoritos...</p>
+  </div>
 
   <!-- Barra de búsqueda y filtros -->
   <div class="flex flex-col sm:flex-row gap-4 mb-8">
@@ -207,15 +129,50 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
   </div>
 
   <script>
-    (function() {
-      // Configuración
-      const PRODUCTS_PER_PAGE = 6;
-      // @ts-ignore
-      let allProducts = (window.favoritesData || []) as any[];
-      let filteredProducts = [...allProducts];
-      let currentPage = 1;
-      let currentFilter = 'all';
-      let currentSearch = '';
+    // Dynamic imports
+    let getUserFavorites: any, removeFromFavoritesFn: any, getProductById: any, getCurrentUser: any;
+    let currentUser: any = null;
+    
+    (async () => {
+      const favoritesModule = await import('../../../lib/db/favorites');
+      getUserFavorites = favoritesModule.getUserFavorites;
+      removeFromFavoritesFn = favoritesModule.removeFromFavorites;
+      
+      const productsModule = await import('../../../lib/db/products');
+      getProductById = productsModule.getProductById;
+      
+      const authModule = await import('../../../lib/auth');
+      getCurrentUser = authModule.getCurrentUser;
+      
+      // Get current user
+      const firebaseUser = getCurrentUser();
+      if (firebaseUser) {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            currentUser = JSON.parse(userData);
+          } catch (e) {
+            console.error('Error parsing user:', e);
+          }
+        }
+      }
+      
+      if (!currentUser) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      
+      // Load favorites
+      await loadFavorites();
+    })();
+
+    // Configuration
+    const PRODUCTS_PER_PAGE = 6;
+    let allProducts: any[] = [];
+    let filteredProducts: any[] = [];
+    let currentPage = 1;
+    let currentFilter = 'all';
+    let currentSearch = '';
 
       // Elementos del DOM
       const productsContainer = document.getElementById('products-container');
@@ -242,13 +199,62 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
         return;
       }
 
-      // Cargar productos
-      function loadProducts() {
-        if (allProducts && allProducts.length > 0) {
+      // Load favorites from Firestore
+      async function loadFavorites() {
+        const loadingEl = document.getElementById('favorites-loading');
+        
+        if (!currentUser) return;
+        
+        try {
+          const result = await getUserFavorites(currentUser.id);
+          
+          if (result.error || !result.data) {
+            console.error('Error loading favorites:', result.error);
+            if (loadingEl) loadingEl.classList.add('hidden');
+            showNoProducts();
+            return;
+          }
+          
+          const favorites = result.data;
+          if (!favorites.productIds || favorites.productIds.length === 0) {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            showNoProducts();
+            return;
+          }
+          
+          // Load product details
+          allProducts = [];
+          for (const productId of favorites.productIds) {
+            try {
+              const productResult = await getProductById(productId);
+              if (productResult.data) {
+                allProducts.push(productResult.data);
+              }
+            } catch (error) {
+              console.error(`Error loading product ${productId}:`, error);
+            }
+          }
+          
           filteredProducts = [...allProducts];
+          
+          if (loadingEl) loadingEl.classList.add('hidden');
           renderProducts();
           updatePagination();
+        } catch (error) {
+          console.error('Error loading favorites:', error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+          showNoProducts();
         }
+      }
+      
+      function showNoProducts() {
+        const productsContainer = document.getElementById('products-container');
+        const noProductsMessage = document.getElementById('no-products-message');
+        const paginationContainer = document.getElementById('pagination-container');
+        
+        if (productsContainer) productsContainer.classList.add('hidden');
+        if (noProductsMessage) noProductsMessage.classList.remove('hidden');
+        if (paginationContainer) paginationContainer.classList.add('hidden');
       }
 
       // Filtrar productos
@@ -256,8 +262,16 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
         filteredProducts = allProducts.filter((product: any) => {
           // Filtro por categoría
           if (currentFilter !== 'all') {
-            const productCategory = product.category.toLowerCase();
-            if (productCategory !== currentFilter) {
+            const productType = product.type || '';
+            const typeMap: Record<string, string> = {
+              'alimentos': 'food',
+              'accesorios': 'accessory',
+              'juguetes': 'toy',
+              'camas': 'accessory',
+              'higiene': 'cleaning'
+            };
+            const mappedType = typeMap[currentFilter] || currentFilter;
+            if (productType !== mappedType) {
               return false;
             }
           }
@@ -265,7 +279,7 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
           // Filtro por búsqueda
           if (currentSearch.trim() !== '') {
             const searchLower = currentSearch.toLowerCase();
-            const productName = product.name.toLowerCase();
+            const productName = (product.name || '').toLowerCase();
             const productBrand = (product.brand || '').toLowerCase();
             if (!productName.includes(searchLower) && !productBrand.includes(searchLower)) {
               return false;
@@ -306,23 +320,27 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
             return div.innerHTML;
           };
 
-          const discountBadge = product.discount ? 
-            '<span class="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-lg z-10">-' + product.discount + '%</span>' : '';
+          const discount = product.discount || 0;
+          const price = product.price || 0;
+          const originalPrice = product.originalPrice || null;
+          const inStock = (product.stock || 0) > 0;
           
-          const originalPriceHtml = product.originalPrice ? 
-            '<p class="text-xs md:text-sm text-gray-400 line-through">Bs. ' + product.originalPrice.toFixed(2) + '</p>' : '';
+          const discountBadge = discount > 0 ? 
+            '<span class="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-lg z-10">-' + discount + '%</span>' : '';
+          
+          const originalPriceHtml = originalPrice ? 
+            '<p class="text-xs md:text-sm text-gray-400 line-through">Bs. ' + originalPrice.toFixed(2) + '</p>' : '';
 
-          const starsHtml = Array.from({ length: 5 }, (_, i) => 
-            '<svg class="w-4 h-4 ' + (i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300') + '" fill="currentColor" viewBox="0 0 24 24">' +
-            '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />' +
-            '</svg>'
-          ).join('');
-
-          const stockBadge = product.inStock ? 
+          const stockBadge = inStock ? 
             '<span class="flex items-center gap-1.5 text-xs text-green-600 bg-green-50 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">' +
             '<svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>' +
             'Disponible</span>' :
             '<span class="text-xs text-red-600 bg-red-50 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">Agotado</span>';
+          
+          const categoryName = product.type === 'food' ? 'Alimentos' : 
+                              product.type === 'toy' ? 'Juguetes' :
+                              product.type === 'cleaning' ? 'Higiene' :
+                              product.type === 'accessory' ? 'Accesorios' : 'Otros';
 
           // Card principal - cada producto en su propia card separada
           return `
@@ -346,36 +364,25 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
                   <div class="flex-1">
                     <!-- Categoría y stock -->
                     <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-                      <span class="text-xs text-rose-600 bg-rose-50 px-3 py-1 rounded-full font-semibold uppercase tracking-wide">${escapeHtml(product.category)}</span>
+                      <span class="text-xs text-rose-600 bg-rose-50 px-3 py-1 rounded-full font-semibold uppercase tracking-wide">${escapeHtml(categoryName)}</span>
                       ${stockBadge}
                     </div>
                     <!-- Nombre del producto -->
-                    <h3 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 leading-tight line-clamp-2">${escapeHtml(product.name)}</h3>
+                    <h3 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 leading-tight line-clamp-2">${escapeHtml(product.name || '')}</h3>
                     <!-- Marca -->
-                    <p class="text-sm md:text-base text-gray-600 mb-3 font-medium">${escapeHtml(product.brand)}</p>
-                    <!-- Rating -->
-                    <div class="flex items-center gap-2 mb-4 flex-wrap">
-                      <div class="flex items-center gap-0.5">
-                        ${starsHtml}
-                      </div>
-                      <span class="text-sm font-semibold text-gray-700">${product.rating.toFixed(1)}</span>
-                      <span class="text-xs text-gray-500">(${product.reviews})</span>
-                    </div>
+                    <p class="text-sm md:text-base text-gray-600 mb-3 font-medium">${escapeHtml(product.brand || '')}</p>
                   </div>
                   <!-- Precio y botones -->
                   <div class="pt-4 border-t border-gray-100 mt-auto">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div class="flex items-baseline gap-2">
                         ${originalPriceHtml}
-                        <p class="text-2xl md:text-3xl font-bold text-gray-900">Bs. ${product.price.toFixed(2)}</p>
+                        <p class="text-2xl md:text-3xl font-bold text-gray-900">Bs. ${price.toFixed(2)}</p>
                       </div>
                       <div class="flex gap-2 sm:gap-3">
-                        <button type="button" class="flex-1 sm:flex-none px-5 md:px-6 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base whitespace-nowrap">
-                          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          Agregar
-                        </button>
+                        <a href="/product?id=${product.id}" class="flex-1 sm:flex-none px-5 md:px-6 py-3 bg-rose-600 text-white rounded-xl font-semibold hover:bg-rose-700 transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base whitespace-nowrap">
+                          Ver Detalles
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -404,11 +411,27 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
       }
 
       // Quitar de favoritos
-      function removeFromFavorites(productId: string) {
-        allProducts = allProducts.filter((p: any) => p.id !== productId);
-        filteredProducts = filteredProducts.filter((p: any) => p.id !== productId);
-        renderProducts();
-        updatePagination();
+      async function removeFromFavorites(productId: string) {
+        if (!currentUser) return;
+        
+        try {
+          const result = await removeFromFavoritesFn(currentUser.id, productId);
+          if (result.success) {
+            allProducts = allProducts.filter((p: any) => p.id !== productId);
+            filteredProducts = filteredProducts.filter((p: any) => p.id !== productId);
+            renderProducts();
+            updatePagination();
+            
+            if (allProducts.length === 0) {
+              showNoProducts();
+            }
+          } else {
+            throw new Error(result.error?.message || 'Error al quitar de favoritos');
+          }
+        } catch (error) {
+          console.error('Error removing from favorites:', error);
+          alert('Error al quitar el producto de favoritos. Por favor, intenta de nuevo.');
+        }
       }
 
       // Actualizar paginación
@@ -543,8 +566,7 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
         }
       });
 
-      // Inicializar
-      loadProducts();
+      // Note: loadFavorites is called in the async IIFE above
     })();
   </script>
 </section>

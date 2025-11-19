@@ -69,6 +69,7 @@ import '../styles/global.css';
         </svg>
         <input 
           type="text" 
+          id="desktop-search-input"
           placeholder="Buscar productos..." 
           class="bg-transparent text-white placeholder-white/70 outline-none flex-1 text-sm font-medium"
         />
@@ -190,6 +191,7 @@ import '../styles/global.css';
         </svg>
         <input 
           type="text" 
+          id="mobile-search-input"
           placeholder="Buscar productos..." 
           class="w-full bg-transparent text-white placeholder-white/70 outline-none text-sm font-medium"
         />
@@ -244,121 +246,220 @@ import '../styles/global.css';
   </div>
 </header>
 
-<script>
-  // Menú móvil
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const menuIcon = document.getElementById('menu-icon');
-  const closeIcon = document.getElementById('close-icon');
-
-  mobileMenuBtn?.addEventListener('click', () => {
-    const isOpen = mobileMenu?.classList.contains('max-h-0');
-    if (isOpen) {
-      mobileMenu?.classList.remove('max-h-0');
-      mobileMenu?.classList.add('max-h-screen');
-      menuIcon?.classList.add('hidden');
-      closeIcon?.classList.remove('hidden');
-    } else {
-      mobileMenu?.classList.add('max-h-0');
-      mobileMenu?.classList.remove('max-h-screen');
-      menuIcon?.classList.remove('hidden');
-      closeIcon?.classList.add('hidden');
-    }
-  });
-
-  // Búsqueda móvil
-  const mobileSearchBtn = document.getElementById('mobile-search-btn');
-  const mobileSearch = document.getElementById('mobile-search');
-
-  mobileSearchBtn?.addEventListener('click', () => {
-    const isOpen = mobileSearch?.classList.contains('max-h-0');
-    if (isOpen) {
-      mobileSearch?.classList.remove('max-h-0');
-      mobileSearch?.classList.add('max-h-32');
-    } else {
-      mobileSearch?.classList.add('max-h-0');
-      mobileSearch?.classList.remove('max-h-32');
-    }
-  });
-
-  // Usuario y logout
-  const userBtn = document.getElementById('user-btn');
-  const userMenu = document.querySelector('.group > div.absolute');
-  const logoutBtn = document.getElementById('logout-btn');
-  const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-
-  // Logout
-  function handleLogout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/';
-  }
-
-  logoutBtn?.addEventListener('click', handleLogout);
-  mobileLogoutBtn?.addEventListener('click', handleLogout);
-
-  // Inicializar
-  document.addEventListener('DOMContentLoaded', () => {
-    // Verificar autenticación
-    const token = localStorage.getItem('token');
-    const loginMenuItems = document.getElementById('login-menu-items');
-    const userMenuItems = document.querySelectorAll('a[href="/profile"], a[href="/profile/orders"], a[href="/profile/favorites"]');
+  <script>
+    // Dynamic imports
+    let logout: any, getCurrentUserData: any, onAuthStateChange: any, getCartItemCount: any;
     
-    if (token) {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          const userName = document.getElementById('user-name');
-          if (userName) userName.textContent = user.firstName || 'Usuario';
-          logoutBtn?.classList.remove('hidden');
-          logoutBtn?.classList.add('flex');
-          mobileLogoutBtn?.classList.remove('hidden');
-          document.getElementById('mobile-login-btn')?.classList.add('hidden');
-          loginMenuItems?.classList.add('hidden');
-          
-          // Show/hide admin link based on role
-          const adminLink = document.getElementById('admin-link');
-          const mobileAdminLink = document.getElementById('mobile-admin-link');
-          if (user.role === 'admin') {
-            adminLink?.classList.remove('hidden');
-            mobileAdminLink?.classList.remove('hidden');
-          } else {
-            adminLink?.classList.add('hidden');
-            mobileAdminLink?.classList.add('hidden');
-          }
-          
-          // Show user menu items
-          userMenuItems.forEach(item => item.classList.remove('hidden'));
-        } catch (e) {
-          console.error('Error parsing user:', e);
-        }
+    (async () => {
+      const authModule = await import('../lib/auth');
+      logout = authModule.logout;
+      getCurrentUserData = authModule.getCurrentUserData;
+      onAuthStateChange = authModule.onAuthStateChange;
+      
+      const cartModule = await import('../lib/db/cart');
+      getCartItemCount = cartModule.getCartItemCount;
+    })();
+
+    // Menú móvil
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    mobileMenuBtn?.addEventListener('click', () => {
+      const isOpen = mobileMenu?.classList.contains('max-h-0');
+      if (isOpen) {
+        mobileMenu?.classList.remove('max-h-0');
+        mobileMenu?.classList.add('max-h-screen');
+        menuIcon?.classList.add('hidden');
+        closeIcon?.classList.remove('hidden');
+      } else {
+        mobileMenu?.classList.add('max-h-0');
+        mobileMenu?.classList.remove('max-h-screen');
+        menuIcon?.classList.remove('hidden');
+        closeIcon?.classList.add('hidden');
       }
-    } else {
-      // No token - show login options
-      logoutBtn?.classList.add('hidden');
-      mobileLogoutBtn?.classList.add('hidden');
-      document.getElementById('mobile-login-btn')?.classList.remove('hidden');
-      loginMenuItems?.classList.remove('hidden');
-      // Hide user menu items
-      userMenuItems.forEach(item => item.classList.add('hidden'));
+    });
+
+    // Búsqueda móvil
+    const mobileSearchBtn = document.getElementById('mobile-search-btn');
+    const mobileSearch = document.getElementById('mobile-search');
+
+    mobileSearchBtn?.addEventListener('click', () => {
+      const isOpen = mobileSearch?.classList.contains('max-h-0');
+      if (isOpen) {
+        mobileSearch?.classList.remove('max-h-0');
+        mobileSearch?.classList.add('max-h-32');
+      } else {
+        mobileSearch?.classList.add('max-h-0');
+        mobileSearch?.classList.remove('max-h-32');
+      }
+    });
+
+    // Usuario y logout
+    const logoutBtn = document.getElementById('logout-btn');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+
+    // Logout
+    async function handleLogout() {
+      try {
+        if (logout) {
+          await logout();
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+      }
     }
 
-    // Carrito
-    const cart = localStorage.getItem('cart');
-    if (cart) {
-      try {
-        const cartData = JSON.parse(cart);
-        const count = cartData.items?.length || 0;
-        const cartCount = document.getElementById('cart-count');
-        if (cartCount && count > 0) {
-          cartCount.textContent = count.toString();
+    logoutBtn?.addEventListener('click', handleLogout);
+    mobileLogoutBtn?.addEventListener('click', handleLogout);
+    
+    // Función para actualizar el contador del carrito
+    function updateCartCount(count: number) {
+      const cartCount = document.getElementById('cart-count');
+      if (cartCount) {
+        cartCount.textContent = count.toString();
+        if (count > 0) {
           cartCount.classList.remove('hidden');
           cartCount.classList.add('flex');
+        } else {
+          cartCount.classList.add('hidden');
+          cartCount.classList.remove('flex');
         }
-      } catch (e) {
-        console.error('Error parsing cart:', e);
       }
     }
-  });
-</script>
+
+    // Update UI based on auth state
+    async function updateAuthUI(user: any) {
+      const loginMenuItems = document.getElementById('login-menu-items');
+      const userMenuItems = document.querySelectorAll('a[href="/profile"], a[href="/profile/orders"], a[href="/profile/favorites"]');
+      const userName = document.getElementById('user-name');
+      
+      if (user) {
+        // User is logged in
+        if (userName) {
+          userName.textContent = user.firstName || 'Usuario';
+        }
+        logoutBtn?.classList.remove('hidden');
+        logoutBtn?.classList.add('flex');
+        mobileLogoutBtn?.classList.remove('hidden');
+        document.getElementById('mobile-login-btn')?.classList.add('hidden');
+        loginMenuItems?.classList.add('hidden');
+        
+        // Show/hide admin link based on role
+        const adminLink = document.getElementById('admin-link');
+        const mobileAdminLink = document.getElementById('mobile-admin-link');
+        if (user.role === 'admin') {
+          adminLink?.classList.remove('hidden');
+          mobileAdminLink?.classList.remove('hidden');
+        } else {
+          adminLink?.classList.add('hidden');
+          mobileAdminLink?.classList.add('hidden');
+        }
+        
+        // Show user menu items
+        userMenuItems.forEach(item => item.classList.remove('hidden'));
+        
+        // Update cart count
+        if (getCartItemCount) {
+          try {
+            const count = await getCartItemCount(user.id);
+            updateCartCount(count);
+          } catch (error) {
+            console.error('Error getting cart count:', error);
+          }
+        }
+        
+        // Escuchar eventos de actualización del carrito
+        document.addEventListener('cartUpdated', async (e: any) => {
+          if (getCartItemCount && user) {
+            try {
+              const count = await getCartItemCount(user.id);
+              updateCartCount(count);
+            } catch (error) {
+              console.error('Error updating cart count:', error);
+            }
+          }
+        });
+      } else {
+        // User is not logged in
+        logoutBtn?.classList.add('hidden');
+        mobileLogoutBtn?.classList.add('hidden');
+        document.getElementById('mobile-login-btn')?.classList.remove('hidden');
+        loginMenuItems?.classList.remove('hidden');
+        // Hide user menu items
+        userMenuItems.forEach(item => item.classList.add('hidden'));
+        
+        // Hide cart count
+        updateCartCount(0);
+      }
+    }
+
+    // Funcionalidad de búsqueda
+    function setupSearch() {
+      const desktopSearchInput = document.getElementById('desktop-search-input') as HTMLInputElement;
+      const mobileSearchInput = document.getElementById('mobile-search-input') as HTMLInputElement;
+      
+      function handleSearch(query: string) {
+        if (query.trim()) {
+          window.location.href = `/products?search=${encodeURIComponent(query.trim())}`;
+        }
+      }
+      
+      // Búsqueda desktop - Enter
+      if (desktopSearchInput) {
+        desktopSearchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch(desktopSearchInput.value);
+          }
+        });
+      }
+      
+      // Búsqueda móvil - Enter
+      if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch(mobileSearchInput.value);
+          }
+        });
+      }
+    }
+    
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Setup search
+      setupSearch();
+      
+      // Wait for modules to load
+      while (!onAuthStateChange || !getCurrentUserData) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      // Listen to auth state changes
+      onAuthStateChange(async (firebaseUser: any) => {
+        if (firebaseUser) {
+          const userDataResult = await getCurrentUserData();
+          if (userDataResult.success && userDataResult.user) {
+            await updateAuthUI(userDataResult.user);
+            // Store in localStorage for quick access
+            localStorage.setItem('user', JSON.stringify(userDataResult.user));
+            const token = await firebaseUser.getIdToken();
+            localStorage.setItem('token', token);
+          } else {
+            await updateAuthUI(null);
+          }
+        } else {
+          await updateAuthUI(null);
+        }
+      });
+    });
+  </script>

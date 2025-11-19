@@ -1,0 +1,860 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Funciones helper
+function formatCurrency(value: number): string {
+  return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatNumber(value: number): string {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Datos iniciales - se cargarán desde Firestore
+const orders: any[] = [];
+
+const stats = {
+  totalOrders: 0,
+  pendingOrders: 0,
+  processingOrders: 0,
+  shippedOrders: 0,
+  deliveredOrders: 0,
+  cancelledOrders: 0,
+  totalRevenue: 0
+};
+---
+
+<Layout>
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Header -->
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Gestión de Pedidos</h1>
+          <p class="text-gray-600">Administra todos los pedidos de la plataforma</p>
+        </div>
+        <a
+          href="/admin/dashboard"
+          class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-xl hover:bg-gray-700 hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Volver al Dashboard</span>
+        </a>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Pedidos -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Total Pedidos</p>
+              <p class="text-2xl font-bold text-gray-900" id="total-orders">{formatNumber(stats.totalOrders)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pendientes -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Pendientes</p>
+              <p class="text-2xl font-bold text-gray-900" id="pending-orders">{formatNumber(stats.pendingOrders)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- En Proceso -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">En Proceso</p>
+              <p class="text-2xl font-bold text-gray-900" id="processing-orders">{formatNumber(stats.processingOrders)}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingresos Totales -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Ingresos Totales</p>
+              <p class="text-2xl font-bold text-gray-900" id="total-revenue">Bs. {formatCurrency(stats.totalRevenue)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros y Búsqueda -->
+      <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-8">
+        <div class="flex flex-col lg:flex-row gap-4">
+          <!-- Búsqueda -->
+          <div class="flex-1 relative">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Buscar por ID de pedido, nombre de cliente o email..."
+              class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+            />
+          </div>
+
+          <!-- Filtro por Estado -->
+          <div class="lg:w-48">
+            <select
+              id="status-filter"
+              class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="pending">Pendiente</option>
+              <option value="processing">Procesando</option>
+              <option value="shipped">En camino</option>
+              <option value="delivered">Entregado</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Fecha -->
+          <div class="lg:w-48">
+            <select
+              id="date-filter"
+              class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+            >
+              <option value="all">Todas las fechas</option>
+              <option value="today">Hoy</option>
+              <option value="week">Esta semana</option>
+              <option value="month">Este mes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Pedidos -->
+      <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">ID Pedido</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Cliente</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Fecha</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Items</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Total</th>
+                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Estado</th>
+                <th class="text-right py-4 px-6 text-sm font-semibold text-gray-700">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body">
+              <!-- Los pedidos se cargarán aquí dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Loading State -->
+        <div id="orders-loading" class="text-center py-16">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+          <p class="mt-4 text-gray-600">Cargando pedidos...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="orders-empty" class="hidden text-center py-16">
+          <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <p class="text-gray-600 text-lg font-medium">No se encontraron pedidos</p>
+          <p class="text-gray-500 text-sm mt-2">Intenta ajustar los filtros de búsqueda</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal de Detalles de Pedido -->
+  <div id="order-details-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-gray-900">Detalles del Pedido</h2>
+        <button
+          type="button"
+          id="close-order-modal-btn"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido -->
+      <div id="order-details-content" class="p-6 space-y-6">
+        <!-- Se cargará dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Actualizar Estado -->
+  <div id="update-status-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-900">Actualizar Estado</h2>
+        <button
+          type="button"
+          id="close-status-modal-btn"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Nuevo Estado</label>
+          <select
+            id="new-status-select"
+            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+          >
+            <option value="pending">Pendiente</option>
+            <option value="processing">Procesando</option>
+            <option value="shipped">En camino</option>
+            <option value="delivered">Entregado</option>
+            <option value="cancelled">Cancelado</option>
+          </select>
+        </div>
+        
+        <div id="tracking-number-container" class="hidden">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Número de Seguimiento</label>
+          <input
+            type="text"
+            id="tracking-number-input"
+            placeholder="Ej: BOL123456789"
+            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+          />
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button
+            type="button"
+            id="cancel-status-btn"
+            class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            id="confirm-status-btn"
+            class="flex-1 px-4 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors"
+          >
+            Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (async () => {
+      // Dynamic imports
+      const { getAllOrders, getOrderById, updateOrderStatus, updateOrder } = await import('../../lib/db/orders');
+      const { getUser } = await import('../../lib/db/users');
+      const { getCurrentUser, getCurrentUserData } = await import('../../lib/auth');
+      
+      // Check if user is admin
+      const firebaseUser = getCurrentUser();
+      if (!firebaseUser) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      
+      const userDataResult = await getCurrentUserData();
+      if (!userDataResult.success || !userDataResult.user || userDataResult.user.role !== 'admin') {
+        alert('No tienes permisos para acceder a esta página');
+        window.location.href = '/';
+        return;
+      }
+      
+      let allOrders: any[] = [];
+      let filteredOrders: any[] = [];
+      let usersCache: Map<string, any> = new Map();
+      let currentOrderId: string | null = null;
+      
+      // Elementos del DOM
+      const loadingEl = document.getElementById('orders-loading');
+      const emptyEl = document.getElementById('orders-empty');
+      const tableBody = document.getElementById('orders-table-body');
+      const searchInput = document.getElementById('search-input') as HTMLInputElement;
+      const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
+      const dateFilter = document.getElementById('date-filter') as HTMLSelectElement;
+      const orderDetailsModal = document.getElementById('order-details-modal');
+      const updateStatusModal = document.getElementById('update-status-modal');
+      const closeOrderModalBtn = document.getElementById('close-order-modal-btn');
+      const closeStatusModalBtn = document.getElementById('close-status-modal-btn');
+      const cancelStatusBtn = document.getElementById('cancel-status-btn');
+      const confirmStatusBtn = document.getElementById('confirm-status-btn');
+      const newStatusSelect = document.getElementById('new-status-select') as HTMLSelectElement;
+      
+      // Función para obtener nombre de usuario
+      async function getUserName(userId: string): Promise<string> {
+        if (usersCache.has(userId)) {
+          const user = usersCache.get(userId);
+          return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Cliente';
+        }
+        
+        try {
+          const userResult = await getUser(userId);
+          if (userResult.data) {
+            usersCache.set(userId, userResult.data);
+            return `${userResult.data.firstName || ''} ${userResult.data.lastName || ''}`.trim() || 'Cliente';
+          }
+        } catch (error) {
+          console.error('Error getting user:', error);
+        }
+        
+        return 'Cliente';
+      }
+      
+      // Función para cargar pedidos
+      async function loadOrders() {
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
+        if (tableBody) tableBody.innerHTML = '';
+        
+        try {
+          const result = await getAllOrders();
+          
+          if (result.error) {
+            console.error('Error loading orders:', result.error);
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (emptyEl) emptyEl.classList.remove('hidden');
+            return;
+          }
+          
+          allOrders = result.data || [];
+          
+          // Cargar nombres de usuarios
+          for (const order of allOrders) {
+            if (!usersCache.has(order.userId)) {
+              const userName = await getUserName(order.userId);
+              order.customerName = userName;
+            } else {
+              const user = usersCache.get(order.userId);
+              order.customerName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Cliente';
+            }
+          }
+          
+          applyFilters();
+          updateStats();
+        } catch (error) {
+          console.error('Error loading orders:', error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+          if (emptyEl) emptyEl.classList.remove('hidden');
+        }
+      }
+      
+      // Función para aplicar filtros
+      function applyFilters() {
+        filteredOrders = [...allOrders];
+        
+        // Filtro por búsqueda
+        const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+        if (searchTerm) {
+          filteredOrders = filteredOrders.filter(order => {
+            const orderId = order.id?.toLowerCase() || '';
+            const customerName = (order.customerName || '').toLowerCase();
+            const shippingAddress = order.shippingAddress?.fullName?.toLowerCase() || '';
+            const email = order.shippingAddress?.phone || '';
+            
+            return orderId.includes(searchTerm) || 
+                   customerName.includes(searchTerm) || 
+                   shippingAddress.includes(searchTerm) ||
+                   email.includes(searchTerm);
+          });
+        }
+        
+        // Filtro por estado
+        const statusValue = statusFilter?.value || 'all';
+        if (statusValue !== 'all') {
+          filteredOrders = filteredOrders.filter(order => order.status === statusValue);
+        }
+        
+        // Filtro por fecha
+        const dateValue = dateFilter?.value || 'all';
+        if (dateValue !== 'all') {
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          
+          filteredOrders = filteredOrders.filter(order => {
+            const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || 0);
+            
+            if (dateValue === 'today') {
+              return orderDate >= today;
+            } else if (dateValue === 'week') {
+              return orderDate >= weekAgo;
+            } else if (dateValue === 'month') {
+              return orderDate >= monthAgo;
+            }
+            return true;
+          });
+        }
+        
+        renderOrders();
+      }
+      
+      // Función para actualizar estadísticas
+      function updateStats() {
+        const totalOrders = allOrders.length;
+        const pendingOrders = allOrders.filter((o: any) => o.status === 'pending').length;
+        const processingOrders = allOrders.filter((o: any) => o.status === 'processing').length;
+        const shippedOrders = allOrders.filter((o: any) => o.status === 'shipped').length;
+        const deliveredOrders = allOrders.filter((o: any) => o.status === 'delivered').length;
+        const cancelledOrders = allOrders.filter((o: any) => o.status === 'cancelled').length;
+        const totalRevenue = allOrders
+          .filter((o: any) => o.status !== 'cancelled')
+          .reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+        
+        const totalEl = document.getElementById('total-orders');
+        const pendingEl = document.getElementById('pending-orders');
+        const processingEl = document.getElementById('processing-orders');
+        const revenueEl = document.getElementById('total-revenue');
+        
+        if (totalEl) totalEl.textContent = totalOrders.toString();
+        if (pendingEl) pendingEl.textContent = pendingOrders.toString();
+        if (processingEl) processingEl.textContent = processingOrders.toString();
+        if (revenueEl) revenueEl.textContent = `Bs. ${totalRevenue.toFixed(2)}`;
+      }
+      
+      // Función para renderizar pedidos
+      function renderOrders() {
+        if (!tableBody) return;
+        
+        if (filteredOrders.length === 0) {
+          if (loadingEl) loadingEl.classList.add('hidden');
+          if (emptyEl) emptyEl.classList.remove('hidden');
+          tableBody.innerHTML = '';
+          return;
+        }
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
+        
+        const statusMap: any = {
+          'pending': { text: 'Pendiente', color: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+          'processing': { text: 'Procesando', color: 'bg-blue-50 text-blue-700 border border-blue-200' },
+          'shipped': { text: 'En camino', color: 'bg-purple-50 text-purple-700 border border-purple-200' },
+          'delivered': { text: 'Entregado', color: 'bg-green-50 text-green-700 border border-green-200' },
+          'cancelled': { text: 'Cancelado', color: 'bg-red-50 text-red-700 border border-red-200' }
+        };
+        
+        tableBody.innerHTML = filteredOrders.map((order: any) => {
+          const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || Date.now());
+          const formattedDate = new Intl.DateTimeFormat('es-ES', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).format(orderDate);
+          
+          const statusInfo = statusMap[order.status] || { text: order.status, color: 'bg-gray-50 text-gray-700 border border-gray-200' };
+          const customerName = order.customerName || order.shippingAddress?.fullName || 'Cliente';
+          const itemsCount = order.items?.length || 0;
+          
+          return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <td class="py-4 px-6">
+                <span class="font-semibold text-gray-900">#${order.id}</span>
+              </td>
+              <td class="py-4 px-6">
+                <p class="text-gray-900">${customerName}</p>
+                <p class="text-xs text-gray-500">${order.shippingAddress?.phone || ''}</p>
+              </td>
+              <td class="py-4 px-6">
+                <p class="text-sm text-gray-600">${formattedDate}</p>
+              </td>
+              <td class="py-4 px-6">
+                <span class="text-gray-900">${itemsCount} ${itemsCount === 1 ? 'item' : 'items'}</span>
+              </td>
+              <td class="py-4 px-6">
+                <p class="font-semibold text-gray-900">Bs. ${(order.total || 0).toFixed(2)}</p>
+              </td>
+              <td class="py-4 px-6">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusInfo.color}">
+                  ${statusInfo.text}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button class="view-order-btn p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Ver detalles" data-order-id="${order.id}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button class="update-status-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Actualizar estado" data-order-id="${order.id}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        
+        attachEventListeners();
+      }
+      
+      // Función para mostrar detalles del pedido
+      async function showOrderDetails(orderId: string) {
+        try {
+          const result = await getOrderById(orderId);
+          if (!result.data || !orderDetailsModal) return;
+          
+          const order = result.data;
+          const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || Date.now());
+          const formattedDate = new Intl.DateTimeFormat('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).format(orderDate);
+          
+          const statusMap: any = {
+            'pending': { text: 'Pendiente', color: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+            'processing': { text: 'Procesando', color: 'bg-blue-50 text-blue-700 border border-blue-200' },
+            'shipped': { text: 'En camino', color: 'bg-purple-50 text-purple-700 border border-purple-200' },
+            'delivered': { text: 'Entregado', color: 'bg-green-50 text-green-700 border border-green-200' },
+            'cancelled': { text: 'Cancelado', color: 'bg-red-50 text-red-700 border border-red-200' }
+          };
+          
+          const statusInfo = statusMap[order.status] || { text: order.status, color: 'bg-gray-50 text-gray-700 border border-gray-200' };
+          const customerName = order.customerName || order.shippingAddress?.fullName || 'Cliente';
+          
+          const contentEl = document.getElementById('order-details-content');
+          if (!contentEl) return;
+          
+          contentEl.innerHTML = `
+            <!-- Información del Pedido -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-200">
+              <div>
+                <h3 class="text-sm font-semibold text-gray-700 mb-2">Información del Pedido</h3>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">ID:</span>
+                    <span class="font-medium text-gray-900">#${order.id}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Fecha:</span>
+                    <span class="font-medium text-gray-900">${formattedDate}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Estado:</span>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.color}">
+                      ${statusInfo.text}
+                    </span>
+                  </div>
+                  ${order.trackingNumber ? `
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Tracking:</span>
+                    <span class="font-medium text-gray-900">${order.trackingNumber}</span>
+                  </div>
+                  ` : ''}
+                  ${order.shippingCost !== undefined ? `
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Envío:</span>
+                    <span class="font-medium text-gray-900">Bs. ${order.shippingCost.toFixed(2)}</span>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-700 mb-2">Cliente</h3>
+                <div class="space-y-2 text-sm">
+                  <p class="font-medium text-gray-900">${customerName}</p>
+                  <p class="text-gray-600">${order.shippingAddress?.phone || ''}</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Items del Pedido -->
+            <div>
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">Productos</h3>
+              <div class="space-y-4">
+                ${order.items?.map((item: any) => `
+                  <div class="flex gap-4 p-4 bg-gray-50 rounded-xl">
+                    <img src="${item.productImage || 'https://via.placeholder.com/80'}" alt="${item.productName}" class="w-20 h-20 rounded-lg object-cover border border-gray-200" />
+                    <div class="flex-1">
+                      <h4 class="font-semibold text-gray-900">${item.productName}</h4>
+                      <p class="text-sm text-gray-600">Cantidad: ${item.quantity}</p>
+                      <p class="text-sm text-gray-600">Precio unitario: Bs. ${(item.price || 0).toFixed(2)}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-gray-900">Bs. ${(item.subtotal || 0).toFixed(2)}</p>
+                    </div>
+                  </div>
+                `).join('') || '<p class="text-gray-600">No hay items</p>'}
+              </div>
+            </div>
+            
+            <!-- Dirección de Envío -->
+            <div>
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">Dirección de Envío</h3>
+              <div class="p-4 bg-gray-50 rounded-xl">
+                <p class="text-sm text-gray-900">${order.shippingAddress?.fullName || ''}</p>
+                <p class="text-sm text-gray-600">${order.shippingAddress?.address || ''}</p>
+                <p class="text-sm text-gray-600">${order.shippingAddress?.district || ''}, ${order.shippingAddress?.city || ''}</p>
+                <p class="text-sm text-gray-600">${order.shippingAddress?.zipCode || ''}</p>
+                <p class="text-sm text-gray-600">Tel: ${order.shippingAddress?.phone || ''}</p>
+              </div>
+            </div>
+            
+            <!-- Método de Pago -->
+            <div>
+              <h3 class="text-sm font-semibold text-gray-700 mb-4">Método de Pago</h3>
+              <div class="p-4 bg-gray-50 rounded-xl">
+                <p class="text-sm text-gray-900">${order.paymentMethod?.type === 'card' ? 'Tarjeta' : 'Efectivo'}</p>
+                ${order.paymentMethod?.cardNumber ? `<p class="text-sm text-gray-600">${order.paymentMethod.cardNumber}</p>` : ''}
+              </div>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="pt-6 border-t border-gray-200">
+              <div class="space-y-2">
+                <div class="flex justify-between text-gray-600">
+                  <span>Subtotal:</span>
+                  <span class="font-medium">Bs. ${(order.subtotal || 0).toFixed(2)}</span>
+                </div>
+                ${order.discount ? `
+                  <div class="flex justify-between text-gray-600">
+                    <span>Descuento:</span>
+                    <span class="font-medium text-green-600">-Bs. ${order.discount.toFixed(2)}</span>
+                  </div>
+                ` : ''}
+                <div class="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">
+                  <span>Total:</span>
+                  <span>Bs. ${(order.total || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          orderDetailsModal.classList.remove('hidden');
+          orderDetailsModal.classList.add('flex');
+          orderDetailsModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        } catch (error) {
+          console.error('Error loading order details:', error);
+          alert('Error al cargar los detalles del pedido');
+        }
+      }
+      
+      // Función para abrir modal de actualizar estado
+      function openUpdateStatusModal(orderId: string) {
+        currentOrderId = orderId;
+        const order = allOrders.find((o: any) => o.id === orderId);
+        if (order && newStatusSelect && updateStatusModal) {
+          newStatusSelect.value = order.status;
+          
+          // Mostrar/ocultar campo de tracking según el estado
+          const trackingContainer = document.getElementById('tracking-number-container');
+          const trackingInput = document.getElementById('tracking-number-input') as HTMLInputElement;
+          if (trackingContainer && trackingInput) {
+            if (order.status === 'shipped' || order.status === 'delivered') {
+              trackingContainer.classList.remove('hidden');
+              trackingInput.value = order.trackingNumber || '';
+            } else {
+              trackingContainer.classList.add('hidden');
+              trackingInput.value = '';
+            }
+          }
+          
+          updateStatusModal.classList.remove('hidden');
+          updateStatusModal.classList.add('flex');
+          updateStatusModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        }
+      }
+      
+      // Función para actualizar estado
+      async function updateStatus() {
+        if (!currentOrderId || !newStatusSelect) return;
+        
+        const newStatus = newStatusSelect.value;
+        const trackingInput = document.getElementById('tracking-number-input') as HTMLInputElement;
+        const trackingNumber = trackingInput?.value.trim() || undefined;
+        
+        try {
+          // Si el estado es "shipped" o "delivered" y hay trackingNumber, usar updateOrder
+          if ((newStatus === 'shipped' || newStatus === 'delivered') && trackingNumber) {
+            const result = await updateOrder(currentOrderId, {
+              status: newStatus as any,
+              trackingNumber: trackingNumber
+            });
+            if (result.success) {
+              alert('Estado y número de seguimiento actualizados exitosamente');
+              if (updateStatusModal) {
+                updateStatusModal.classList.add('hidden');
+                updateStatusModal.classList.remove('flex');
+                updateStatusModal.style.display = 'none';
+              }
+              document.body.style.overflow = '';
+              await loadOrders();
+            } else {
+              alert('Error al actualizar el estado: ' + (result.error?.message || 'Error desconocido'));
+            }
+          } else {
+            // Usar updateOrderStatus para otros casos
+            const result = await updateOrderStatus(currentOrderId, newStatus as any);
+            if (result.success) {
+              alert('Estado actualizado exitosamente');
+              if (updateStatusModal) {
+                updateStatusModal.classList.add('hidden');
+                updateStatusModal.classList.remove('flex');
+                updateStatusModal.style.display = 'none';
+              }
+              document.body.style.overflow = '';
+              await loadOrders();
+            } else {
+              alert('Error al actualizar el estado: ' + (result.error?.message || 'Error desconocido'));
+            }
+          }
+        } catch (error) {
+          console.error('Error updating status:', error);
+          alert('Error al actualizar el estado');
+        }
+      }
+      
+      // Función para cerrar modales
+      function closeModals() {
+        if (orderDetailsModal) {
+          orderDetailsModal.classList.add('hidden');
+          orderDetailsModal.classList.remove('flex');
+          orderDetailsModal.style.display = 'none';
+        }
+        if (updateStatusModal) {
+          updateStatusModal.classList.add('hidden');
+          updateStatusModal.classList.remove('flex');
+          updateStatusModal.style.display = 'none';
+        }
+        document.body.style.overflow = '';
+      }
+      
+      // Función para adjuntar event listeners
+      function attachEventListeners() {
+        document.querySelectorAll('.view-order-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const orderId = (e.currentTarget as HTMLElement).getAttribute('data-order-id');
+            if (orderId) showOrderDetails(orderId);
+          });
+        });
+        
+        document.querySelectorAll('.update-status-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const orderId = (e.currentTarget as HTMLElement).getAttribute('data-order-id');
+            if (orderId) openUpdateStatusModal(orderId);
+          });
+        });
+      }
+      
+      // Event listeners
+      if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+      }
+      
+      if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilters);
+      }
+      
+      if (dateFilter) {
+        dateFilter.addEventListener('change', applyFilters);
+      }
+      
+      if (closeOrderModalBtn) {
+        closeOrderModalBtn.addEventListener('click', closeModals);
+      }
+      
+      if (closeStatusModalBtn) {
+        closeStatusModalBtn.addEventListener('click', closeModals);
+      }
+      
+      if (cancelStatusBtn) {
+        cancelStatusBtn.addEventListener('click', closeModals);
+      }
+      
+      if (confirmStatusBtn) {
+        confirmStatusBtn.addEventListener('click', updateStatus);
+      }
+      
+      // Mostrar/ocultar campo de tracking según el estado seleccionado
+      if (newStatusSelect) {
+        newStatusSelect.addEventListener('change', () => {
+          const trackingContainer = document.getElementById('tracking-number-container');
+          const selectedStatus = newStatusSelect.value;
+          if (trackingContainer) {
+            if (selectedStatus === 'shipped' || selectedStatus === 'delivered') {
+              trackingContainer.classList.remove('hidden');
+            } else {
+              trackingContainer.classList.add('hidden');
+            }
+          }
+        });
+      }
+      
+      // Cerrar modales al hacer clic fuera
+      if (orderDetailsModal) {
+        orderDetailsModal.addEventListener('click', (e) => {
+          if (e.target === orderDetailsModal) closeModals();
+        });
+      }
+      
+      if (updateStatusModal) {
+        updateStatusModal.addEventListener('click', (e) => {
+          if (e.target === updateStatusModal) closeModals();
+        });
+      }
+      
+      // Cerrar modales con ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModals();
+      });
+      
+      // Cargar pedidos inicialmente
+      await loadOrders();
+    })();
+  </script>
+</Layout>
+

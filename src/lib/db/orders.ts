@@ -25,6 +25,7 @@ import type {
   QueryResult,
   WriteResult,
 } from './types';
+import { generateInvoiceNumber } from '../utils/invoice';
 
 const COLLECTION_NAME = 'orders';
 
@@ -34,6 +35,12 @@ const COLLECTION_NAME = 'orders';
 export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
   try {
     const now = Timestamp.now();
+    const nowDate = now.toDate();
+    
+    // Generar número de factura temporal (se actualizará después con el ID real)
+    const tempInvoiceNumber = generateInvoiceNumber('TEMP', nowDate);
+    
+    const shippingCost = data.shippingCost || 0;
     const orderData: Order = {
       id: '', // Se asignará después
       userId: data.userId,
@@ -41,14 +48,23 @@ export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
       items: data.items,
       subtotal: data.subtotal,
       discount: data.discount || 0,
-      total: data.subtotal - (data.discount || 0),
+      total: data.subtotal - (data.discount || 0) + shippingCost,
       shippingAddress: data.shippingAddress,
       paymentMethod: data.paymentMethod,
+      invoiceNumber: tempInvoiceNumber,
+      shippingCost: shippingCost,
       createdAt: now,
       updatedAt: now,
     };
 
     const docRef = await addDoc(collection(db, COLLECTION_NAME), orderData);
+    
+    // Actualizar con el número de factura correcto usando el ID real
+    const invoiceNumber = generateInvoiceNumber(docRef.id, nowDate);
+    await updateDoc(docRef, {
+      invoiceNumber: invoiceNumber,
+    });
+    
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error('Error creating order:', error);

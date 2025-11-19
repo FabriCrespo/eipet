@@ -461,7 +461,7 @@ const activeTab = 'contraseña';
       // Validación del formulario
       const form = document.getElementById('change-password-form') as HTMLFormElement;
       if (form) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
           e.preventDefault();
           
           const currentPassword = (document.getElementById('current-password') as HTMLInputElement).value;
@@ -479,10 +479,22 @@ const activeTab = 'contraseña';
             return;
           }
 
-          // Aquí iría la lógica para cambiar la contraseña
-          console.log('Cambiar contraseña:', { currentPassword, newPassword });
-          alert('Contraseña cambiada exitosamente');
-          form.reset();
+          try {
+            // Dynamic import
+            const { changePassword } = await import('../../../lib/auth');
+            
+            const result = await changePassword(currentPassword, newPassword);
+            
+            if (result.success) {
+              alert('Contraseña cambiada exitosamente');
+              form.reset();
+            } else {
+              alert(result.error || 'Error al cambiar la contraseña');
+            }
+          } catch (error: any) {
+            console.error('Error changing password:', error);
+            alert('Error al cambiar la contraseña: ' + (error.message || 'Error desconocido'));
+          }
         });
       }
     })();

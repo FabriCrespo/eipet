@@ -1,8 +1,6 @@
 ---
 const title = 'Mis Pedidos';
-
-// Datos de ejemplo - en producción vendrían de una API o base de datos
-const orders = [
+---
   // Pedidos Pendientes
   {
     id: '12389',
@@ -181,10 +179,11 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
     <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
   </div>
 
-  <!-- Datos de pedidos para JavaScript -->
-  <script define:vars={{ ordersData: orders }} is:inline>
-    window.ordersData = ordersData;
-  </script>
+  <!-- Loading State -->
+  <div id="orders-loading" class="text-center py-16">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+    <p class="mt-4 text-gray-600">Cargando pedidos...</p>
+  </div>
 
   <!-- Barra de búsqueda y filtros -->
   <div class="flex flex-col sm:flex-row gap-4 mb-6">
@@ -315,6 +314,31 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
     </div>
   </div>
 
+  <!-- Modal de Solicitud de Devolución -->
+  <div id="return-request-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Solicitar Devolución</h2>
+        <button
+          type="button"
+          id="close-return-modal-btn"
+          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label="Cerrar"
+        >
+          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido -->
+      <div id="return-request-content" class="space-y-6">
+        <!-- Se cargará dinámicamente -->
+      </div>
+    </div>
+  </div>
+
   <!-- Paginación -->
   <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-200">
     <div class="text-sm text-gray-600">
@@ -347,12 +371,44 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
   </div>
 
   <script>
+    // Dynamic imports
+    let getUserOrders: any, getCurrentUser: any;
+    let currentUser: any = null;
+    
+    (async () => {
+      const ordersModule = await import('../../../lib/db/orders');
+      getUserOrders = ordersModule.getUserOrders;
+      
+      const authModule = await import('../../../lib/auth');
+      getCurrentUser = authModule.getCurrentUser;
+      
+      // Get current user
+      const firebaseUser = getCurrentUser();
+      if (firebaseUser) {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            currentUser = JSON.parse(userData);
+          } catch (e) {
+            console.error('Error parsing user:', e);
+          }
+        }
+      }
+      
+      if (!currentUser) {
+        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      
+      // Load orders
+      await loadOrdersFromFirestore();
+    })();
+
     (function() {
       // Configuración
       const ORDERS_PER_PAGE = 3;
-      // @ts-ignore
-      let allOrders = (window.ordersData || []) as any[];
-      let filteredOrders = [...allOrders];
+      let allOrders: any[] = [];
+      let filteredOrders: any[] = [];
       let currentPage = 1;
       let currentFilter = 'all';
       let currentSearch = '';
@@ -382,7 +438,95 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         return;
       }
 
-      // Cargar datos
+      // Load orders from Firestore
+      async function loadOrdersFromFirestore() {
+        const loadingEl = document.getElementById('orders-loading');
+        
+        if (!currentUser || !getUserOrders) return;
+        
+        try {
+          const result = await getUserOrders(currentUser.id);
+          
+          if (result.error) {
+            console.error('Error loading orders:', result.error);
+            if (loadingEl) loadingEl.classList.add('hidden');
+            return;
+          }
+          
+          const ordersData = result.data || [];
+          
+          // Convert Firestore orders to display format
+          allOrders = ordersData.map((order: any) => {
+            const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt || Date.now());
+            const formattedDate = new Intl.DateTimeFormat('es-ES', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }).format(orderDate);
+            
+            // Map status
+            const statusMap: any = {
+              'pending': 'Pendientes',
+              'processing': 'Procesando',
+              'shipped': 'En camino',
+              'delivered': 'Entregados',
+              'cancelled': 'Cancelados'
+            };
+            
+            const statusColorMap: any = {
+              'pending': 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+              'processing': 'bg-blue-50 text-blue-700 border border-blue-200',
+              'shipped': 'bg-purple-50 text-purple-700 border border-purple-200',
+              'delivered': 'bg-green-50 text-green-600 border border-green-200',
+              'cancelled': 'bg-red-50 text-red-700 border border-red-200'
+            };
+            
+            const status = statusMap[order.status] || order.status;
+            const statusColor = statusColorMap[order.status] || 'bg-gray-50 text-gray-700 border border-gray-200';
+            
+            // Get product images from items
+            const productImages = order.items?.slice(0, 3).map((item: any) => item.productImage || '') || [];
+            
+            return {
+              id: order.id || order.orderNumber || '',
+              date: formattedDate,
+              status: status,
+              statusColor: statusColor,
+              statusIcon: '',
+              total: order.total || 0,
+              productsCount: order.items?.length || 0,
+              productImages: productImages,
+              showActions: order.status === 'delivered' 
+                ? ['verDetalles', 'factura', 'calificar', 'devolver']
+                : ['verDetalles', 'factura'],
+              progressStep: order.status === 'delivered' ? 4 : 
+                           order.status === 'shipped' ? 3 :
+                           order.status === 'processing' ? 2 : 1,
+              items: order.items || [],
+              orderNumber: order.orderNumber || order.id,
+              createdAt: order.createdAt
+            };
+          });
+          
+          // Sort by date (newest first)
+          allOrders.sort((a: any, b: any) => {
+            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+            return dateB.getTime() - dateA.getTime();
+          });
+          
+          filteredOrders = [...allOrders];
+          renderOrders();
+          updatePagination();
+          
+          if (loadingEl) loadingEl.classList.add('hidden');
+        } catch (error) {
+          console.error('Error loading orders:', error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+        }
+      }
+
+      // Cargar datos (legacy function, now calls Firestore)
       function loadOrders() {
         if (allOrders && allOrders.length > 0) {
           filteredOrders = [...allOrders];
@@ -474,10 +618,10 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
 
           // Información de envío - datos por defecto si no existen
           const shipping = order.shipping || {
-            address: 'Dirección no disponible',
-            phone: 'Teléfono no disponible',
-            trackingNumber: order.status === 'Pendientes' ? 'Pendiente de asignación' : 'BOL' + order.id + Math.floor(Math.random() * 1000),
-            estimatedDelivery: order.status === 'Entregados' ? order.date : 'Pendiente de calcular'
+            address: order.shippingAddress?.address || 'Dirección no disponible',
+            phone: order.shippingAddress?.phone || 'Teléfono no disponible',
+            trackingNumber: order.trackingNumber || (order.status === 'Pendientes' || order.status === 'pending' ? 'Pendiente de asignación' : 'No asignado'),
+            estimatedDelivery: order.status === 'Entregados' || order.status === 'delivered' ? order.date : 'Pendiente de calcular'
           };
 
           // Barra de progreso HTML
@@ -546,7 +690,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
               '<span class="details-btn-text">Ver Detalles</span>' +
               '</button>' : '',
             order.showActions.includes('factura') ? 
-              '<button type="button" class="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95">' +
+              '<button type="button" class="invoice-btn flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95" data-order-id="' + order.id + '">' +
               '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />' +
               '</svg>' +
@@ -560,7 +704,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
               'Calificar' +
               '</button>' : '',
             order.showActions.includes('devolver') ? 
-              '<button type="button" class="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95">' +
+              '<button type="button" class="request-return-btn flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95" data-order-id="' + order.id + '">' +
               '<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />' +
               '</svg>' +
@@ -614,9 +758,38 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
             shippingHtml +
             '</div>' +
             '</div>' +
+            ${order.shippingCost !== undefined ? `
+            '<div class="mt-6 pt-6 border-t border-gray-200">' +
+            '<h3 class="text-lg font-bold text-gray-900 mb-4">Resumen</h3>' +
+            '<div class="space-y-2">' +
+            '<div class="flex justify-between text-gray-600">' +
+            '<span>Subtotal:</span>' +
+            '<span class="font-medium">Bs. ${(order.subtotal || 0).toFixed(2)}</span>' +
             '</div>' +
+            ${order.discount ? `
+            '<div class="flex justify-between text-gray-600">' +
+            '<span>Descuento:</span>' +
+            '<span class="font-medium text-green-600">-Bs. ${order.discount.toFixed(2)}</span>' +
+            '</div>' +
+            ` : ''}
+            '<div class="flex justify-between text-gray-600">' +
+            '<span>Envío:</span>' +
+            '<span class="font-medium">Bs. ${order.shippingCost.toFixed(2)}</span>' +
+            '</div>' +
+            '<div class="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">' +
+            '<span>Total:</span>' +
+            '<span>Bs. ${(order.total || 0).toFixed(2)}</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            ` : ''}
             '</div>';
         }).join('');
+        
+        // Adjuntar event listeners a botones de devolución después de renderizar
+        setTimeout(() => {
+          attachReturnButtons();
+        }, 100);
       }
 
       // Actualizar paginación
@@ -983,23 +1156,63 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
 
         // Botón enviar
         if (submitBtn) {
-          submitBtn.addEventListener('click', () => {
+          submitBtn.addEventListener('click', async () => {
             if (currentRating === 0) {
               alert('Por favor, selecciona una calificación');
               return;
             }
 
+            if (!currentUser || !currentOrderId) {
+              alert('Error: No se pudo obtener la información del usuario o pedido');
+              return;
+            }
+
             const comment = commentTextarea ? commentTextarea.value : '';
             
-            // Aquí puedes enviar la calificación a tu API
-            console.log('Calificación enviada:', {
-              orderId: currentOrderId,
-              rating: currentRating,
-              comment: comment
-            });
+            // Obtener información del pedido para obtener productId
+            let productId = '';
+            try {
+              const { getOrderById } = await import('../../../lib/db/orders');
+              const orderResult = await getOrderById(currentOrderId);
+              if (orderResult.data && orderResult.data.items && orderResult.data.items.length > 0) {
+                // Calificar el primer producto del pedido (o se puede modificar para calificar todos)
+                productId = orderResult.data.items[0].productId;
+              } else {
+                alert('Error: No se pudo obtener la información del pedido');
+                return;
+              }
+            } catch (error) {
+              console.error('Error getting order:', error);
+              alert('Error al obtener información del pedido');
+              return;
+            }
+            
+            // Enviar calificación a Firestore
+            try {
+              const { createRating } = await import('../../../lib/db/ratings');
+              const ratingResult = await createRating({
+                userId: currentUser.id,
+                orderId: currentOrderId,
+                productId: productId,
+                rating: currentRating,
+                comment: comment
+              });
 
-            // Mostrar mensaje de éxito (puedes mejorar esto)
-            alert('¡Gracias por tu calificación!');
+              if (ratingResult.success) {
+                alert('¡Gracias por tu calificación!');
+                // Recargar pedidos para actualizar la UI
+                if (typeof loadOrdersFromFirestore === 'function') {
+                  await loadOrdersFromFirestore();
+                }
+              } else {
+                alert('Error al guardar la calificación: ' + (ratingResult.error?.message || 'Error desconocido'));
+                return;
+              }
+            } catch (error: any) {
+              console.error('Error creating rating:', error);
+              alert('Error al guardar la calificación: ' + (error.message || 'Error desconocido'));
+              return;
+            }
             
             // Cerrar modal
             closeRatingModal();
@@ -1031,8 +1244,323 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         initRatingModal();
       }
 
-      // Inicializar
-      loadOrders();
+      // Funcionalidad de devolución
+      let createReturn: any, getOrderById: any, getUserAddresses: any;
+      let currentReturnOrderId: string | null = null;
+      
+      (async () => {
+        const returnsModule = await import('../../../lib/db/returns');
+        createReturn = returnsModule.createReturn;
+        
+        const ordersModule = await import('../../../lib/db/orders');
+        getOrderById = ordersModule.getOrderById;
+        
+        const usersModule = await import('../../../lib/db/users');
+        getUserAddresses = usersModule.getUserAddresses;
+        
+        initReturnModal();
+      })();
+      
+      // Función para inicializar modal de devolución
+      function initReturnModal() {
+        const returnModal = document.getElementById('return-request-modal');
+        const closeReturnBtn = document.getElementById('close-return-modal-btn');
+        const returnContent = document.getElementById('return-request-content');
+        
+        // Cerrar modal
+        if (closeReturnBtn) {
+          closeReturnBtn.addEventListener('click', closeReturnModal);
+        }
+        
+        if (returnModal) {
+          returnModal.addEventListener('click', (e) => {
+            if (e.target === returnModal) {
+              closeReturnModal();
+            }
+          });
+        }
+        
+        // Cerrar con ESC
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (returnModal && !returnModal.classList.contains('hidden')) {
+              closeReturnModal();
+            }
+          }
+        });
+        
+        // Adjuntar event listeners a botones de devolución después de renderizar
+        setTimeout(() => {
+          attachReturnButtons();
+        }, 100);
+      }
+      
+      // Función para adjuntar event listeners a botones de devolución
+      function attachReturnButtons() {
+        document.querySelectorAll('.request-return-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const orderId = (e.currentTarget as HTMLElement).getAttribute('data-order-id');
+            if (orderId) {
+              await openReturnModal(orderId);
+            }
+          });
+        });
+      }
+      
+      // Función para adjuntar event listeners a botones de factura
+      function attachInvoiceButtons() {
+        document.querySelectorAll('.invoice-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const orderId = (e.currentTarget as HTMLElement).getAttribute('data-order-id');
+            if (!orderId) return;
+            
+            try {
+              const { getOrderById } = await import('../../../lib/db/orders');
+              const { getCurrentUserData } = await import('../../../lib/auth');
+              const { openInvoice } = await import('../../../lib/utils/invoice');
+              
+              // Obtener pedido
+              const orderResult = await getOrderById(orderId);
+              if (!orderResult.data) {
+                alert('Error: No se pudo obtener la información del pedido');
+                return;
+              }
+              
+              // Obtener datos del usuario
+              const userResult = await getCurrentUserData();
+              if (!userResult.success || !userResult.user) {
+                alert('Error: No se pudo obtener la información del usuario');
+                return;
+              }
+              
+              // Abrir factura
+              openInvoice(orderResult.data, userResult.user);
+            } catch (error: any) {
+              console.error('Error opening invoice:', error);
+              alert('Error al generar la factura: ' + (error.message || 'Error desconocido'));
+            }
+          });
+        });
+      }
+      
+      // Función para abrir modal de devolución
+      async function openReturnModal(orderId: string) {
+        if (!getOrderById || !getUserAddresses || !currentUser) return;
+        
+        try {
+          const orderResult = await getOrderById(orderId);
+          if (!orderResult.data) {
+            alert('Error al cargar el pedido');
+            return;
+          }
+          
+          const order = orderResult.data;
+          currentReturnOrderId = orderId;
+          
+          // Obtener direcciones del usuario
+          const addressesResult = await getUserAddresses(currentUser.id);
+          const addresses = addressesResult.data || [];
+          
+          const returnModal = document.getElementById('return-request-modal');
+          const returnContent = document.getElementById('return-request-content');
+          
+          if (!returnModal || !returnContent) return;
+          
+          // Renderizar formulario de devolución
+          returnContent.innerHTML = `
+            <form id="return-request-form" class="space-y-6">
+              <!-- Seleccionar producto a devolver -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Producto a Devolver</label>
+                <select id="return-product-select" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all" required>
+                  <option value="">Selecciona un producto</option>
+                  ${order.items?.map((item: any, index: number) => `
+                    <option value="${index}" data-product-id="${item.productId}">
+                      ${item.productName} - Cantidad: ${item.quantity} - Bs. ${item.subtotal.toFixed(2)}
+                    </option>
+                  `).join('') || ''}
+                </select>
+              </div>
+              
+              <!-- Motivo de devolución -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Motivo de Devolución</label>
+                <select id="return-reason-select" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all" required>
+                  <option value="">Selecciona un motivo</option>
+                  <option value="defective">Producto defectuoso</option>
+                  <option value="wrong_item">Pedido incorrecto</option>
+                  <option value="damaged">Producto dañado</option>
+                  <option value="not_as_described">No coincide con la descripción</option>
+                  <option value="other">Otro</option>
+                </select>
+              </div>
+              
+              <!-- Descripción -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                <textarea
+                  id="return-description"
+                  rows="4"
+                  placeholder="Describe el problema o motivo de la devolución..."
+                  class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all resize-none"
+                  required
+                ></textarea>
+              </div>
+              
+              <!-- Dirección de recogida -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Dirección de Recogida</label>
+                <select id="return-address-select" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all" required>
+                  <option value="">Selecciona una dirección</option>
+                  ${addresses.map((addr: any) => `
+                    <option value="${addr.id}" ${addr.isDefault ? 'selected' : ''}>
+                      ${addr.name} - ${addr.address}, ${addr.city}
+                    </option>
+                  `).join('') || ''}
+                </select>
+              </div>
+              
+              <!-- Botones -->
+              <div class="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  id="cancel-return-btn"
+                  class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  id="submit-return-btn"
+                  class="flex-1 px-4 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-colors"
+                >
+                  Solicitar Devolución
+                </button>
+              </div>
+            </form>
+          `;
+          
+          // Event listeners del formulario
+          const returnForm = document.getElementById('return-request-form') as HTMLFormElement;
+          const cancelReturnBtn = document.getElementById('cancel-return-btn');
+          
+          if (returnForm) {
+            returnForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              await submitReturnRequest();
+            });
+          }
+          
+          if (cancelReturnBtn) {
+            cancelReturnBtn.addEventListener('click', closeReturnModal);
+          }
+          
+          returnModal.classList.remove('hidden');
+          returnModal.classList.add('flex');
+          returnModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        } catch (error) {
+          console.error('Error opening return modal:', error);
+          alert('Error al cargar la información del pedido');
+        }
+      }
+      
+      // Función para crear solicitud de devolución
+      async function submitReturnRequest() {
+        if (!createReturn || !currentUser || !currentReturnOrderId) return;
+        
+        const productSelect = document.getElementById('return-product-select') as HTMLSelectElement;
+        const reasonSelect = document.getElementById('return-reason-select') as HTMLSelectElement;
+        const descriptionTextarea = document.getElementById('return-description') as HTMLTextAreaElement;
+        const addressSelect = document.getElementById('return-address-select') as HTMLSelectElement;
+        const submitBtn = document.getElementById('submit-return-btn') as HTMLButtonElement;
+        
+        if (!productSelect || !reasonSelect || !descriptionTextarea || !addressSelect) return;
+        
+        const selectedIndex = parseInt(productSelect.value);
+        if (isNaN(selectedIndex)) {
+          alert('Por favor, selecciona un producto');
+          return;
+        }
+        
+        try {
+          const orderResult = await getOrderById(currentReturnOrderId);
+          if (!orderResult.data) {
+            alert('Error al cargar el pedido');
+            return;
+          }
+          
+          const order = orderResult.data;
+          const selectedItem = order.items[selectedIndex];
+          
+          if (!selectedItem) {
+            alert('Producto no válido');
+            return;
+          }
+          
+          // Obtener orderItemId del item (usar id único si existe, sino productId como fallback)
+          const orderItemId = selectedItem.id || selectedItem.productId;
+          
+          // Obtener dirección seleccionada
+          const addressesResult = await getUserAddresses(currentUser.id);
+          const addresses = addressesResult.data || [];
+          const selectedAddress = addresses.find((a: any) => a.id === addressSelect.value);
+          
+          if (!selectedAddress) {
+            alert('Por favor, selecciona una dirección válida');
+            return;
+          }
+          
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Procesando...';
+          }
+          
+          const returnData = {
+            userId: currentUser.id,
+            orderId: currentReturnOrderId,
+            orderItemId: orderItemId, // Usar id único del item
+            productId: selectedItem.productId,
+            reason: reasonSelect.value as any,
+            description: descriptionTextarea.value,
+            shippingAddress: selectedAddress
+          };
+          
+          const result = await createReturn(returnData);
+          
+          if (result.success) {
+            alert('Solicitud de devolución creada exitosamente');
+            closeReturnModal();
+            // Recargar pedidos para actualizar la UI
+            await loadOrdersFromFirestore();
+          } else {
+            alert('Error al crear la solicitud de devolución: ' + (result.error?.message || 'Error desconocido'));
+          }
+        } catch (error) {
+          console.error('Error creating return:', error);
+          alert('Error al crear la solicitud de devolución');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Solicitar Devolución';
+          }
+        }
+      }
+      
+      // Función para cerrar modal de devolución
+      function closeReturnModal() {
+        const returnModal = document.getElementById('return-request-modal');
+        if (returnModal) {
+          returnModal.classList.add('hidden');
+          returnModal.classList.remove('flex');
+          returnModal.style.display = 'none';
+        }
+        document.body.style.overflow = '';
+        currentReturnOrderId = null;
+      }
+      
+      // Note: loadOrdersFromFirestore() is called in the async IIFE above
+      // loadOrders() will be called from there after data is loaded
     })();
   </script>
 </section>

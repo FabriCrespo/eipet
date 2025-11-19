@@ -1,27 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import productsData from '../data/products.json';
 
 // Obtener parámetros de la URL
 const url = Astro.url;
 const petFilter = url.searchParams.get('pet') || 'all';
 const filterType = url.searchParams.get('filter') || 'all';
-
-// Filtrar productos
-let filteredProducts = productsData.products;
-
-if (petFilter === 'dog') {
-  filteredProducts = filteredProducts.filter(p => p.category === 'dog');
-} else if (petFilter === 'cat') {
-  filteredProducts = filteredProducts.filter(p => p.category === 'cat');
-}
-
-if (filterType === 'discount') {
-  filteredProducts = filteredProducts.filter(p => p.discount > 0);
-} else if (filterType === 'new') {
-  // Simular productos nuevos (últimos 5)
-  filteredProducts = filteredProducts.slice(-5);
-}
 
 const getTitle = () => {
   if (petFilter === 'dog') return 'Productos para Perros';
@@ -248,67 +231,16 @@ const getSubtitle = () => {
 
         <!-- Grid de Productos -->
         <div class="flex-1">
-          <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProducts.map((product) => (
-              <div 
-                class="product-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-[520px]"
-                data-category={product.category}
-                data-type={product.type}
-                data-life-stage={product.lifeStage}
-                data-breed-size={product.breedSize}
-                data-price={product.price}
-                data-discount={product.discount}
-              >
-                <div class="relative h-64 bg-gray-100 overflow-hidden shrink-0">
-                  {product.discount > 0 && (
-                    <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10 shadow-lg">
-                      -{product.discount}%
-                    </div>
-                  )}
-                  <button 
-                    class="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full p-2 z-10 transition-all hover:scale-110 shadow-lg"
-                    aria-label="Agregar a favoritos"
-                  >
-                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
-                  {product.weight && (
-                    <div class="absolute bottom-3 left-3 bg-[#5d3fbb] text-white px-3 py-1 rounded-lg text-xs font-bold z-10 shadow-lg">
-                      {product.weight}
-                    </div>
-                  )}
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div class="p-5 bg-linear-to-b from-white to-purple-50/30 flex flex-col grow min-h-0">
-                  <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">{product.brand}</p>
-                  <h3 class="font-bold text-base text-gray-800 mb-2 line-clamp-2 min-h-10">{product.name}</h3>
-                  <div class="mb-4 min-h-8 flex items-center gap-2">
-                    <p class="text-2xl font-bold text-[#5d3fbb]">Bs. {product.price.toLocaleString()}</p>
-                    {product.originalPrice && (
-                      <p class="text-lg text-gray-400 line-through">Bs. {product.originalPrice.toLocaleString()}</p>
-                    )}
-                  </div>
-                  <a 
-                    href={`/product?id=${product.id}`}
-                    class="mt-auto w-full bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shrink-0 hover:scale-105 active:scale-95 relative z-20 cursor-pointer"
-                  >
-                    Ver Detalles
-                  </a>
-                </div>
-              </div>
-            ))}
+          <div id="products-loading" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#5d3fbb]"></div>
+            <p class="mt-4 text-gray-600">Cargando productos...</p>
           </div>
-
-          {filteredProducts.length === 0 && (
-            <div class="text-center py-16">
-              <p class="text-gray-500 text-lg">No se encontraron productos con los filtros seleccionados.</p>
-            </div>
-          )}
+          <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- Products will be loaded here dynamically -->
+          </div>
+          <div id="products-empty" class="text-center py-16 hidden">
+            <p class="text-gray-500 text-lg">No se encontraron productos con los filtros seleccionados.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -346,10 +278,287 @@ const getSubtitle = () => {
   </style>
 
   <script>
+    // Dynamic imports
+    let getProducts: any, addToCart: any, addToFavorites: any, removeFromFavorites: any, isFavorite: any, getCurrentUser: any;
+    let allProducts: any[] = [];
+    let currentUser: any = null;
+    
+    (async () => {
+      const productsModule = await import('../lib/db/products');
+      getProducts = productsModule.getProducts;
+      
+      const cartModule = await import('../lib/db/cart');
+      addToCart = cartModule.addToCart;
+      
+      const favoritesModule = await import('../lib/db/favorites');
+      addToFavorites = favoritesModule.addToFavorites;
+      removeFromFavorites = favoritesModule.removeFromFavorites;
+      isFavorite = favoritesModule.isFavorite;
+      
+      const authModule = await import('../lib/auth');
+      getCurrentUser = authModule.getCurrentUser;
+      
+      // Get current user
+      const firebaseUser = getCurrentUser();
+      if (firebaseUser) {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            currentUser = JSON.parse(userData);
+          } catch (e) {
+            console.error('Error parsing user:', e);
+          }
+        }
+      }
+      
+      // Load products
+      await loadProducts();
+    })();
+
     // Obtener los filtros de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const petFilter = urlParams.get('pet') || 'all';
     const filterType = urlParams.get('filter') || 'all';
+
+    // Load products from Firestore
+    async function loadProducts() {
+      const loadingEl = document.getElementById('products-loading');
+      const gridEl = document.getElementById('products-grid');
+      const emptyEl = document.getElementById('products-empty');
+      
+      if (!gridEl) return;
+      
+      try {
+        // Build filters
+        const filters: any = {
+          status: 'active',
+        };
+        
+        if (petFilter === 'dog') {
+          filters.category = 'dog';
+        } else if (petFilter === 'cat') {
+          filters.category = 'cat';
+        }
+        
+        if (filterType === 'discount') {
+          filters.discount = true;
+        }
+        
+        // Get products from Firestore
+        const result = await getProducts(filters);
+        
+        if (result.error) {
+          console.error('Error loading products:', result.error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+          if (emptyEl) emptyEl.classList.remove('hidden');
+          return;
+        }
+        
+        allProducts = result.data || [];
+        
+        // Filter new products if needed
+        if (filterType === 'new') {
+          // Sort by createdAt and take last 5
+          allProducts.sort((a: any, b: any) => {
+            const aDate = a.createdAt?.toDate?.() || new Date(0);
+            const bDate = b.createdAt?.toDate?.() || new Date(0);
+            return bDate.getTime() - aDate.getTime();
+          });
+          allProducts = allProducts.slice(0, 5);
+        }
+        
+        // Render products
+        renderProducts(allProducts);
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (allProducts.length === 0) {
+          if (emptyEl) emptyEl.classList.remove('hidden');
+        } else {
+          if (emptyEl) emptyEl.classList.add('hidden');
+          if (gridEl) gridEl.classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.remove('hidden');
+      }
+    }
+
+    // Render products
+    async function renderProducts(products: any[]) {
+      const gridEl = document.getElementById('products-grid');
+      if (!gridEl) return;
+      
+      gridEl.innerHTML = '';
+      
+      for (const product of products) {
+        const isFav = currentUser ? await isFavorite(currentUser.id, product.id) : false;
+        const discount = product.discount || 0;
+        const price = product.price || 0;
+        const originalPrice = product.originalPrice || null;
+        
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-[520px]';
+        productCard.setAttribute('data-category', product.category || '');
+        productCard.setAttribute('data-type', product.type || '');
+        productCard.setAttribute('data-life-stage', product.lifeStage || '');
+        productCard.setAttribute('data-breed-size', product.breedSize || '');
+        productCard.setAttribute('data-price', price.toString());
+        productCard.setAttribute('data-discount', discount.toString());
+        productCard.setAttribute('data-product-id', product.id);
+        
+        productCard.innerHTML = `
+          <div class="relative h-64 bg-gray-100 overflow-hidden shrink-0">
+            ${discount > 0 ? `
+              <div class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10 shadow-lg">
+                -${discount}%
+              </div>
+            ` : ''}
+            <button 
+              class="favorite-btn absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full p-2 z-10 transition-all hover:scale-110 shadow-lg ${isFav ? 'text-red-500' : 'text-gray-400'}"
+              aria-label="Agregar a favoritos"
+              data-product-id="${product.id}"
+            >
+              <svg class="w-5 h-5 ${isFav ? 'fill-current' : ''}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+            ${product.weight ? `
+              <div class="absolute bottom-3 left-3 bg-[#5d3fbb] text-white px-3 py-1 rounded-lg text-xs font-bold z-10 shadow-lg">
+                ${product.weight}
+              </div>
+            ` : ''}
+            <img 
+              src="${product.image || ''}" 
+              alt="${product.name || ''}"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              onerror="this.src='https://via.placeholder.com/400x400?text=Sin+Imagen'"
+            />
+          </div>
+          <div class="p-5 bg-linear-to-b from-white to-purple-50/30 flex flex-col grow min-h-0">
+            <p class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">${product.brand || ''}</p>
+            <h3 class="font-bold text-base text-gray-800 mb-2 line-clamp-2 min-h-10">${product.name || ''}</h3>
+            <div class="mb-4 min-h-8 flex items-center gap-2">
+              <p class="text-2xl font-bold text-[#5d3fbb]">Bs. ${price.toLocaleString()}</p>
+              ${originalPrice ? `
+                <p class="text-lg text-gray-400 line-through">Bs. ${originalPrice.toLocaleString()}</p>
+              ` : ''}
+            </div>
+            <div class="flex gap-2 mt-auto">
+              <button 
+                class="add-to-cart-btn flex-1 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shrink-0 hover:scale-105 active:scale-95"
+                data-product-id="${product.id}"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar
+              </button>
+              <a 
+                href="/product?id=${product.id}"
+                class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shrink-0 hover:scale-105 active:scale-95"
+              >
+                Ver Detalles
+              </a>
+            </div>
+          </div>
+        `;
+        
+        gridEl.appendChild(productCard);
+      }
+      
+      // Add event listeners
+      setupProductEventListeners();
+    }
+
+    // Setup event listeners for products
+    function setupProductEventListeners() {
+      // Add to cart buttons
+      document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const productId = (e.currentTarget as HTMLElement).getAttribute('data-product-id');
+          if (!productId) return;
+          
+          if (!currentUser) {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+            return;
+          }
+          
+          const btnEl = e.currentTarget as HTMLButtonElement;
+          const originalText = btnEl.innerHTML;
+          btnEl.disabled = true;
+          btnEl.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>';
+          
+          try {
+            const result = await addToCart(currentUser.id, { productId, quantity: 1 });
+            if (result.success) {
+              btnEl.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> ¡Agregado!';
+              btnEl.classList.add('bg-green-500', 'hover:bg-green-600');
+              setTimeout(() => {
+                btnEl.innerHTML = originalText;
+                btnEl.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btnEl.disabled = false;
+              }, 2000);
+              
+              // Emitir evento de actualización del carrito
+              document.dispatchEvent(new CustomEvent('cartUpdated'));
+            } else {
+              throw new Error(result.error?.message || 'Error al agregar al carrito');
+            }
+          } catch (error) {
+            console.error('Error adding to cart:', error);
+            btnEl.innerHTML = originalText;
+            btnEl.disabled = false;
+            alert('Error al agregar al carrito. Por favor, intenta de nuevo.');
+          }
+        });
+      });
+      
+      // Favorite buttons
+      document.querySelectorAll('.favorite-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const productId = (e.currentTarget as HTMLElement).getAttribute('data-product-id');
+          if (!productId) return;
+          
+          if (!currentUser) {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+            return;
+          }
+          
+          const btnEl = e.currentTarget as HTMLButtonElement;
+          const svg = btnEl.querySelector('svg');
+          
+          try {
+            const isFav = await isFavorite(currentUser.id, productId);
+            let result;
+            
+            if (isFav) {
+              result = await removeFromFavorites(currentUser.id, productId);
+            } else {
+              result = await addToFavorites(currentUser.id, productId);
+            }
+            
+            if (result.success) {
+              if (isFav) {
+                btnEl.classList.remove('text-red-500');
+                btnEl.classList.add('text-gray-400');
+                if (svg) {
+                  svg.setAttribute('fill', 'none');
+                }
+              } else {
+                btnEl.classList.remove('text-gray-400');
+                btnEl.classList.add('text-red-500');
+                if (svg) {
+                  svg.setAttribute('fill', 'currentColor');
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error toggling favorite:', error);
+          }
+        });
+      });
+    }
 
     // Función para aplicar filtros
     function applyFilters() {
@@ -373,9 +582,6 @@ const getSubtitle = () => {
             if (discount <= 0) {
               show = false;
             }
-          } else if (filterType === 'new') {
-            // Para productos nuevos, mostrar los últimos 5 (esto se maneja en el servidor)
-            // Aquí solo verificamos que el producto esté visible
           }
         }
         
@@ -422,10 +628,23 @@ const getSubtitle = () => {
           (card as HTMLElement).style.display = 'none';
         }
       });
+      
+      // Update empty message
+      const visibleCards = Array.from(document.querySelectorAll('.product-card')).filter(card => 
+        (card as HTMLElement).style.display !== 'none'
+      );
+      const emptyEl = document.getElementById('products-empty');
+      const gridEl = document.getElementById('products-grid');
+      if (visibleCards.length === 0) {
+        if (emptyEl) emptyEl.classList.remove('hidden');
+        if (gridEl) gridEl.classList.add('hidden');
+      } else {
+        if (emptyEl) emptyEl.classList.add('hidden');
+        if (gridEl) gridEl.classList.remove('hidden');
+      }
     }
 
-    // Aplicar filtros iniciales al cargar la página
-    applyFilters();
+    // Aplicar filtros cuando cambien los checkboxes
 
     // Toggle filtros
     const filterButtons = [
@@ -489,8 +708,8 @@ const getSubtitle = () => {
           case 'price-high':
             return priceB - priceA;
           case 'discount':
-            const discountA = parseInt(a.querySelector('.bg-red-500')?.textContent?.replace('-', '').replace('%', '') || '0');
-            const discountB = parseInt(b.querySelector('.bg-red-500')?.textContent?.replace('-', '').replace('%', '') || '0');
+            const discountA = parseInt(a.getAttribute('data-discount') || '0');
+            const discountB = parseInt(b.getAttribute('data-discount') || '0');
             return discountB - discountA;
           default:
             return 0;
@@ -498,7 +717,11 @@ const getSubtitle = () => {
       });
 
       const grid = document.getElementById('products-grid');
-      cards.forEach(card => grid?.appendChild(card));
+      if (grid) {
+        grid.innerHTML = '';
+        cards.forEach(card => grid.appendChild(card));
+        setupProductEventListeners();
+      }
     });
 
     // Filtros
@@ -508,5 +731,12 @@ const getSubtitle = () => {
         applyFilters();
       });
     });
+    
+    // Helper function to get cart item count (needed for add to cart)
+    let getCartItemCount: any;
+    (async () => {
+      const cartModule = await import('../lib/db/cart');
+      getCartItemCount = cartModule.getCartItemCount;
+    })();
   </script>
 </Layout>

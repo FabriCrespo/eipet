@@ -253,138 +253,12 @@ import '../styles/global.css';
 
       <!-- Carrusel de productos -->
       <div class="relative">
-        <div id="products-carousel" class="flex gap-4 lg:gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
-          <!-- Producto 1 -->
-          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
-            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
-              <img 
-                src="https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80" 
-                alt="Van Camps 20Kg" 
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
-              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Van Camps</h3>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">20Kg - Adulto Raza Med. y Grande / Ecopet</p>
-              <div class="mb-4 min-h-8 flex items-center">
-                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 315.00</p>
-              </div>
-              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Agregar al carrito
-              </button>
-            </div>
-          </div>
-
-          <!-- Producto 2 -->
-          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
-            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
-              <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
-                -11%
-              </div>
-              <img 
-                src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&q=80" 
-                alt="Van Camps Premium" 
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
-              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Van Camps</h3>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">Alimento Premium Perro Adulto 15kg</p>
-              <div class="mb-4 min-h-8 flex items-center gap-2">
-                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 285.00</p>
-                <p class="text-lg text-gray-400 line-through">Bs. 320.00</p>
-              </div>
-              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Agregar al carrito
-              </button>
-            </div>
-          </div>
-
-          <!-- Producto 3 -->
-          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
-            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
-              <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
-                -7%
-              </div>
-              <img 
-                src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&q=80" 
-                alt="Sofia 20kg" 
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
-              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Sofia</h3>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">20kg - Adulto Toda Raza Sabor Cordero / Premium</p>
-              <div class="mb-4 min-h-8 flex items-center gap-2">
-                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 335.00</p>
-                <p class="text-lg text-gray-400 line-through">Bs. 360.00</p>
-              </div>
-              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Agregar al carrito
-              </button>
-            </div>
-          </div>
-
-          <!-- Producto 4 -->
-          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
-            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
-              <img 
-                src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80" 
-                alt="Podium 23Kg" 
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
-              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Podium</h3>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">23Kg - Adulto Raza Pequeña / Podium</p>
-              <div class="mb-4 min-h-8 flex items-center">
-                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 425.00</p>
-              </div>
-              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Agregar al carrito
-              </button>
-            </div>
-          </div>
-
-          <!-- Producto 5 -->
-          <div class="min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col">
-            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
-              <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
-                -10%
-              </div>
-              <img 
-                src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&q=80" 
-                alt="Cibau Adulto" 
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
-              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">Cibau</h3>
-              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">Cibau Adulto 15kg</p>
-              <div class="mb-4 min-h-8 flex items-center gap-2">
-                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. 295.00</p>
-                <p class="text-lg text-gray-400 line-through">Bs. 330.00</p>
-              </div>
-              <button class="mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Agregar al carrito
-              </button>
-            </div>
-          </div>
+        <div id="products-loading" class="text-center py-16">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#5d3fbb]"></div>
+          <p class="mt-4 text-gray-600">Cargando productos...</p>
+        </div>
+        <div id="products-carousel" class="flex gap-4 lg:gap-6 overflow-x-auto scroll-smooth scrollbar-hide pb-2 hidden" style="scrollbar-width: none; -ms-overflow-style: none;">
+          <!-- Products will be loaded here dynamically -->
         </div>
       </div>
     </div>
@@ -715,6 +589,174 @@ import '../styles/global.css';
           productsCarousel.scrollLeft = scrollLeft - walk;
         });
       }
+      
+      // Load most sold products from Firestore
+      loadMostSoldProducts();
     });
+    
+    // Load most sold products
+    async function loadMostSoldProducts() {
+      let getProducts: any, addToCart: any, getCurrentUser: any, getCartItemCount: any;
+      
+      try {
+        const productsModule = await import('../lib/db/products');
+        getProducts = productsModule.getProducts;
+        
+        const cartModule = await import('../lib/db/cart');
+        addToCart = cartModule.addToCart;
+        getCartItemCount = cartModule.getCartItemCount;
+        
+        const authModule = await import('../lib/auth');
+        getCurrentUser = authModule.getCurrentUser;
+        
+        // Get current user
+        let currentUser: any = null;
+        const firebaseUser = getCurrentUser();
+        if (firebaseUser) {
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            try {
+              currentUser = JSON.parse(userData);
+            } catch (e) {
+              console.error('Error parsing user:', e);
+            }
+          }
+        }
+        
+        // Get most sold products
+        const { getMostSoldProducts } = await import('../lib/db/products');
+        const result = await getMostSoldProducts(10);
+        
+        const loadingEl = document.getElementById('products-loading');
+        const carouselEl = document.getElementById('products-carousel');
+        
+        let products: any[] = [];
+        
+        if (result.error || !result.data || result.data.length === 0) {
+          // Si no hay productos más vendidos, mostrar productos con descuento como fallback
+          const fallbackResult = await getProducts({
+            status: 'active',
+            limit: 10,
+          });
+          if (fallbackResult.data && fallbackResult.data.length > 0) {
+            products = fallbackResult.data
+              .sort((a: any, b: any) => {
+                const discountA = a.discount || 0;
+                const discountB = b.discount || 0;
+                if (discountB !== discountA) {
+                  return discountB - discountA;
+                }
+                return (b.price || 0) - (a.price || 0);
+              })
+              .slice(0, 10);
+          } else {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            return;
+          }
+        } else {
+          products = result.data;
+        }
+        
+        if (!carouselEl) {
+          if (loadingEl) loadingEl.classList.add('hidden');
+          return;
+        }
+        
+        // Render products
+        carouselEl.innerHTML = '';
+        
+        for (const product of products) {
+          const discount = product.discount || 0;
+          const price = product.price || 0;
+          const originalPrice = product.originalPrice || null;
+          
+          const productCard = document.createElement('div');
+          productCard.className = 'min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col';
+          
+          productCard.innerHTML = `
+            <div class="relative h-48 bg-gray-100 overflow-hidden shrink-0">
+              ${discount > 0 ? `
+                <div class="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
+                  -${discount}%
+                </div>
+              ` : ''}
+              <img 
+                src="${product.image || ''}" 
+                alt="${product.name || ''}"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                onerror="this.src='https://via.placeholder.com/400x400?text=Sin+Imagen'"
+              />
+            </div>
+            <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
+              <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">${product.brand || ''}</h3>
+              <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">${product.name || ''}</p>
+              <div class="mb-4 min-h-8 flex items-center ${originalPrice ? 'gap-2' : ''}">
+                <p class="text-2xl font-bold text-[#5d3fbb]">Bs. ${price.toLocaleString()}</p>
+                ${originalPrice ? `
+                  <p class="text-lg text-gray-400 line-through">Bs. ${originalPrice.toLocaleString()}</p>
+                ` : ''}
+              </div>
+              <button 
+                class="add-to-cart-btn mt-auto w-full bg-linear-to-r from-[#5d3fbb] to-[#ffff11] text-white font-bold py-3 px-4 rounded-lg hover:from-[#6d4fcc] hover:to-yellow-400 transition-all duration-300 flex items-center justify-center gap-2 shrink-0"
+                data-product-id="${product.id}"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Agregar al carrito
+              </button>
+            </div>
+          `;
+          
+          carouselEl.appendChild(productCard);
+        }
+        
+        // Add event listeners for add to cart buttons
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const productId = (e.currentTarget as HTMLElement).getAttribute('data-product-id');
+            if (!productId) return;
+            
+            if (!currentUser) {
+              window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+              return;
+            }
+            
+            const btnEl = e.currentTarget as HTMLButtonElement;
+            const originalText = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>';
+            
+            try {
+              const result = await addToCart(currentUser.id, { productId, quantity: 1 });
+              if (result.success) {
+                btnEl.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> ¡Agregado!';
+                setTimeout(() => {
+                  btnEl.innerHTML = originalText;
+                  btnEl.disabled = false;
+                }, 2000);
+                
+                // Emitir evento de actualización del carrito
+                document.dispatchEvent(new CustomEvent('cartUpdated'));
+              } else {
+                throw new Error(result.error?.message || 'Error al agregar al carrito');
+              }
+            } catch (error) {
+              console.error('Error adding to cart:', error);
+              btnEl.innerHTML = originalText;
+              btnEl.disabled = false;
+              alert('Error al agregar al carrito. Por favor, intenta de nuevo.');
+            }
+          });
+        });
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (carouselEl) carouselEl.classList.remove('hidden');
+      } catch (error) {
+        console.error('Error loading products:', error);
+        const loadingEl = document.getElementById('products-loading');
+        if (loadingEl) loadingEl.classList.add('hidden');
+      }
+    }
   </script>
 </Layout>

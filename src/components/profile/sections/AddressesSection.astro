@@ -1,45 +1,5 @@
 ---
 const title = 'Mis Direcciones';
-
-// Datos de ejemplo - en producción vendrían de una API o base de datos
-const addresses = [
-  {
-    id: '1',
-    name: 'Casa',
-    fullName: 'Juan Pérez',
-    phone: '+591 70012345',
-    address: 'Av. Principal 123',
-    city: 'Santa Cruz',
-    district: 'Equipetrol',
-    zipCode: '0000',
-    isDefault: true,
-    instructions: 'Llamar antes de llegar'
-  },
-  {
-    id: '2',
-    name: 'Oficina',
-    fullName: 'Juan Pérez',
-    phone: '+591 70012345',
-    address: 'Calle Comercio 456, Edificio Central, Piso 3',
-    city: 'La Paz',
-    district: 'Centro',
-    zipCode: '0000',
-    isDefault: false,
-    instructions: 'Recepción en el piso 3'
-  },
-  {
-    id: '3',
-    name: 'Departamento',
-    fullName: 'Juan Pérez',
-    phone: '+591 70012345',
-    address: 'Av. Libertad 789, Bloque A, Dpto 5B',
-    city: 'Cochabamba',
-    district: 'Zona Sur',
-    zipCode: '0000',
-    isDefault: false,
-    instructions: 'Tocar timbre 5B'
-  }
-];
 ---
 
 <!-- Leaflet CSS -->
@@ -75,75 +35,15 @@ const addresses = [
     </button>
   </div>
 
+  <!-- Loading State -->
+  <div id="addresses-loading" class="text-center py-16">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+    <p class="mt-4 text-gray-600">Cargando direcciones...</p>
+  </div>
+
   <!-- Lista de direcciones -->
-  <div id="addresses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-    {addresses.map((address) => (
-      <div class="bg-white rounded-2xl border-2 border-gray-200 shadow-sm hover:shadow-lg transition-shadow duration-300 p-6 relative" data-address-id={address.id}>
-        <!-- Badge de dirección por defecto -->
-        {address.isDefault && (
-          <span class="absolute top-4 right-4 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
-            Por defecto
-          </span>
-        )}
-
-        <!-- Nombre de la dirección -->
-        <div class="flex items-start justify-between mb-4">
-          <h3 class="text-xl font-bold text-gray-900">{address.name}</h3>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              class="edit-address-btn p-2 text-gray-400 hover:text-emerald-600 transition-colors"
-              data-address-id={address.id}
-              aria-label="Editar dirección"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              class="delete-address-btn p-2 text-gray-400 hover:text-red-600 transition-colors"
-              data-address-id={address.id}
-              aria-label="Eliminar dirección"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Información de la dirección -->
-        <div class="space-y-2 text-gray-600">
-          <p class="font-medium text-gray-900">{address.fullName}</p>
-          <p>{address.address}</p>
-          <p>{address.district}, {address.city}</p>
-          <p>Código Postal: {address.zipCode}</p>
-          <p class="flex items-center gap-2 mt-3">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
-            {address.phone}
-          </p>
-          {address.instructions && (
-            <p class="mt-3 pt-3 border-t border-gray-200 text-sm italic">
-              <span class="font-medium">Instrucciones:</span> {address.instructions}
-            </p>
-          )}
-        </div>
-
-        <!-- Botón establecer como predeterminada -->
-        {!address.isDefault && (
-          <button
-            type="button"
-            class="set-default-btn mt-4 w-full px-4 py-2 text-sm font-medium text-emerald-600 border-2 border-emerald-200 rounded-xl hover:bg-emerald-50 transition-all duration-200"
-            data-address-id={address.id}
-          >
-            Establecer como predeterminada
-          </button>
-        )}
-      </div>
-    ))}
+  <div id="addresses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 hidden">
+    <!-- Addresses will be loaded here dynamically -->
   </div>
 
   <!-- Mensaje cuando no hay direcciones -->
@@ -359,9 +259,45 @@ const addresses = [
 </section>
 
 <script>
+  // Dynamic imports
+  let getUserAddresses: any, addAddressFn: any, updateAddressFn: any, deleteAddressFn: any, setDefaultAddressFn: any, getCurrentUser: any;
+  let currentUser: any = null;
+  
+  (async () => {
+    const usersModule = await import('../../../lib/db/users');
+    getUserAddresses = usersModule.getUserAddresses;
+    addAddressFn = usersModule.addAddress;
+    updateAddressFn = usersModule.updateAddress;
+    deleteAddressFn = usersModule.deleteAddress;
+    setDefaultAddressFn = usersModule.setDefaultAddress;
+    
+    const authModule = await import('../../../lib/auth');
+    getCurrentUser = authModule.getCurrentUser;
+    
+    // Get current user
+    const firebaseUser = getCurrentUser();
+    if (firebaseUser) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          currentUser = JSON.parse(userData);
+        } catch (e) {
+          console.error('Error parsing user:', e);
+        }
+      }
+    }
+    
+    if (!currentUser) {
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+    
+    // Load addresses
+    await loadAddresses();
+  })();
+
   (function() {
-    // @ts-ignore
-    let addresses = (window.addressesData || []) as any[];
+    let addresses: any[] = [];
     let editingAddressId: string | null = null;
     let map: any = null;
     let marker: any = null;
@@ -523,19 +459,19 @@ const addresses = [
       if (editingAddressId) {
         const address = addresses.find((a: any) => a.id === editingAddressId);
         if (address && addressForm) {
-          (document.getElementById('address-name') as HTMLInputElement).value = address.name;
-          (document.getElementById('address-fullname') as HTMLInputElement).value = address.fullName;
-          (document.getElementById('address-phone') as HTMLInputElement).value = address.phone;
-          (document.getElementById('address-street') as HTMLInputElement).value = address.address;
-          (document.getElementById('address-district') as HTMLInputElement).value = address.district;
-          (document.getElementById('address-city') as HTMLSelectElement).value = address.city;
-          (document.getElementById('address-zip') as HTMLInputElement).value = address.zipCode;
+          (document.getElementById('address-name') as HTMLInputElement).value = address.name || '';
+          (document.getElementById('address-fullname') as HTMLInputElement).value = address.fullName || `${address.firstName || ''} ${address.lastName || ''}`.trim();
+          (document.getElementById('address-phone') as HTMLInputElement).value = address.phone || '';
+          (document.getElementById('address-street') as HTMLInputElement).value = address.address || address.street || '';
+          (document.getElementById('address-district') as HTMLInputElement).value = address.district || '';
+          (document.getElementById('address-city') as HTMLSelectElement).value = address.city || '';
+          (document.getElementById('address-zip') as HTMLInputElement).value = address.zipCode || '';
           (document.getElementById('address-instructions') as HTMLTextAreaElement).value = address.instructions || '';
           (document.getElementById('address-default') as HTMLInputElement).checked = address.isDefault || false;
           
           // Inicializar mapa con coordenadas de la dirección si existen
-          const lat = address.latitude ? parseFloat(address.latitude) : undefined;
-          const lng = address.longitude ? parseFloat(address.longitude) : undefined;
+          const lat = address.latitude ? (typeof address.latitude === 'number' ? address.latitude : parseFloat(address.latitude)) : undefined;
+          const lng = address.longitude ? (typeof address.longitude === 'number' ? address.longitude : parseFloat(address.longitude)) : undefined;
           if (latitudeInput) latitudeInput.value = lat ? lat.toString() : '';
           if (longitudeInput) longitudeInput.value = lng ? lng.toString() : '';
           
@@ -586,8 +522,56 @@ const addresses = [
       if (longitudeInput) longitudeInput.value = '';
     }
 
+    // Load addresses from Firestore
+    async function loadAddresses() {
+      const loadingEl = document.getElementById('addresses-loading');
+      const containerEl = document.getElementById('addresses-container');
+      
+      if (!currentUser || !getUserAddresses) return;
+      
+      try {
+        const result = await getUserAddresses(currentUser.id);
+        
+        if (result.error) {
+          console.error('Error loading addresses:', result.error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+          return;
+        }
+        
+        addresses = result.data || [];
+        
+        // Convert Firestore data to display format
+        addresses = addresses.map((addr: any) => ({
+          id: addr.id,
+          name: addr.name || '',
+          fullName: `${addr.firstName || ''} ${addr.lastName || ''}`.trim() || '',
+          phone: addr.phone || '',
+          address: addr.street || '',
+          district: addr.district || '',
+          city: addr.city || '',
+          zipCode: addr.zipCode || '0000',
+          instructions: addr.instructions || '',
+          isDefault: addr.isDefault || false,
+          latitude: addr.latitude || '',
+          longitude: addr.longitude || '',
+          firstName: addr.firstName || '',
+          lastName: addr.lastName || ''
+        }));
+        
+        renderAddresses();
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (containerEl) containerEl.classList.remove('hidden');
+      } catch (error) {
+        console.error('Error loading addresses:', error);
+        if (loadingEl) loadingEl.classList.add('hidden');
+      }
+    }
+
     // Función para guardar dirección
-    function saveAddress(formData: FormData) {
+    async function saveAddress(formData: FormData) {
+      if (!currentUser) return;
+      
       const lat = latitudeInput?.value || '';
       const lng = longitudeInput?.value || '';
       
@@ -596,56 +580,86 @@ const addresses = [
         return;
       }
 
+      const fullName = (formData.get('fullName') as string) || '';
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
       const addressData: any = {
-        id: editingAddressId || String(Date.now()),
         name: formData.get('name') as string,
-        fullName: formData.get('fullName') as string,
+        firstName,
+        lastName,
         phone: formData.get('phone') as string,
-        address: formData.get('address') as string,
+        street: formData.get('address') as string,
         district: formData.get('district') as string,
         city: formData.get('city') as string,
         zipCode: formData.get('zipCode') as string || '0000',
         instructions: formData.get('instructions') as string || '',
         isDefault: formData.get('isDefault') === 'on',
-        latitude: lat,
-        longitude: lng
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng)
       };
 
-      // Si es dirección por defecto, quitar el flag de las demás
-      if (addressData.isDefault) {
-        addresses = addresses.map((a: any) => ({ ...a, isDefault: false }));
-      }
-
-      if (editingAddressId) {
-        // Editar dirección existente
-        const index = addresses.findIndex((a: any) => a.id === editingAddressId);
-        if (index !== -1) {
-          addresses[index] = { ...addresses[index], ...addressData };
+      try {
+        if (editingAddressId) {
+          // Editar dirección existente
+          const result = await updateAddressFn(currentUser.id, editingAddressId, addressData);
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Error al actualizar dirección');
+          }
+        } else {
+          // Añadir nueva dirección
+          const result = await addAddressFn(currentUser.id, addressData);
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Error al agregar dirección');
+          }
         }
-      } else {
-        // Añadir nueva dirección
-        addresses.push(addressData);
+        
+        // Reload addresses
+        await loadAddresses();
+        closeAddressModal();
+      } catch (error) {
+        console.error('Error saving address:', error);
+        alert('Error al guardar la dirección. Por favor, intenta de nuevo.');
       }
-
-      renderAddresses();
-      closeAddressModal();
     }
 
     // Función para eliminar dirección
-    function deleteAddress(addressId: string) {
+    async function deleteAddress(addressId: string) {
+      if (!currentUser || !deleteAddressFn) return;
+      
       if (confirm('¿Estás seguro de que deseas eliminar esta dirección?')) {
-        addresses = addresses.filter((a: any) => a.id !== addressId);
-        renderAddresses();
+        try {
+          const result = await deleteAddressFn(currentUser.id, addressId);
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Error al eliminar dirección');
+          }
+          
+          // Reload addresses
+          await loadAddresses();
+        } catch (error) {
+          console.error('Error deleting address:', error);
+          alert('Error al eliminar la dirección. Por favor, intenta de nuevo.');
+        }
       }
     }
 
     // Función para establecer como predeterminada
-    function setDefaultAddress(addressId: string) {
-      addresses = addresses.map((a: any) => ({
-        ...a,
-        isDefault: a.id === addressId
-      }));
-      renderAddresses();
+    async function setDefaultAddress(addressId: string) {
+      if (!currentUser || !setDefaultAddressFn) return;
+      
+      try {
+        const result = await setDefaultAddressFn(currentUser.id, addressId);
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Error al establecer dirección predeterminada');
+        }
+        
+        // Reload addresses
+        await loadAddresses();
+      } catch (error) {
+        console.error('Error setting default address:', error);
+        alert('Error al establecer la dirección predeterminada. Por favor, intenta de nuevo.');
+      }
     }
 
     // Función para asignar event listeners
@@ -665,12 +679,12 @@ const addresses = [
 
       // Botones eliminar
       document.querySelectorAll('.delete-address-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           const target = e.currentTarget;
           if (target && target instanceof HTMLButtonElement) {
             const addressId = target.getAttribute('data-address-id');
             if (addressId) {
-              deleteAddress(addressId);
+              await deleteAddress(addressId);
             }
           }
         });
@@ -678,12 +692,12 @@ const addresses = [
 
       // Botones establecer como predeterminada
       document.querySelectorAll('.set-default-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           const target = e.currentTarget;
           if (target && target instanceof HTMLButtonElement) {
             const addressId = target.getAttribute('data-address-id');
             if (addressId) {
-              setDefaultAddress(addressId);
+              await setDefaultAddress(addressId);
             }
           }
         });
@@ -704,10 +718,10 @@ const addresses = [
     }
 
     if (addressForm) {
-      addressForm.addEventListener('submit', (e) => {
+      addressForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(addressForm);
-        saveAddress(formData);
+        await saveAddress(formData);
       });
     }
 
@@ -733,11 +747,7 @@ const addresses = [
     // @ts-ignore
     window.openAddressModal = openAddressModal;
 
-    // Pasar datos al cliente
-    // @ts-ignore
-    window.addressesData = addresses;
-
-    // Renderizar inicialmente
-    renderAddresses();
+    // Note: loadAddresses() is called in the async IIFE above
+    // renderAddresses() will be called from loadAddresses()
   })();
 </script>

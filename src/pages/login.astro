@@ -139,6 +139,16 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <script>
+    // Dynamic imports for client-side
+    let login: any, getCurrentUserData: any, onAuthStateChange: any;
+    
+    (async () => {
+      const authModule = await import('../lib/auth');
+      login = authModule.login;
+      getCurrentUserData = authModule.getCurrentUserData;
+      onAuthStateChange = authModule.onAuthStateChange;
+    })();
+
     // Toggle password visibility
     const togglePassword = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
@@ -160,11 +170,20 @@ import Layout from '../layouts/Layout.astro';
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
+    const submitButton = loginForm?.querySelector('button[type="submit"]') as HTMLButtonElement;
 
     loginForm?.addEventListener('submit', async (e) => {
+      // Wait for auth module to load
+      if (!login || !getCurrentUserData) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (!login || !getCurrentUserData) {
+          showError('Error al cargar el módulo de autenticación. Por favor, recarga la página.');
+          return;
+        }
+      }
       e.preventDefault();
       
-      const email = (document.getElementById('email') as HTMLInputElement)?.value;
+      const email = (document.getElementById('email') as HTMLInputElement)?.value.trim();
       const password = (document.getElementById('password') as HTMLInputElement)?.value;
       const remember = (document.getElementById('remember') as HTMLInputElement)?.checked;
 
@@ -177,46 +196,77 @@ import Layout from '../layouts/Layout.astro';
         return;
       }
 
-      // Simulate API call (replace with actual API endpoint)
+      // Disable submit button
+      if (submitButton) {
+        submitButton.disabled = true;
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = `
+          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Iniciando sesión...</span>
+        `;
+      }
+
       try {
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/auth/login', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ email, password })
-        // });
-        
-        // Credenciales de prueba
-        const isAdmin = email.toLowerCase() === 'admin@eipet.com' && password === 'admin123';
-        const isClient = email.toLowerCase() === 'cliente@eipet.com' && password === 'cliente123';
-        
-        if (!isAdmin && !isClient) {
-          showError('Credenciales incorrectas. Usa admin@eipet.com / admin123 o cliente@eipet.com / cliente123');
+        // Login with Firebase Auth
+        const result = await login(email, password);
+
+        if (!result.success) {
+          showError(result.error || 'Error al iniciar sesión');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Iniciar Sesión</span>
+            `;
+          }
           return;
         }
 
-        // Determine user role and data
-        const role = isAdmin ? 'admin' : 'user';
-        const mockUser = {
-          id: isAdmin ? 'admin-1' : 'user-1',
-          email: email,
-          firstName: isAdmin ? 'Admin' : email.split('@')[0],
-          lastName: isAdmin ? 'Eipet' : 'Usuario',
-          role: role
-        };
+        // Get user data from Firestore
+        const userDataResult = await getCurrentUserData();
+        if (!userDataResult.success || !userDataResult.user) {
+          showError('Error al obtener los datos del usuario');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Iniciar Sesión</span>
+            `;
+          }
+          return;
+        }
 
-        // Store token and user data
-        localStorage.setItem('token', 'mock-token-' + Date.now());
-        localStorage.setItem('user', JSON.stringify(mockUser));
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(userDataResult.user));
+        if (result.user) {
+          // Store Firebase Auth token if needed
+          const token = await result.user.getIdToken();
+          localStorage.setItem('token', token);
+        }
 
         // Redirect based on role
-        const redirectTo = isAdmin 
+        const redirectTo = userDataResult.user.role === 'admin' 
           ? '/admin/dashboard' 
           : (new URLSearchParams(window.location.search).get('redirect') || '/profile');
         window.location.href = redirectTo;
       } catch (error) {
         showError('Error al iniciar sesión. Por favor, intenta de nuevo.');
         console.error('Login error:', error);
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <span>Iniciar Sesión</span>
+          `;
+        }
       }
     });
 
@@ -226,12 +276,22 @@ import Layout from '../layouts/Layout.astro';
     }
 
     // Check if already logged in
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/profile';
-        window.location.href = redirectTo;
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wait for auth module to load
+      while (!onAuthStateChange || !getCurrentUserData) {
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
+      
+      onAuthStateChange(async (firebaseUser) => {
+        if (firebaseUser) {
+          const userDataResult = await getCurrentUserData();
+          if (userDataResult.success && userDataResult.user) {
+            const redirectTo = new URLSearchParams(window.location.search).get('redirect') || 
+              (userDataResult.user.role === 'admin' ? '/admin/dashboard' : '/profile');
+            window.location.href = redirectTo;
+          }
+        }
+      });
     });
   </script>
 </Layout>

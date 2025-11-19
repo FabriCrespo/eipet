@@ -87,7 +87,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" checked />
+              <input type="checkbox" id="setting-notification-email" class="sr-only peer setting-checkbox" data-setting="notifications.email" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -106,7 +106,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" checked />
+              <input type="checkbox" id="setting-notification-push" class="sr-only peer setting-checkbox" data-setting="notifications.push" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -125,7 +125,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" checked />
+              <input type="checkbox" id="setting-notification-orders" class="sr-only peer setting-checkbox" data-setting="notifications.orders" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -149,7 +149,7 @@ const activeTab = 'notificaciones';
           <!-- Idioma -->
           <div class="p-4 rounded-xl border border-gray-200 bg-gray-50">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Idioma</label>
-            <select class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
+            <select id="setting-preference-language" class="setting-select w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all" data-setting="preferences.language">
               <option value="es">Español</option>
               <option value="en">English</option>
               <option value="fr">Français</option>
@@ -159,7 +159,7 @@ const activeTab = 'notificaciones';
           <!-- Zona Horaria -->
           <div class="p-4 rounded-xl border border-gray-200 bg-gray-50">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Zona Horaria</label>
-            <select class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
+            <select id="setting-preference-timezone" class="setting-select w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-800 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all" data-setting="preferences.timezone">
               <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
               <option value="America/New_York">Nueva York (GMT-5)</option>
               <option value="America/Los_Angeles">Los Ángeles (GMT-8)</option>
@@ -170,13 +170,13 @@ const activeTab = 'notificaciones';
           <div class="p-4 rounded-xl border border-gray-200 bg-gray-50">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Tema</label>
             <div class="flex gap-3">
-              <button class="flex-1 px-4 py-3 rounded-lg border-2 border-purple-400 bg-purple-50 text-purple-700 font-medium">
+              <button class="setting-theme-btn flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300" data-theme="light">
                 Claro
               </button>
-              <button class="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300">
+              <button class="setting-theme-btn flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300" data-theme="dark">
                 Oscuro
               </button>
-              <button class="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300">
+              <button class="setting-theme-btn flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-gray-300" data-theme="system">
                 Sistema
               </button>
             </div>
@@ -212,7 +212,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" />
+              <input type="checkbox" id="setting-communication-newsletter" class="sr-only peer setting-checkbox" data-setting="communication.newsletter" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -231,7 +231,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" checked />
+              <input type="checkbox" id="setting-communication-promotions" class="sr-only peer setting-checkbox" data-setting="communication.promotions" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -266,7 +266,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" />
+              <input type="checkbox" id="setting-privacy-public-profile" class="sr-only peer setting-checkbox" data-setting="privacy.publicProfile" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -285,7 +285,7 @@ const activeTab = 'notificaciones';
               </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" />
+              <input type="checkbox" id="setting-privacy-share-data" class="sr-only peer setting-checkbox" data-setting="privacy.shareData" />
               <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
             </label>
           </div>
@@ -294,8 +294,236 @@ const activeTab = 'notificaciones';
     </div>
   </div>
 
+  <!-- Toast Notification -->
+  <div id="settings-toast" class="fixed top-4 right-4 z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex items-center gap-3 min-w-[300px]">
+      <div id="settings-toast-icon"></div>
+      <p id="settings-toast-message" class="text-sm font-medium text-gray-900"></p>
+    </div>
+  </div>
+
   <script>
-    (function() {
+    (async function() {
+      // Dynamic imports
+      let getUserSettings: any, updateUserSettings: any, getCurrentUser: any;
+      let currentUser: any = null;
+      let currentSettings: any = null;
+      let saveTimeout: any = null;
+      
+      try {
+        const settingsModule = await import('../../../lib/db/settings');
+        getUserSettings = settingsModule.getUserSettings;
+        updateUserSettings = settingsModule.updateUserSettings;
+        
+        const authModule = await import('../../../lib/auth');
+        getCurrentUser = authModule.getCurrentUser;
+        
+        const firebaseUser = getCurrentUser();
+        if (!firebaseUser) return;
+        
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            currentUser = JSON.parse(userData);
+          } catch (e) {
+            console.error('Error parsing user:', e);
+          }
+        }
+        
+        if (!currentUser) return;
+        
+        await loadSettings();
+        attachEventListeners();
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+      
+      // Función para cargar configuraciones
+      async function loadSettings() {
+        if (!getUserSettings || !currentUser) return;
+        
+        try {
+          const result = await getUserSettings(currentUser.id);
+          
+          if (result.error) {
+            console.error('Error loading settings:', result.error);
+            return;
+          }
+          
+          currentSettings = result.data;
+          
+          if (!currentSettings) {
+            // Crear configuraciones por defecto
+            const createModule = await import('../../../lib/db/settings');
+            await createModule.createDefaultSettings(currentUser.id);
+            const newResult = await getUserSettings(currentUser.id);
+            currentSettings = newResult.data;
+          }
+          
+          if (currentSettings) {
+            populateSettings();
+          }
+        } catch (error) {
+          console.error('Error loading settings:', error);
+        }
+      }
+      
+      // Función para poblar los campos con los valores actuales
+      function populateSettings() {
+        if (!currentSettings) return;
+        
+        // Notificaciones
+        const emailCheckbox = document.getElementById('setting-notification-email') as HTMLInputElement;
+        const pushCheckbox = document.getElementById('setting-notification-push') as HTMLInputElement;
+        const ordersCheckbox = document.getElementById('setting-notification-orders') as HTMLInputElement;
+        
+        if (emailCheckbox) emailCheckbox.checked = currentSettings.notifications?.email ?? true;
+        if (pushCheckbox) pushCheckbox.checked = currentSettings.notifications?.push ?? true;
+        if (ordersCheckbox) ordersCheckbox.checked = currentSettings.notifications?.orders ?? true;
+        
+        // Preferencias
+        const languageSelect = document.getElementById('setting-preference-language') as HTMLSelectElement;
+        const timezoneSelect = document.getElementById('setting-preference-timezone') as HTMLSelectElement;
+        
+        if (languageSelect) languageSelect.value = currentSettings.preferences?.language || 'es';
+        if (timezoneSelect) timezoneSelect.value = currentSettings.preferences?.timezone || 'America/Mexico_City';
+        
+        // Tema
+        const theme = currentSettings.preferences?.theme || 'system';
+        document.querySelectorAll('.setting-theme-btn').forEach((btn) => {
+          const btnTheme = btn.getAttribute('data-theme');
+          if (btnTheme === theme) {
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+            btn.classList.add('border-purple-400', 'bg-purple-50', 'text-purple-700');
+          } else {
+            btn.classList.remove('border-purple-400', 'bg-purple-50', 'text-purple-700');
+            btn.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+          }
+        });
+        
+        // Comunicación
+        const newsletterCheckbox = document.getElementById('setting-communication-newsletter') as HTMLInputElement;
+        const promotionsCheckbox = document.getElementById('setting-communication-promotions') as HTMLInputElement;
+        
+        if (newsletterCheckbox) newsletterCheckbox.checked = currentSettings.communication?.newsletter ?? false;
+        if (promotionsCheckbox) promotionsCheckbox.checked = currentSettings.communication?.promotions ?? true;
+        
+        // Privacidad
+        const publicProfileCheckbox = document.getElementById('setting-privacy-public-profile') as HTMLInputElement;
+        const shareDataCheckbox = document.getElementById('setting-privacy-share-data') as HTMLInputElement;
+        
+        if (publicProfileCheckbox) publicProfileCheckbox.checked = currentSettings.privacy?.publicProfile ?? false;
+        if (shareDataCheckbox) shareDataCheckbox.checked = currentSettings.privacy?.shareData ?? false;
+      }
+      
+      // Función para guardar configuraciones
+      async function saveSettings(settingPath: string, value: any) {
+        if (!updateUserSettings || !currentUser) return;
+        
+        // Cancelar timeout anterior
+        if (saveTimeout) {
+          clearTimeout(saveTimeout);
+        }
+        
+        // Debounce: esperar 500ms antes de guardar
+        saveTimeout = setTimeout(async () => {
+          try {
+            const [category, key] = settingPath.split('.');
+            const updateData: any = {};
+            
+            if (category === 'notifications') {
+              updateData.notifications = { [key]: value };
+            } else if (category === 'preferences') {
+              updateData.preferences = { [key]: value };
+            } else if (category === 'communication') {
+              updateData.communication = { [key]: value };
+            } else if (category === 'privacy') {
+              updateData.privacy = { [key]: value };
+            }
+            
+            const result = await updateUserSettings(currentUser.id, updateData);
+            
+            if (result.success) {
+              showToast('Configuración guardada', 'success');
+              // Recargar configuraciones
+              await loadSettings();
+            } else {
+              showToast('Error al guardar configuración', 'error');
+            }
+          } catch (error) {
+            console.error('Error saving settings:', error);
+            showToast('Error al guardar configuración', 'error');
+          }
+        }, 500);
+      }
+      
+      // Función para mostrar toast
+      function showToast(message: string, type: 'success' | 'error') {
+        const toast = document.getElementById('settings-toast');
+        const icon = document.getElementById('settings-toast-icon');
+        const messageEl = document.getElementById('settings-toast-message');
+        
+        if (!toast || !icon || !messageEl) return;
+        
+        messageEl.textContent = message;
+        
+        if (type === 'success') {
+          icon.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+        } else {
+          icon.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+        }
+        
+        toast.classList.remove('hidden');
+        
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 3000);
+      }
+      
+      // Función para adjuntar event listeners
+      function attachEventListeners() {
+        // Checkboxes
+        document.querySelectorAll('.setting-checkbox').forEach((checkbox) => {
+          checkbox.addEventListener('change', (e) => {
+            const target = e.target as HTMLInputElement;
+            const settingPath = target.getAttribute('data-setting');
+            if (settingPath) {
+              saveSettings(settingPath, target.checked);
+            }
+          });
+        });
+        
+        // Selects
+        document.querySelectorAll('.setting-select').forEach((select) => {
+          select.addEventListener('change', (e) => {
+            const target = e.target as HTMLSelectElement;
+            const settingPath = target.getAttribute('data-setting');
+            if (settingPath) {
+              saveSettings(settingPath, target.value);
+            }
+          });
+        });
+        
+        // Theme buttons
+        document.querySelectorAll('.setting-theme-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const theme = btn.getAttribute('data-theme');
+            if (theme) {
+              saveSettings('preferences.theme', theme);
+              
+              // Actualizar UI
+              document.querySelectorAll('.setting-theme-btn').forEach((b) => {
+                b.classList.remove('border-purple-400', 'bg-purple-50', 'text-purple-700');
+                b.classList.add('border-gray-200', 'bg-white', 'text-gray-700');
+              });
+              btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-700');
+              btn.classList.add('border-purple-400', 'bg-purple-50', 'text-purple-700');
+            }
+          });
+        });
+      }
+      
+      // Tab switching
       const tabButtons = document.querySelectorAll('.settings-tab');
       const tabContents = document.querySelectorAll('.settings-tab-content');
 
@@ -331,7 +559,7 @@ const activeTab = 'notificaciones';
         });
       }
 
-      // Event listeners
+      // Event listeners para tabs
       tabButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
           const tabId = btn.getAttribute('data-tab');

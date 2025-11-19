@@ -328,6 +328,7 @@ export interface ProductFilters {
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
 export interface OrderItem {
+  id: string; // ID único del item en el pedido
   productId: string;
   productName: string;
   productImage: string;
@@ -346,6 +347,9 @@ export interface Order {
   total: number; // subtotal - discount
   shippingAddress: UserAddress;
   paymentMethod: PaymentMethod;
+  invoiceNumber?: string; // Número de factura único
+  trackingNumber?: string; // Número de seguimiento del envío
+  shippingCost?: number; // Costo de envío
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }
@@ -357,10 +361,80 @@ export interface CreateOrderData {
   discount?: number;
   shippingAddress: UserAddress;
   paymentMethod: PaymentMethod;
+  shippingCost?: number; // Costo de envío
 }
 
 export interface UpdateOrderData {
   status?: OrderStatus;
+  trackingNumber?: string; // Número de seguimiento del envío
+  shippingCost?: number; // Costo de envío
+}
+
+// ============================================================================
+// DEVOLUCIONES
+// ============================================================================
+
+export type ReturnStatus = 'pending' | 'approved' | 'rejected' | 'processing' | 'completed' | 'cancelled';
+export type ReturnReason = 'defective' | 'wrong_item' | 'damaged' | 'not_as_described' | 'other';
+
+export interface ReturnTimelineItem {
+  date: string;
+  time: string;
+  status: string;
+  completed: boolean;
+}
+
+export interface Return {
+  id: string;
+  userId: string;
+  orderId: string;
+  orderItemId: string; // ID del item específico del pedido
+  productId: string;
+  productName: string;
+  productImage: string;
+  quantity: number;
+  reason: ReturnReason;
+  description: string;
+  status: ReturnStatus;
+  refundAmount: number;
+  refundMethod: string; // 'card' | 'transfer' | 'cash'
+  shippingAddress: UserAddress;
+  timeline: ReturnTimelineItem[];
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
+export interface CreateReturnData {
+  userId: string;
+  orderId: string;
+  orderItemId: string;
+  productId: string;
+  reason: ReturnReason;
+  description: string;
+  shippingAddress: UserAddress;
+}
+
+export interface UpdateReturnData {
+  status?: ReturnStatus;
+  refundAmount?: number;
+  refundMethod?: string;
+  timeline?: ReturnTimelineItem[];
+}
+
+// ============================================================================
+// HISTORIAL DE PRODUCTOS VISTOS
+// ============================================================================
+
+export interface ViewHistoryItem {
+  productId: string;
+  viewedAt: FirestoreTimestamp;
+}
+
+export interface ViewHistory {
+  id: string; // userId
+  userId: string;
+  items: ViewHistoryItem[];
+  updatedAt: FirestoreTimestamp;
 }
 
 // ============================================================================
@@ -417,6 +491,69 @@ export interface Discount {
   currentUses: number;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
+}
+
+// ============================================================================
+// CONFIGURACIONES DE USUARIO
+// ============================================================================
+
+export interface UserSettings {
+  id: string; // userId
+  userId: string;
+  notifications: {
+    email: boolean;
+    push: boolean;
+    orders: boolean;
+  };
+  preferences: {
+    language: string;
+    timezone: string;
+    theme: 'light' | 'dark' | 'system';
+  };
+  communication: {
+    newsletter: boolean;
+    promotions: boolean;
+  };
+  privacy: {
+    publicProfile: boolean;
+    shareData: boolean;
+  };
+  updatedAt: FirestoreTimestamp;
+}
+
+export interface UpdateUserSettingsData {
+  notifications?: Partial<UserSettings['notifications']>;
+  preferences?: Partial<UserSettings['preferences']>;
+  communication?: Partial<UserSettings['communication']>;
+  privacy?: Partial<UserSettings['privacy']>;
+}
+
+// ============================================================================
+// CALIFICACIONES (RATINGS/REVIEWS)
+// ============================================================================
+
+export interface Rating {
+  id: string;
+  userId: string;
+  orderId: string;
+  productId: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+}
+
+export interface CreateRatingData {
+  userId: string;
+  orderId: string;
+  productId: string;
+  rating: number; // 1-5
+  comment?: string;
+}
+
+export interface UpdateRatingData {
+  rating?: number;
+  comment?: string;
 }
 
 // ============================================================================

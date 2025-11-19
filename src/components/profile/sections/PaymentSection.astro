@@ -18,8 +18,14 @@ const title = 'Métodos de Pago';
     </button>
   </div>
 
+  <!-- Loading State -->
+  <div id="payment-loading" class="text-center py-16">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+    <p class="mt-4 text-gray-600">Cargando métodos de pago...</p>
+  </div>
+
   <!-- Lista de métodos de pago -->
-  <div id="payment-methods-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div id="payment-methods-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
     <!-- Se llenará con JavaScript -->
   </div>
 
@@ -216,9 +222,45 @@ const title = 'Métodos de Pago';
 </section>
 
 <script>
+  // Dynamic imports
+  let getPaymentMethods: any, addPaymentMethod: any, updatePaymentMethod: any, deletePaymentMethod: any, setDefaultPaymentMethod: any, getCurrentUser: any;
+  let currentUser: any = null;
+  
+  (async () => {
+    const paymentModule = await import('../../../lib/db/payment');
+    getPaymentMethods = paymentModule.getPaymentMethods;
+    addPaymentMethod = paymentModule.addPaymentMethod;
+    updatePaymentMethod = paymentModule.updatePaymentMethod;
+    deletePaymentMethod = paymentModule.deletePaymentMethod;
+    setDefaultPaymentMethod = paymentModule.setDefaultPaymentMethod;
+    
+    const authModule = await import('../../../lib/auth');
+    getCurrentUser = authModule.getCurrentUser;
+    
+    // Get current user
+    const firebaseUser = getCurrentUser();
+    if (firebaseUser) {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          currentUser = JSON.parse(userData);
+        } catch (e) {
+          console.error('Error parsing user:', e);
+        }
+      }
+    }
+    
+    if (!currentUser) {
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+      return;
+    }
+    
+    // Load payment methods
+    await loadPaymentMethods();
+  })();
+
   (function() {
-    // @ts-ignore
-    let paymentMethods = (window.paymentMethodsData || []) as any[];
+    let paymentMethods: any[] = [];
     let editingMethodId: string | null = null;
     let currentCardType = 'credit';
 
@@ -312,41 +354,104 @@ const title = 'Métodos de Pago';
     // Asignar event listeners
     function attachEventListeners() {
       document.querySelectorAll('.set-default-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           const target = e.currentTarget;
           if (target && target instanceof HTMLButtonElement) {
             const id = target.getAttribute('data-id');
-            if (id) setDefault(id);
+            if (id) await setDefault(id);
           }
         });
       });
 
       document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           const target = e.currentTarget;
           if (target && target instanceof HTMLButtonElement) {
             const id = target.getAttribute('data-id');
             if (id && confirm('¿Estás seguro de eliminar este método de pago?')) {
-              deleteMethod(id);
+              await deleteMethod(id);
             }
           }
         });
       });
     }
 
+    // Load payment methods from Firestore
+    async function loadPaymentMethods() {
+      const loadingEl = document.getElementById('payment-loading');
+      const containerEl = document.getElementById('payment-methods-container');
+      
+      if (!currentUser || !getPaymentMethods) return;
+      
+      try {
+        const result = await getPaymentMethods(currentUser.id);
+        
+        if (result.error) {
+          console.error('Error loading payment methods:', result.error);
+          if (loadingEl) loadingEl.classList.add('hidden');
+          return;
+        }
+        
+        paymentMethods = result.data || [];
+        
+        // Convert Firestore data to display format
+        paymentMethods = paymentMethods.map((method: any) => ({
+          id: method.id,
+          type: method.type || 'credit',
+          cardNumber: method.cardNumber || '',
+          cardHolder: method.cardHolder || '',
+          expiryDate: method.expiryDate || '',
+          expiryMonth: method.expiryMonth || '',
+          expiryYear: method.expiryYear || '',
+          brand: method.brand || 'Visa',
+          bank: method.bank || '',
+          isDefault: method.isDefault || false
+        }));
+        
+        renderMethods();
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (containerEl) containerEl.classList.remove('hidden');
+      } catch (error) {
+        console.error('Error loading payment methods:', error);
+        if (loadingEl) loadingEl.classList.add('hidden');
+      }
+    }
+
     // Establecer como predeterminada
-    function setDefault(id: string) {
-      paymentMethods = paymentMethods.map((m: any) => ({
-        ...m,
-        isDefault: m.id === id
-      }));
-      renderMethods();
+    async function setDefault(id: string) {
+      if (!currentUser || !setDefaultPaymentMethod) return;
+      
+      try {
+        const result = await setDefaultPaymentMethod(currentUser.id, id);
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Error al establecer método predeterminado');
+        }
+        
+        // Reload payment methods
+        await loadPaymentMethods();
+      } catch (error) {
+        console.error('Error setting default payment method:', error);
+        alert('Error al establecer el método predeterminado. Por favor, intenta de nuevo.');
+      }
     }
 
     // Eliminar método
-    function deleteMethod(id: string) {
-      paymentMethods = paymentMethods.filter((m: any) => m.id !== id);
-      renderMethods();
+    async function deleteMethod(id: string) {
+      if (!currentUser || !deletePaymentMethod) return;
+      
+      try {
+        const result = await deletePaymentMethod(currentUser.id, id);
+        if (!result.success) {
+          throw new Error(result.error?.message || 'Error al eliminar método de pago');
+        }
+        
+        // Reload payment methods
+        await loadPaymentMethods();
+      } catch (error) {
+        console.error('Error deleting payment method:', error);
+        alert('Error al eliminar el método de pago. Por favor, intenta de nuevo.');
+      }
     }
 
     // Abrir modal
@@ -408,41 +513,143 @@ const title = 'Métodos de Pago';
       });
     }
 
+    // Validar número de tarjeta usando algoritmo de Luhn
+    function validateCardNumber(cardNumber: string): boolean {
+      const num = cardNumber.replace(/\s/g, '');
+      if (num.length < 13 || num.length > 19) {
+        return false;
+      }
+      
+      let sum = 0;
+      let isEven = false;
+      
+      // Recorrer desde el final
+      for (let i = num.length - 1; i >= 0; i--) {
+        let digit = parseInt(num[i]);
+        
+        if (isEven) {
+          digit *= 2;
+          if (digit > 9) {
+            digit -= 9;
+          }
+        }
+        
+        sum += digit;
+        isEven = !isEven;
+      }
+      
+      return sum % 10 === 0;
+    }
+    
+    // Validar fecha de vencimiento (MM/YY)
+    function validateExpiryDate(month: string, year: string): boolean {
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year);
+      
+      if (isNaN(monthNum) || isNaN(yearNum)) {
+        return false;
+      }
+      
+      if (monthNum < 1 || monthNum > 12) {
+        return false;
+      }
+      
+      // Convertir YY a año completo (asumiendo 2000-2099)
+      const fullYear = 2000 + yearNum;
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+      
+      // Verificar que no esté vencida
+      if (fullYear < currentYear) {
+        return false;
+      }
+      if (fullYear === currentYear && monthNum < currentMonth) {
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Validar CVV
+    function validateCVV(cvv: string): boolean {
+      const cvvNum = cvv.replace(/\s/g, '');
+      return /^\d{3,4}$/.test(cvvNum);
+    }
+    
+    // Validar nombre del titular
+    function validateCardHolder(name: string): boolean {
+      return name.trim().length >= 2;
+    }
+    
     // Guardar método
-    function saveMethod(formData: FormData) {
+    async function saveMethod(formData: FormData) {
+      if (!currentUser) return;
+      
       const cardNumber = (document.getElementById('card-number') as HTMLInputElement).value;
+      const cardHolder = (document.getElementById('card-holder') as HTMLInputElement).value;
+      const expiryMonth = (document.getElementById('expiry-month') as HTMLInputElement).value;
+      const expiryYear = (document.getElementById('expiry-year') as HTMLInputElement).value;
+      const cvv = (document.getElementById('cvv') as HTMLInputElement).value;
+      
+      // Validaciones
+      const cardNumberClean = cardNumber.replace(/\s/g, '');
+      if (!validateCardNumber(cardNumberClean)) {
+        alert('El número de tarjeta no es válido. Por favor, verifica los dígitos.');
+        return;
+      }
+      
+      if (!validateExpiryDate(expiryMonth, expiryYear)) {
+        alert('La fecha de vencimiento no es válida o la tarjeta está vencida.');
+        return;
+      }
+      
+      if (!validateCVV(cvv)) {
+        alert('El CVV debe tener entre 3 y 4 dígitos.');
+        return;
+      }
+      
+      if (!validateCardHolder(cardHolder)) {
+        alert('El nombre del titular debe tener al menos 2 caracteres.');
+        return;
+      }
+      
       const brand = detectBrand(cardNumber);
 
       const methodData: any = {
-        id: editingMethodId || String(Date.now()),
         type: currentCardType,
-        cardNumber: cardNumber,
-        cardHolder: (document.getElementById('card-holder') as HTMLInputElement).value.toUpperCase(),
-        expiryDate: (document.getElementById('expiry-month') as HTMLInputElement).value + '/' + (document.getElementById('expiry-year') as HTMLInputElement).value,
+        cardNumber: cardNumberClean,
+        cardHolder: cardHolder.toUpperCase(),
+        expiryMonth: parseInt(expiryMonth),
+        expiryYear: parseInt(expiryYear),
+        expiryDate: expiryMonth + '/' + expiryYear,
         brand: brand,
         bank: (document.getElementById('bank') as HTMLSelectElement).value,
         isDefault: (document.getElementById('is-default') as HTMLInputElement).checked || paymentMethods.length === 0
       };
 
-      if (editingMethodId) {
-        const index = paymentMethods.findIndex((m: any) => m.id === editingMethodId);
-        if (index !== -1) {
-          paymentMethods[index] = methodData;
+      try {
+        if (editingMethodId) {
+          // Editar método existente
+          const result = await updatePaymentMethod(currentUser.id, editingMethodId, methodData);
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Error al actualizar método de pago');
+          }
+        } else {
+          // Añadir nuevo método
+          const result = await addPaymentMethod(currentUser.id, methodData);
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Error al agregar método de pago');
+          }
         }
-      } else {
-        paymentMethods.push(methodData);
+        
+        // Reload payment methods
+        await loadPaymentMethods();
+        closeModal();
+      } catch (error) {
+        console.error('Error saving payment method:', error);
+        alert('Error al guardar el método de pago. Por favor, intenta de nuevo.');
       }
-
-      // Si es predeterminada, desmarcar las demás
-      if (methodData.isDefault) {
-        paymentMethods = paymentMethods.map((m: any) => ({
-          ...m,
-          isDefault: m.id === methodData.id
-        }));
-      }
-
-      renderMethods();
-      closeModal();
     }
 
     // Event listeners
@@ -459,10 +666,10 @@ const title = 'Métodos de Pago';
     }
 
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
-        saveMethod(formData);
+        await saveMethod(formData);
       });
     }
 
@@ -484,6 +691,85 @@ const title = 'Métodos de Pago';
         const target = e.target;
         if (target && target instanceof HTMLInputElement) {
           target.value = formatCardNumber(target.value);
+        }
+      });
+    }
+    
+    // Formatear y validar fecha de vencimiento
+    const expiryMonthInput = document.getElementById('expiry-month');
+    const expiryYearInput = document.getElementById('expiry-year');
+    
+    if (expiryMonthInput) {
+      expiryMonthInput.addEventListener('input', (e) => {
+        const target = e.target;
+        if (target && target instanceof HTMLInputElement) {
+          let value = target.value.replace(/\D/g, '');
+          if (value.length > 2) {
+            value = value.slice(0, 2);
+          }
+          // Validar que el mes esté entre 01 y 12
+          if (value.length === 2) {
+            const month = parseInt(value);
+            if (month < 1 || month > 12) {
+              target.setCustomValidity('El mes debe estar entre 01 y 12');
+            } else {
+              target.setCustomValidity('');
+            }
+          } else {
+            target.setCustomValidity('');
+          }
+          target.value = value;
+          // Auto-avanzar al año si el mes está completo
+          if (value.length === 2 && expiryYearInput) {
+            expiryYearInput.focus();
+          }
+        }
+      });
+    }
+    
+    if (expiryYearInput) {
+      expiryYearInput.addEventListener('input', (e) => {
+        const target = e.target;
+        if (target && target instanceof HTMLInputElement) {
+          let value = target.value.replace(/\D/g, '');
+          if (value.length > 2) {
+            value = value.slice(0, 2);
+          }
+          target.value = value;
+        }
+      });
+    }
+    
+    // Validar CVV (solo números, 3-4 dígitos)
+    const cvvInput = document.getElementById('cvv');
+    if (cvvInput) {
+      cvvInput.addEventListener('input', (e) => {
+        const target = e.target;
+        if (target && target instanceof HTMLInputElement) {
+          let value = target.value.replace(/\D/g, '');
+          if (value.length > 4) {
+            value = value.slice(0, 4);
+          }
+          target.value = value;
+          // Validar longitud
+          if (value.length > 0 && value.length < 3) {
+            target.setCustomValidity('El CVV debe tener entre 3 y 4 dígitos');
+          } else {
+            target.setCustomValidity('');
+          }
+        }
+      });
+    }
+    
+    // Validar nombre del titular (solo letras y espacios)
+    const cardHolderInput = document.getElementById('card-holder');
+    if (cardHolderInput) {
+      cardHolderInput.addEventListener('input', (e) => {
+        const target = e.target;
+        if (target && target instanceof HTMLInputElement) {
+          // Permitir solo letras, espacios y algunos caracteres especiales comunes
+          let value = target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+          target.value = value;
         }
       });
     }
@@ -510,26 +796,7 @@ const title = 'Métodos de Pago';
     // @ts-ignore
     window.openPaymentModal = openModal;
 
-    // Datos iniciales (mock)
-    if (paymentMethods.length === 0) {
-      paymentMethods = [
-        {
-          id: '1',
-          type: 'credit',
-          cardNumber: '4532 1234 5678 9010',
-          cardHolder: 'MARÍA GARCÍA',
-          expiryDate: '12/25',
-          brand: 'Visa',
-          isDefault: true,
-          bank: 'Banco Nacional de Bolivia'
-        }
-      ];
-    }
-
-    // @ts-ignore
-    window.paymentMethodsData = paymentMethods;
-
-    // Renderizar
-    renderMethods();
+    // Note: loadPaymentMethods() is called in the async IIFE above
+    // renderMethods() will be called from loadPaymentMethods()
   })();
 </script>
