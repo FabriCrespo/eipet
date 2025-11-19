@@ -1,3 +1,6 @@
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyA8WH9ZcvgDgNe-O9lswpyHHAW4s2Syr4c",
@@ -8,3 +11,19 @@ const firebaseConfig = {
   appId: "1:86684689322:web:339903e273ca8bc91ec1d3",
   measurementId: "G-P6RF641PQH"
 };
+
+// Inicializar Firebase solo si no está ya inicializado
+let app: FirebaseApp;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApps()[0];
+}
+
+// Inicializar Firestore (client-side)
+export const db: Firestore = getFirestore(app);
+
+// Inicializar Auth (client-side)
+export const auth: Auth = getAuth(app);
+
+export default app;
