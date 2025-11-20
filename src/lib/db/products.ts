@@ -18,6 +18,7 @@ import {
   Timestamp,
   QueryConstraint,
   Query,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type {
@@ -271,6 +272,75 @@ export async function adjustStock(id: string, adjustment: number): Promise<Write
   } catch (error) {
     console.error('Error adjusting stock:', error);
     return { success: false, error: error as Error };
+  }
+}
+
+/**
+ * Validar y ajustar stock de múltiples productos de manera atómica usando transacciones
+ * Esto previene race conditions cuando múltiples usuarios compran simultáneamente
+ */
+export async function validateAndAdjustStockMultiple(
+  items: Array<{ productId: string; quantity: number }>
+): Promise<{ success: boolean; errors: string[]; error?: Error }> {
+  try {
+    const errors: string[] = [];
+    
+    // Usar transacción para validar y actualizar stock de todos los productos
+    await runTransaction(db, async (transaction) => {
+      // Primero, validar stock de todos los productos
+      for (const item of items) {
+        const productRef = doc(db, COLLECTION_NAME, item.productId);
+        const productSnap = await transaction.get(productRef);
+        
+        if (!productSnap.exists()) {
+          errors.push(`Producto ${item.productId} no encontrado`);
+          continue;
+        }
+        
+        const product = productSnap.data() as Product;
+        const currentStock = product.stock || 0;
+        
+        if (currentStock < item.quantity) {
+          errors.push(
+            `${product.name || item.productId}: Stock disponible (${currentStock}) es menor que la cantidad solicitada (${item.quantity})`
+          );
+        }
+      }
+      
+      // Si hay errores, lanzar excepción para abortar la transacción
+      if (errors.length > 0) {
+        throw new Error('Stock validation failed');
+      }
+      
+      // Si todo está bien, actualizar stock de todos los productos
+      for (const item of items) {
+        const productRef = doc(db, COLLECTION_NAME, item.productId);
+        const productSnap = await transaction.get(productRef);
+        
+        if (productSnap.exists()) {
+          const product = productSnap.data() as Product;
+          const newStock = (product.stock || 0) - item.quantity;
+          
+          if (newStock < 0) {
+            throw new Error(`Stock cannot be negative for product ${item.productId}`);
+          }
+          
+          transaction.update(productRef, {
+            stock: newStock,
+            updatedAt: Timestamp.now(),
+          });
+        }
+      }
+    });
+    
+    return { success: true, errors: [] };
+  } catch (error: any) {
+    console.error('Error in validateAndAdjustStockMultiple:', error);
+    // Si el error es de validación, retornar los errores
+    if (error.message === 'Stock validation failed') {
+      return { success: false, errors };
+    }
+    return { success: false, errors: [error.message || 'Error desconocido'], error: error as Error };
   }
 }
 

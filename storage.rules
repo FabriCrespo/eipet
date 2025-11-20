@@ -1,12 +1,20 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if false;
+    // Función helper para verificar si el usuario es admin
+    function isAdmin() {
+      return request.auth != null && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Imágenes de productos
+    match /products/{productId}/{allPaths=**} {
+      // Cualquiera puede leer imágenes de productos (públicas)
+      allow read: if true;
+      
+      // Solo admins pueden escribir (subir/eliminar)
+      allow write: if isAdmin();
     }
   }
 }

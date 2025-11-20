@@ -37,6 +37,20 @@ export async function createRating(data: CreateRatingData): Promise<WriteResult>
       return { success: false, error: new Error('El rating debe estar entre 1 y 5') };
     }
 
+    // Validar que el usuario no haya calificado este producto antes
+    const existingRatings = await getProductRatings(data.productId);
+    if (existingRatings.data) {
+      const userRating = existingRatings.data.find(
+        (rating) => rating.userId === data.userId && rating.productId === data.productId
+      );
+      if (userRating) {
+        return { 
+          success: false, 
+          error: new Error('Ya has calificado este producto. Puedes actualizar tu calificación existente.') 
+        };
+      }
+    }
+
     const now = Timestamp.now();
     const ratingData: Rating = {
       id: '', // Se asignará después

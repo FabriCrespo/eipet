@@ -54,10 +54,38 @@ export async function getCart(userId: string): Promise<SingleResult<Cart>> {
 }
 
 /**
- * Agregar un producto al carrito
+ * Agregar un producto al carrito con validación de stock
  */
 export async function addToCart(userId: string, data: AddToCartData): Promise<WriteResult> {
   try {
+    // Validar stock antes de agregar al carrito
+    const { getProductById } = await import('./products');
+    const productResult = await getProductById(data.productId);
+    
+    if (!productResult.data) {
+      return { success: false, error: new Error('Producto no encontrado') };
+    }
+    
+    const product = productResult.data;
+    const availableStock = product.stock || 0;
+    
+    // Obtener cantidad actual en el carrito
+    const cartResult = await getCart(userId);
+    const currentCart = cartResult.data;
+    const existingItem = currentCart?.items.find((item) => item.productId === data.productId);
+    const currentQuantity = existingItem?.quantity || 0;
+    const newTotalQuantity = currentQuantity + data.quantity;
+    
+    // Validar que hay stock suficiente
+    if (availableStock < newTotalQuantity) {
+      return { 
+        success: false, 
+        error: new Error(
+          `Stock insuficiente. Disponible: ${availableStock}, Solicitado: ${newTotalQuantity} (ya tienes ${currentQuantity} en el carrito)`
+        ) 
+      };
+    }
+    
     const cartRef = doc(db, COLLECTION_NAME, userId);
     const cartSnap = await getDoc(cartRef);
 
@@ -109,7 +137,7 @@ export async function addToCart(userId: string, data: AddToCartData): Promise<Wr
 }
 
 /**
- * Actualizar la cantidad de un item en el carrito
+ * Actualizar la cantidad de un item en el carrito con validación de stock
  */
 export async function updateCartItem(
   userId: string,
@@ -120,6 +148,27 @@ export async function updateCartItem(
     if (quantity <= 0) {
       // Si la cantidad es 0 o menor, eliminar el item
       return await removeFromCart(userId, productId);
+    }
+
+    // Validar stock antes de actualizar
+    const { getProductById } = await import('./products');
+    const productResult = await getProductById(productId);
+    
+    if (!productResult.data) {
+      return { success: false, error: new Error('Producto no encontrado') };
+    }
+    
+    const product = productResult.data;
+    const availableStock = product.stock || 0;
+    
+    // Validar que hay stock suficiente
+    if (availableStock < quantity) {
+      return { 
+        success: false, 
+        error: new Error(
+          `Stock insuficiente. Disponible: ${availableStock}, Solicitado: ${quantity}`
+        ) 
+      };
     }
 
     const cartRef = doc(db, COLLECTION_NAME, userId);

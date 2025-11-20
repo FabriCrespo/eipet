@@ -358,11 +358,142 @@ const getBreedSizeName = (size: string) => {
             </div>
           </div>
         </div>
+        
+        <!-- Ratings Section -->
+        <div id="ratings-section" class="bg-white rounded-xl shadow-lg p-6">
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">Calificaciones y Reseñas</h2>
+          <div id="ratings-content">
+            <div class="text-center py-8">
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#5d3fbb]"></div>
+              <p class="mt-4 text-gray-600">Cargando calificaciones...</p>
+            </div>
+          </div>
+        </div>
       </div>
     `;
     
     // Setup event listeners
     setupEventListeners(product.id, isFav);
+    
+    // Load ratings
+    loadRatings(product.id);
+  }
+  
+  // Load and render ratings
+  async function loadRatings(productId: string) {
+    const ratingsContent = document.getElementById('ratings-content');
+    if (!ratingsContent) return;
+    
+    try {
+      const { getProductRatings } = await import('../lib/db/ratings');
+      const { getUser } = await import('../lib/db/users');
+      
+      const ratingsResult = await getProductRatings(productId);
+      
+      if (ratingsResult.error || !ratingsResult.data || ratingsResult.data.length === 0) {
+        ratingsContent.innerHTML = `
+          <div class="text-center py-8">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+            <p class="text-gray-600">Aún no hay calificaciones para este producto.</p>
+            <p class="text-sm text-gray-500 mt-2">Sé el primero en calificar este producto después de tu compra.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const ratings = ratingsResult.data;
+      
+      // Calculate average rating
+      const averageRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+      const roundedAverage = Math.round(averageRating * 10) / 10;
+      
+      // Get user names for ratings
+      const ratingsWithUsers = await Promise.all(
+        ratings.map(async (rating: any) => {
+          let userName = 'Usuario';
+          try {
+            const userResult = await getUser(rating.userId);
+            if (userResult.data) {
+              userName = userResult.data.fullName || userResult.data.email || 'Usuario';
+            }
+          } catch (error) {
+            console.error('Error getting user:', error);
+          }
+          return { ...rating, userName };
+        })
+      );
+      
+      // Render star rating helper
+      const renderStars = (rating: number) => {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+          if (i <= rating) {
+            stars += '<svg class="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+          } else if (i - 0.5 <= rating) {
+            stars += '<svg class="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20"><defs><linearGradient id="half"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="transparent" stop-opacity="1"/></linearGradient></defs><path fill="url(#half)" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+          } else {
+            stars += '<svg class="w-5 h-5 text-gray-300 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+          }
+        }
+        return stars;
+      };
+      
+      ratingsContent.innerHTML = `
+        <!-- Average Rating -->
+        <div class="mb-6 pb-6 border-b border-gray-200">
+          <div class="flex items-center gap-4">
+            <div class="text-center">
+              <div class="text-4xl font-bold text-gray-900">${roundedAverage}</div>
+              <div class="flex items-center justify-center gap-1 mt-1">
+                ${renderStars(averageRating)}
+              </div>
+              <div class="text-sm text-gray-600 mt-2">${ratings.length} ${ratings.length === 1 ? 'calificación' : 'calificaciones'}</div>
+            </div>
+            <div class="flex-1">
+              <!-- Rating distribution could go here -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Ratings List -->
+        <div class="space-y-6">
+          ${ratingsWithUsers.map((rating: any) => {
+            const date = rating.createdAt?.toDate ? rating.createdAt.toDate() : new Date(rating.createdAt || Date.now());
+            const formattedDate = new Intl.DateTimeFormat('es-ES', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }).format(date);
+            
+            return `
+              <div class="border-b border-gray-100 pb-4 last:border-0">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <p class="font-semibold text-gray-900">${rating.userName}</p>
+                    <p class="text-sm text-gray-500">${formattedDate}</p>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    ${renderStars(rating.rating)}
+                  </div>
+                </div>
+                ${rating.comment ? `
+                  <p class="text-gray-700 mt-2">${rating.comment}</p>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } catch (error) {
+      console.error('Error loading ratings:', error);
+      ratingsContent.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-red-600">Error al cargar las calificaciones. Por favor, intenta de nuevo.</p>
+        </div>
+      `;
+    }
   }
 
   // Get product description

@@ -431,17 +431,69 @@ const stats = {
             />
           </div>
 
-          <!-- URL de Imagen -->
+          <!-- Imagen del Producto -->
           <div class="md:col-span-2">
-            <label for="new-product-image" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              URL de Imagen
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+              Imagen del Producto
             </label>
-            <input
-              type="url"
-              id="new-product-image"
-              class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
-              placeholder="https://ejemplo.com/imagen.jpg"
-            />
+            
+            <!-- Opción: Subir archivo o usar URL -->
+            <div class="mb-3 flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="new-image-type" value="file" checked class="w-4 h-4 text-purple-600" />
+                <span class="text-sm text-gray-700">Subir archivo</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="new-image-type" value="url" class="w-4 h-4 text-purple-600" />
+                <span class="text-sm text-gray-700">Usar URL externa</span>
+              </label>
+            </div>
+
+            <!-- Input de archivo -->
+            <div id="new-image-file-container" class="space-y-2">
+              <input
+                type="file"
+                id="new-product-image-file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+              />
+              <p class="text-xs text-gray-500">Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 5MB</p>
+              
+              <!-- Preview de imagen -->
+              <div id="new-image-preview-container" class="hidden mt-3">
+                <div class="relative inline-block">
+                  <img id="new-image-preview" src="" alt="Preview" class="max-w-full h-48 rounded-lg border-2 border-gray-200 object-cover" />
+                  <button
+                    type="button"
+                    id="new-image-remove-btn"
+                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                    aria-label="Eliminar imagen"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Barra de progreso -->
+              <div id="new-image-upload-progress" class="hidden mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                  <div id="new-image-progress-bar" class="bg-purple-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-600 mt-1">Subiendo imagen...</p>
+              </div>
+            </div>
+
+            <!-- Input de URL -->
+            <div id="new-image-url-container" class="hidden">
+              <input
+                type="url"
+                id="new-product-image-url"
+                class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+                placeholder="https://ejemplo.com/imagen.jpg"
+              />
+            </div>
           </div>
 
           <!-- Estado -->
@@ -632,15 +684,153 @@ const stats = {
                 <input type="number" id="edit-min-stock" value="${product.minStock}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
               </div>
               <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">URL de Imagen</label>
-                <input type="url" id="edit-image" value="${product.image}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Imagen del Producto</label>
+                
+                <!-- Imagen actual -->
+                <div class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p class="text-xs text-gray-600 mb-2">Imagen actual:</p>
+                  <img src="${product.image}" alt="${product.name}" id="edit-current-image-preview" class="max-w-full h-32 rounded-lg border-2 border-gray-200 object-cover" onerror="this.src='https://via.placeholder.com/200x200?text=Sin+Imagen'" />
+                </div>
+
+                <!-- Opción: Mantener, subir nueva o usar URL -->
+                <div class="mb-3 flex flex-wrap gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="edit-image-type" value="keep" checked class="w-4 h-4 text-purple-600" />
+                    <span class="text-sm text-gray-700">Mantener imagen actual</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="edit-image-type" value="file" class="w-4 h-4 text-purple-600" />
+                    <span class="text-sm text-gray-700">Subir nueva imagen</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="edit-image-type" value="url" class="w-4 h-4 text-purple-600" />
+                    <span class="text-sm text-gray-700">Usar URL externa</span>
+                  </label>
+                </div>
+
+                <!-- Input de archivo -->
+                <div id="edit-image-file-container" class="hidden space-y-2">
+                  <input
+                    type="file"
+                    id="edit-product-image-file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  />
+                  <p class="text-xs text-gray-500">Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 5MB</p>
+                  
+                  <!-- Preview de nueva imagen -->
+                  <div id="edit-image-preview-container" class="hidden mt-3">
+                    <div class="relative inline-block">
+                      <img id="edit-image-preview" src="" alt="Preview" class="max-w-full h-48 rounded-lg border-2 border-gray-200 object-cover" />
+                      <button
+                        type="button"
+                        id="edit-image-remove-btn"
+                        class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                        aria-label="Eliminar imagen"
+                      >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Barra de progreso -->
+                  <div id="edit-image-upload-progress" class="hidden mt-2">
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                      <div id="edit-image-progress-bar" class="bg-purple-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-1">Subiendo imagen...</p>
+                  </div>
+                </div>
+
+                <!-- Input de URL -->
+                <div id="edit-image-url-container" class="hidden">
+                  <input
+                    type="url"
+                    id="edit-product-image-url"
+                    value="${product.image}"
+                    class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                  />
+                </div>
               </div>
               <input type="hidden" id="edit-product-id" value="${product.id}" />
+              <input type="hidden" id="edit-current-image-url" value="${product.image}" />
             `;
+            
+            // Setup event listeners para el formulario de editar
+            setupEditImageHandlers();
           }
           openModal(editModal);
         });
       });
+
+      // Función para configurar handlers de imagen en formulario de editar
+      function setupEditImageHandlers() {
+        // Manejar cambio entre mantener, subir archivo y usar URL
+        const editImageTypeRadios = document.querySelectorAll('input[name="edit-image-type"]');
+        const editImageFileContainer = document.getElementById('edit-image-file-container');
+        const editImageUrlContainer = document.getElementById('edit-image-url-container');
+        const editImageFileInput = document.getElementById('edit-product-image-file') as HTMLInputElement;
+        const editImagePreviewContainer = document.getElementById('edit-image-preview-container');
+        const editImagePreview = document.getElementById('edit-image-preview') as HTMLImageElement;
+        const editImageRemoveBtn = document.getElementById('edit-image-remove-btn');
+        const editImageUploadProgress = document.getElementById('edit-image-upload-progress');
+        const editImageProgressBar = document.getElementById('edit-image-progress-bar');
+
+        editImageTypeRadios.forEach(radio => {
+          radio.addEventListener('change', (e) => {
+            const value = (e.target as HTMLInputElement).value;
+            if (value === 'keep') {
+              if (editImageFileContainer) editImageFileContainer.classList.add('hidden');
+              if (editImageUrlContainer) editImageUrlContainer.classList.add('hidden');
+            } else if (value === 'file') {
+              if (editImageFileContainer) editImageFileContainer.classList.remove('hidden');
+              if (editImageUrlContainer) editImageUrlContainer.classList.add('hidden');
+            } else {
+              if (editImageFileContainer) editImageFileContainer.classList.add('hidden');
+              if (editImageUrlContainer) editImageUrlContainer.classList.remove('hidden');
+            }
+          });
+        });
+
+        // Preview de imagen cuando se selecciona un archivo
+        if (editImageFileInput) {
+          editImageFileInput.addEventListener('change', async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            // Validar archivo
+            const { validateImageFile } = await import('../../lib/utils/storage');
+            const validation = validateImageFile(file);
+            if (!validation.valid) {
+              alert(validation.error || 'Archivo inválido');
+              editImageFileInput.value = '';
+              return;
+            }
+
+            // Mostrar preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              if (editImagePreview && e.target?.result) {
+                editImagePreview.src = e.target.result as string;
+                if (editImagePreviewContainer) editImagePreviewContainer.classList.remove('hidden');
+              }
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        // Eliminar imagen seleccionada
+        if (editImageRemoveBtn) {
+          editImageRemoveBtn.addEventListener('click', () => {
+            if (editImageFileInput) editImageFileInput.value = '';
+            if (editImagePreviewContainer) editImagePreviewContainer.classList.add('hidden');
+            if (editImagePreview) editImagePreview.src = '';
+          });
+        }
+      }
 
       // Abrir modal de ajustar stock
       document.querySelectorAll('.adjust-stock-btn').forEach((btn) => {
@@ -1047,13 +1237,93 @@ const stats = {
           if (!productId || !updateProduct) return;
           
           try {
+            // Determinar tipo de imagen (mantener, archivo o URL)
+            const imageType = (document.querySelector('input[name="edit-image-type"]:checked') as HTMLInputElement)?.value;
+            let imageUrl = '';
+            let oldImageUrl = '';
+
+            if (imageType === 'keep') {
+              // Mantener imagen actual
+              const currentImageInput = document.getElementById('edit-current-image-url') as HTMLInputElement;
+              imageUrl = currentImageInput?.value || '';
+            } else if (imageType === 'file') {
+              // Subir nueva imagen
+              const fileInput = document.getElementById('edit-product-image-file') as HTMLInputElement;
+              const file = fileInput?.files?.[0];
+              
+              if (!file) {
+                alert('Por favor, selecciona una imagen');
+                return;
+              }
+
+              // Guardar URL de imagen anterior para eliminarla después
+              const currentImageInput = document.getElementById('edit-current-image-url') as HTMLInputElement;
+              oldImageUrl = currentImageInput?.value || '';
+
+              // Mostrar progreso
+              const editImageUploadProgress = document.getElementById('edit-image-upload-progress');
+              const editImageProgressBar = document.getElementById('edit-image-progress-bar');
+              if (editImageUploadProgress) editImageUploadProgress.classList.remove('hidden');
+              if (editImageProgressBar) editImageProgressBar.style.width = '50%';
+
+              // Subir imagen
+              const { uploadProductImage, deleteProductImage, isFirebaseStorageUrl } = await import('../../lib/utils/storage');
+              const uploadResult = await uploadProductImage(file, productId);
+              
+              if (editImageProgressBar) editImageProgressBar.style.width = '100%';
+
+              if (!uploadResult.success || !uploadResult.url) {
+                if (editImageUploadProgress) editImageUploadProgress.classList.add('hidden');
+                alert('Error al subir la imagen: ' + (uploadResult.error?.message || 'Error desconocido'));
+                return;
+              }
+
+              imageUrl = uploadResult.url;
+
+              // Eliminar imagen anterior del Storage si es de Firebase Storage
+              if (oldImageUrl && isFirebaseStorageUrl(oldImageUrl)) {
+                try {
+                  await deleteProductImage(oldImageUrl);
+                } catch (error) {
+                  console.error('Error deleting old image:', error);
+                  // No fallar la actualización si no se puede eliminar la imagen anterior
+                }
+              }
+
+              if (editImageUploadProgress) editImageUploadProgress.classList.add('hidden');
+            } else {
+              // Usar URL externa
+              const urlInput = document.getElementById('edit-product-image-url') as HTMLInputElement;
+              imageUrl = urlInput?.value || '';
+              
+              if (!imageUrl) {
+                alert('Por favor, ingresa una URL de imagen');
+                return;
+              }
+
+              // Si la URL anterior era de Firebase Storage y ahora es externa, eliminar la anterior
+              const currentImageInput = document.getElementById('edit-current-image-url') as HTMLInputElement;
+              oldImageUrl = currentImageInput?.value || '';
+              
+              if (oldImageUrl && oldImageUrl !== imageUrl) {
+                const { deleteProductImage, isFirebaseStorageUrl } = await import('../../lib/utils/storage');
+                if (isFirebaseStorageUrl(oldImageUrl)) {
+                  try {
+                    await deleteProductImage(oldImageUrl);
+                  } catch (error) {
+                    console.error('Error deleting old image:', error);
+                  }
+                }
+              }
+            }
+
             const updateData: any = {
               name: (document.getElementById('edit-name') as HTMLInputElement)?.value,
               category: (document.getElementById('edit-category') as HTMLSelectElement)?.value,
               sku: (document.getElementById('edit-sku') as HTMLInputElement)?.value,
               price: parseFloat((document.getElementById('edit-price') as HTMLInputElement)?.value || '0'),
               minStock: parseInt((document.getElementById('edit-min-stock') as HTMLInputElement)?.value || '10'),
-              image: (document.getElementById('edit-image') as HTMLInputElement)?.value
+              image: imageUrl
             };
             
             const result = await updateProduct(productId, updateData);
@@ -1066,7 +1336,9 @@ const stats = {
             }
           } catch (error) {
             console.error('Error updating product:', error);
-            alert('Error al actualizar producto');
+            alert('Error al actualizar producto: ' + ((error as Error).message || 'Error desconocido'));
+            const editImageUploadProgress = document.getElementById('edit-image-upload-progress');
+            if (editImageUploadProgress) editImageUploadProgress.classList.add('hidden');
           }
         });
       }
@@ -1095,6 +1367,66 @@ const stats = {
         });
       }
 
+      // Manejar cambio entre subir archivo y usar URL (formulario nuevo producto)
+      const newImageTypeRadios = document.querySelectorAll('input[name="new-image-type"]');
+      const newImageFileContainer = document.getElementById('new-image-file-container');
+      const newImageUrlContainer = document.getElementById('new-image-url-container');
+      const newImageFileInput = document.getElementById('new-product-image-file') as HTMLInputElement;
+      const newImagePreviewContainer = document.getElementById('new-image-preview-container');
+      const newImagePreview = document.getElementById('new-image-preview') as HTMLImageElement;
+      const newImageRemoveBtn = document.getElementById('new-image-remove-btn');
+      const newImageUploadProgress = document.getElementById('new-image-upload-progress');
+      const newImageProgressBar = document.getElementById('new-image-progress-bar');
+
+      newImageTypeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          const value = (e.target as HTMLInputElement).value;
+          if (value === 'file') {
+            if (newImageFileContainer) newImageFileContainer.classList.remove('hidden');
+            if (newImageUrlContainer) newImageUrlContainer.classList.add('hidden');
+          } else {
+            if (newImageFileContainer) newImageFileContainer.classList.add('hidden');
+            if (newImageUrlContainer) newImageUrlContainer.classList.remove('hidden');
+          }
+        });
+      });
+
+      // Preview de imagen cuando se selecciona un archivo
+      if (newImageFileInput) {
+        newImageFileInput.addEventListener('change', async (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (!file) return;
+
+          // Validar archivo
+          const { validateImageFile } = await import('../../lib/utils/storage');
+          const validation = validateImageFile(file);
+          if (!validation.valid) {
+            alert(validation.error || 'Archivo inválido');
+            newImageFileInput.value = '';
+            return;
+          }
+
+          // Mostrar preview
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            if (newImagePreview && e.target?.result) {
+              newImagePreview.src = e.target.result as string;
+              if (newImagePreviewContainer) newImagePreviewContainer.classList.remove('hidden');
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Eliminar imagen seleccionada
+      if (newImageRemoveBtn) {
+        newImageRemoveBtn.addEventListener('click', () => {
+          if (newImageFileInput) newImageFileInput.value = '';
+          if (newImagePreviewContainer) newImagePreviewContainer.classList.add('hidden');
+          if (newImagePreview) newImagePreview.src = '';
+        });
+      }
+
       const newForm = document.getElementById('new-product-form') as HTMLFormElement;
       if (newForm) {
         newForm.addEventListener('submit', async (e) => {
@@ -1102,6 +1434,10 @@ const stats = {
           if (!createProduct) return;
           
           try {
+            // Determinar tipo de imagen (archivo o URL)
+            const imageType = (document.querySelector('input[name="new-image-type"]:checked') as HTMLInputElement)?.value;
+            let imageUrl = '';
+
             const formData = new FormData(newForm);
             const productData: any = {
               name: formData.get('name') as string,
@@ -1110,23 +1446,92 @@ const stats = {
               price: parseFloat(formData.get('price') as string || '0'),
               stock: parseInt(formData.get('stock') as string || '0'),
               minStock: parseInt(formData.get('minStock') as string || '10'),
-              image: formData.get('image') as string,
               description: formData.get('description') as string || '',
               active: true
             };
-            
-            const result = await createProduct(productData);
-            if (result.success) {
+
+            if (imageType === 'file') {
+              // Subir archivo: primero crear producto, luego subir imagen con ID real
+              const fileInput = document.getElementById('new-product-image-file') as HTMLInputElement;
+              const file = fileInput?.files?.[0];
+              
+              if (!file) {
+                alert('Por favor, selecciona una imagen o usa una URL externa');
+                return;
+              }
+
+              // Mostrar progreso
+              if (newImageUploadProgress) newImageUploadProgress.classList.remove('hidden');
+              if (newImageProgressBar) newImageProgressBar.style.width = '25%';
+
+              // Crear producto primero sin imagen
+              const { uploadProductImage } = await import('../../lib/utils/storage');
+              const { updateProduct: updateProductFn } = await import('../../lib/db/products');
+              
+              productData.image = ''; // Placeholder temporal
+              const result = await createProduct(productData);
+              
+              if (!result.success || !result.id) {
+                if (newImageUploadProgress) newImageUploadProgress.classList.add('hidden');
+                alert('Error al crear producto: ' + (result.error?.message || 'Error desconocido'));
+                return;
+              }
+              
+              // Subir imagen con el ID real del producto
+              if (newImageProgressBar) newImageProgressBar.style.width = '50%';
+              const uploadResult = await uploadProductImage(file, result.id);
+              
+              if (!uploadResult.success || !uploadResult.url) {
+                if (newImageUploadProgress) newImageUploadProgress.classList.add('hidden');
+                alert('Error al subir la imagen: ' + (uploadResult.error?.message || 'Error desconocido'));
+                return;
+              }
+              
+              // Actualizar producto con la URL de la imagen
+              if (newImageProgressBar) newImageProgressBar.style.width = '75%';
+              const updateResult = await updateProductFn(result.id, { image: uploadResult.url });
+              
+              if (!updateResult.success) {
+                if (newImageUploadProgress) newImageUploadProgress.classList.add('hidden');
+                alert('Producto creado pero error al actualizar la imagen: ' + (updateResult.error?.message || 'Error desconocido'));
+                return;
+              }
+              
+              if (newImageProgressBar) newImageProgressBar.style.width = '100%';
+              if (newImageUploadProgress) newImageUploadProgress.classList.add('hidden');
+              
               alert('Producto creado exitosamente');
               closeModal(newModal);
               newForm.reset();
+              if (newImagePreviewContainer) newImagePreviewContainer.classList.add('hidden');
               await loadProducts();
             } else {
-              alert('Error al crear producto: ' + (result.error?.message || 'Error desconocido'));
+              // Usar URL externa
+              const urlInput = document.getElementById('new-product-image-url') as HTMLInputElement;
+              const imageUrl = urlInput?.value || '';
+              
+              if (!imageUrl) {
+                alert('Por favor, ingresa una URL de imagen o sube un archivo');
+                return;
+              }
+              
+              productData.image = imageUrl;
+              const result = await createProduct(productData);
+              
+              if (result.success) {
+                alert('Producto creado exitosamente');
+                closeModal(newModal);
+                newForm.reset();
+                if (newImagePreviewContainer) newImagePreviewContainer.classList.add('hidden');
+                await loadProducts();
+              } else {
+                alert('Error al crear producto: ' + (result.error?.message || 'Error desconocido'));
+              }
             }
           } catch (error) {
             console.error('Error creating product:', error);
-            alert('Error al crear producto');
+            alert('Error al crear producto: ' + ((error as Error).message || 'Error desconocido'));
+            if (newImageUploadProgress) newImageUploadProgress.classList.add('hidden');
           }
         });
       }

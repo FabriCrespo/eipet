@@ -665,10 +665,20 @@ import '../styles/global.css';
         // Render products
         carouselEl.innerHTML = '';
         
+        // Load ratings for all products
+        const { getProductAverageRating, renderStars } = await import('../lib/utils/ratings');
+        const ratingsMap = new Map();
+        
+        for (const product of products) {
+          const ratingData = await getProductAverageRating(product.id);
+          ratingsMap.set(product.id, ratingData);
+        }
+        
         for (const product of products) {
           const discount = product.discount || 0;
           const price = product.price || 0;
           const originalPrice = product.originalPrice || null;
+          const ratingData = ratingsMap.get(product.id) || { average: 0, count: 0 };
           
           const productCard = document.createElement('div');
           productCard.className = 'min-w-[280px] lg:min-w-[300px] w-[280px] lg:w-[300px] h-[480px] bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col';
@@ -690,6 +700,12 @@ import '../styles/global.css';
             <div class="p-4 bg-linear-to-b from-white to-purple-50/50 flex flex-col grow min-h-0">
               <h3 class="font-bold text-lg text-gray-800 mb-1 line-clamp-1">${product.brand || ''}</h3>
               <p class="text-sm text-gray-600 mb-2 line-clamp-2 min-h-8">${product.name || ''}</p>
+              ${ratingData.count > 0 ? `
+                <div class="mb-2 flex items-center gap-1">
+                  ${renderStars(ratingData.average, 'sm')}
+                  <span class="text-xs text-gray-600 ml-1">(${ratingData.count})</span>
+                </div>
+              ` : ''}
               <div class="mb-4 min-h-8 flex items-center ${originalPrice ? 'gap-2' : ''}">
                 <p class="text-2xl font-bold text-[#5d3fbb]">Bs. ${price.toLocaleString()}</p>
                 ${originalPrice ? `

@@ -92,7 +92,7 @@ import Layout from '../layouts/Layout.astro';
 
   <script>
     // Dynamic imports
-    let getCart: any, updateCartItem: any, removeFromCart: any, clearCart: any, getProductById: any, getCurrentUser: any, getCartItemCount: any;
+    let getCart: any, updateCartItem: any, removeFromCart: any, clearCart: any, getProductById: any, getCurrentUser: any, getCartItemCount: any, calculateShipping: any;
     let currentUser: any = null;
     let cartItems: any[] = [];
     let productsData: Map<string, any> = new Map();
@@ -110,6 +110,9 @@ import Layout from '../layouts/Layout.astro';
       
       const authModule = await import('../lib/auth');
       getCurrentUser = authModule.getCurrentUser;
+      
+      const shippingModule = await import('../lib/utils/shipping');
+      calculateShipping = shippingModule.calculateShipping;
       
       // Get current user
       const firebaseUser = getCurrentUser();
@@ -362,6 +365,11 @@ import Layout from '../layouts/Layout.astro';
     async function updateQuantity(productId: string, quantity: number) {
       if (!currentUser) return;
       
+      if (quantity <= 0) {
+        await removeItem(productId);
+        return;
+      }
+      
       try {
         const result = await updateCartItem(currentUser.id, productId, quantity);
         if (result.success) {
@@ -374,11 +382,16 @@ import Layout from '../layouts/Layout.astro';
           // Emitir evento de actualización del carrito
           document.dispatchEvent(new CustomEvent('cartUpdated'));
         } else {
-          throw new Error(result.error?.message || 'Error al actualizar cantidad');
+          const errorMessage = result.error?.message || 'Error al actualizar cantidad';
+          alert(errorMessage);
+          // Recargar el carrito para mostrar la cantidad correcta
+          await loadCart();
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error updating quantity:', error);
-        alert('Error al actualizar la cantidad. Por favor, intenta de nuevo.');
+        alert('Error al actualizar la cantidad: ' + (error.message || 'Error desconocido'));
+        // Recargar el carrito para mostrar la cantidad correcta
+        await loadCart();
       }
     }
 
@@ -462,7 +475,7 @@ import Layout from '../layouts/Layout.astro';
         }
       }
       
-      const shipping = subtotal > 500 ? 0 : 30; // Free shipping over 500
+      const shipping = calculateShipping(subtotal);
       const total = subtotal + shipping;
       
       const subtotalEl = document.getElementById('cart-subtotal');

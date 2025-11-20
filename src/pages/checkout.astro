@@ -114,7 +114,7 @@ import Layout from '../layouts/Layout.astro';
   (async () => {
     // Dynamic imports
     const { getCart } = await import('../lib/db/cart');
-    const { getProductById, adjustStock } = await import('../lib/db/products');
+    const { getProductById, validateAndAdjustStockMultiple } = await import('../lib/db/products');
     const { getUserAddresses } = await import('../lib/db/users');
     const { getPaymentMethods } = await import('../lib/db/payment');
     const { createOrder } = await import('../lib/db/orders');
@@ -290,54 +290,79 @@ import Layout from '../layouts/Layout.astro';
           const product = productsData.get(item.productId);
           if (!product) return '';
           
+          const currentPrice = product.price || 0;
+          const discount = product.discount || 0;
+          const originalPrice = product.originalPrice || null;
+          const finalPrice = originalPrice ? originalPrice * (1 - discount / 100) : currentPrice;
+          const itemTotal = finalPrice * item.quantity;
+          
           return `
             <div class="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
               <img src="${product.image || 'https://via.placeholder.com/80'}" alt="${product.name}" class="w-20 h-20 rounded-lg object-cover border border-gray-200" />
               <div class="flex-1">
                 <h3 class="font-semibold text-gray-900">${product.name}</h3>
                 <p class="text-sm text-gray-600">Cantidad: ${item.quantity}</p>
-                <p class="text-sm font-semibold text-gray-900 mt-1">Bs. ${(item.quantity * item.price).toFixed(2)}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="text-sm font-semibold text-gray-900">Bs. ${itemTotal.toFixed(2)}</p>
+                  ${originalPrice && discount > 0 ? `
+                    <p class="text-xs text-gray-400 line-through">Bs. ${(originalPrice * item.quantity).toFixed(2)}</p>
+                    <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">-${discount}%</span>
+                  ` : ''}
+                </div>
               </div>
             </div>
           `;
         }).join('');
       }
       
-      // Calculate totals
-      const subtotal = cartItems.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0);
-      const discount = 0; // Could be calculated from discounts
+      // Calculate totals using current product prices
+      let subtotal = 0;
+      let totalDiscount = 0;
       
-      // Calculate shipping based on address
-      function calculateShipping(address: any): number {
-        if (!address) return 0;
+      for (const item of cartItems) {
+        const product = productsData.get(item.productId);
+        if (!product) continue;
         
-        // Free shipping for orders over Bs. 100
-        if (subtotal >= 100) return 0;
+        const currentPrice = product.price || 0;
+        const discount = product.discount || 0;
+        const originalPrice = product.originalPrice || null;
+        const finalPrice = originalPrice ? originalPrice * (1 - discount / 100) : currentPrice;
         
-        // Base shipping cost
-        let shipping = 15;
-        
-        // Additional cost based on city/district (example logic)
-        const city = (address.city || '').toLowerCase();
-        if (city.includes('la paz') || city.includes('el alto')) {
-          shipping = 10; // Lower cost for main cities
-        } else if (city.includes('cochabamba') || city.includes('santa cruz')) {
-          shipping = 12;
-        } else {
-          shipping = 20; // Higher cost for other cities
+        subtotal += finalPrice * item.quantity;
+        if (originalPrice && discount > 0) {
+          totalDiscount += (originalPrice - finalPrice) * item.quantity;
         }
-        
-        return shipping;
       }
       
-      const shipping = selectedAddress ? calculateShipping(selectedAddress) : 0;
+      const discount = totalDiscount;
+      
+      // Import shipping calculation function
+      const { calculateShipping: calcShipping } = await import('../lib/utils/shipping');
+      
+      const shipping = calcShipping(subtotal, selectedAddress);
       const total = subtotal - discount + shipping;
       
       // Update summary function
       function updateSummary() {
-        const currentSubtotal = cartItems.reduce((sum: number, item: any) => sum + (item.quantity * item.price), 0);
-        const currentDiscount = 0;
-        const currentShipping = selectedAddress ? calculateShipping(selectedAddress) : 0;
+        let currentSubtotal = 0;
+        let currentDiscount = 0;
+        
+        for (const item of cartItems) {
+          const product = productsData.get(item.productId);
+          if (!product) continue;
+          
+          const currentPrice = product.price || 0;
+          const discount = product.discount || 0;
+          const originalPrice = product.originalPrice || null;
+          const finalPrice = originalPrice ? originalPrice * (1 - discount / 100) : currentPrice;
+          
+          currentSubtotal += finalPrice * item.quantity;
+          if (originalPrice && discount > 0) {
+            currentDiscount += (originalPrice - finalPrice) * item.quantity;
+          }
+        }
+        
+        const currentShipping = calcShipping(currentSubtotal, selectedAddress);
         const currentTotal = currentSubtotal - currentDiscount + currentShipping;
         
         const subtotalEl = document.getElementById('order-subtotal');
@@ -389,49 +414,41 @@ import Layout from '../layouts/Layout.astro';
           placeOrderBtn.textContent = 'Procesando...';
           
           try {
-            // Validate stock before creating order
-            const stockErrors: string[] = [];
-            const outOfStockItems: any[] = [];
-            
-            for (const item of cartItems) {
-              const product = productsData.get(item.productId);
-              if (!product) {
-                stockErrors.push(`Producto ${item.productId} no encontrado`);
-                continue;
-              }
-              
-              const availableStock = product.stock || 0;
-              if (availableStock < item.quantity) {
-                stockErrors.push(`${product.name}: Stock disponible (${availableStock}) es menor que la cantidad solicitada (${item.quantity})`);
-                outOfStockItems.push({ productId: item.productId, productName: product.name, requested: item.quantity, available: availableStock });
-              }
-            }
-            
-            if (stockErrors.length > 0) {
-              placeOrderBtn.disabled = false;
-              placeOrderBtn.textContent = 'Confirmar Pedido';
-              
-              const errorMessage = 'Los siguientes productos no tienen stock suficiente:\n\n' + stockErrors.join('\n') + '\n\nPor favor, ajusta las cantidades o elimina los productos sin stock.';
-              alert(errorMessage);
-              
-              // Optionally redirect to cart to fix the issue
-              // window.location.href = '/cart';
-              return;
-            }
-            
-            // Convert cart items to order items
+            // Convert cart items to order items (necesitamos los productos para obtener precios actuales)
             const orderItems = cartItems.map((item: any) => {
               const product = productsData.get(item.productId);
+              const currentPrice = product?.price || 0;
+              const discount = product?.discount || 0;
+              const originalPrice = product?.originalPrice || null;
+              const finalPrice = originalPrice ? originalPrice * (1 - discount / 100) : currentPrice;
+              
               return {
                 id: crypto.randomUUID(), // Generar ID único para cada item
                 productId: item.productId,
                 productName: product?.name || 'Producto',
                 productImage: product?.image || '',
                 quantity: item.quantity,
-                price: item.price,
-                subtotal: item.quantity * item.price
+                price: finalPrice,
+                subtotal: item.quantity * finalPrice
               };
             });
+            
+            // Validar y actualizar stock de manera atómica usando transacciones
+            const stockItems = cartItems.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity
+            }));
+            
+            const stockResult = await validateAndAdjustStockMultiple(stockItems);
+            
+            if (!stockResult.success) {
+              placeOrderBtn.disabled = false;
+              placeOrderBtn.textContent = 'Confirmar Pedido';
+              
+              const errorMessage = 'Los siguientes productos no tienen stock suficiente:\n\n' + stockResult.errors.join('\n') + '\n\nPor favor, ajusta las cantidades o elimina los productos sin stock.';
+              alert(errorMessage);
+              return;
+            }
             
             // Map address to UserAddress format
             const shippingAddress: any = {
@@ -459,7 +476,7 @@ import Layout from '../layouts/Layout.astro';
               isDefault: selectedPaymentMethod.isDefault || false
             };
             
-            // Create order
+            // Create order (el stock ya fue actualizado en la transacción anterior)
             const orderResult = await createOrder({
               userId: currentUser.id,
               items: orderItems,
@@ -471,26 +488,6 @@ import Layout from '../layouts/Layout.astro';
             });
             
             if (orderResult.success) {
-              // Update stock for each product in the order
-              const stockUpdateErrors: string[] = [];
-              for (const item of orderItems) {
-                try {
-                  const stockResult = await adjustStock(item.productId, -item.quantity);
-                  if (!stockResult.success) {
-                    stockUpdateErrors.push(`${item.productName}: ${stockResult.error?.message || 'Error al actualizar stock'}`);
-                  }
-                } catch (error: any) {
-                  stockUpdateErrors.push(`${item.productName}: ${error.message || 'Error al actualizar stock'}`);
-                }
-              }
-              
-              // If there were stock update errors, log them but don't fail the order
-              // (the order was already created, so we just log the issue)
-              if (stockUpdateErrors.length > 0) {
-                console.error('Errores al actualizar stock:', stockUpdateErrors);
-                // Optionally notify admin or user about stock update issues
-              }
-              
               // Clear cart
               await clearCart(currentUser.id);
               
@@ -498,6 +495,10 @@ import Layout from '../layouts/Layout.astro';
               alert('¡Pedido creado exitosamente!');
               window.location.href = '/profile?section=orders';
             } else {
+              // Si falla la creación del pedido, necesitamos revertir el stock
+              // Esto es raro pero podría pasar. En producción, esto debería manejarse con una transacción más compleja
+              // o con Cloud Functions que manejen la reversión automáticamente
+              console.error('Error creating order after stock update. Stock may need manual adjustment.');
               throw new Error(orderResult.error?.message || 'Error al crear el pedido');
             }
           } catch (error: any) {
