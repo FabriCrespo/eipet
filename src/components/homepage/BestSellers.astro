@@ -1,0 +1,287 @@
+---
+---
+
+<!-- Los Más Vendidos -->
+<section class="py-8 sm:py-12 lg:py-16 relative overflow-hidden">
+  <!-- Background animado sutil -->
+  <div class="absolute inset-0 bg-linear-to-br from-gray-50 via-purple-50/30 to-gray-50/50"></div>
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <!-- Círculos animados de fondo -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-[#5d3fbb]/5 rounded-full blur-3xl animate-pulse-slow"></div>
+    <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-[#ffff11]/5 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 1s;"></div>
+    <div class="absolute top-1/2 left-1/2 w-72 h-72 bg-purple-200/10 rounded-full blur-3xl animate-pulse-slow" style="animation-delay: 2s;"></div>
+  </div>
+
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
+    <!-- Título -->
+    <div class="text-center mb-8 sm:mb-10 lg:mb-12">
+      <h2 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-gray-900 mb-3">
+        <span class="bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">
+          Los Más Vendidos
+        </span>
+      </h2>
+      <p class="text-gray-600 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto">
+        Descubre los productos preferidos por nuestra comunidad pet lover
+      </p>
+    </div>
+
+    <!-- Grid de productos compacto -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+      <!-- Producto 1 -->
+      <a 
+        href="/products" 
+        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
+        style="animation-delay: 0.1s;"
+        data-astro-prefetch
+      >
+        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
+          <div class="absolute top-2 left-2 z-20">
+            <span class="bg-[#ffff11] text-[#5d3fbb] px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
+              #1
+            </span>
+          </div>
+          <img 
+            src="https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80" 
+            alt="Van Camps 20Kg" 
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        </div>
+        <div class="p-3 sm:p-4 flex flex-col grow">
+          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Van Camps</h3>
+          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">20Kg - Adulto Raza Med. y Grande</p>
+          <div class="mb-3 flex items-center">
+            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 315.00</p>
+          </div>
+          <div class="mt-auto pt-2 border-t border-gray-100">
+            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
+              Ver más
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Producto 2 -->
+      <a 
+        href="/products" 
+        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
+        style="animation-delay: 0.2s;"
+        data-astro-prefetch
+      >
+        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
+          <div class="absolute top-2 left-2 z-20">
+            <span class="bg-red-500 text-white px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
+              -11%
+            </span>
+          </div>
+          <img 
+            src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&q=80" 
+            alt="Van Camps Premium" 
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        </div>
+        <div class="p-3 sm:p-4 flex flex-col grow">
+          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Van Camps</h3>
+          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">Alimento Premium Perro Adulto 15kg</p>
+          <div class="mb-3 flex items-center gap-1.5">
+            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 285.00</p>
+            <p class="text-xs text-gray-400 line-through">Bs. 320.00</p>
+          </div>
+          <div class="mt-auto pt-2 border-t border-gray-100">
+            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
+              Ver más
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Producto 3 -->
+      <a 
+        href="/products" 
+        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
+        style="animation-delay: 0.3s;"
+        data-astro-prefetch
+      >
+        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
+          <div class="absolute top-2 left-2 z-20">
+            <span class="bg-red-500 text-white px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
+              -7%
+            </span>
+          </div>
+          <img 
+            src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&q=80" 
+            alt="Sofia 20kg" 
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        </div>
+        <div class="p-3 sm:p-4 flex flex-col grow">
+          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Sofia</h3>
+          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">20kg - Adulto Toda Raza Sabor Cordero</p>
+          <div class="mb-3 flex items-center gap-1.5">
+            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 335.00</p>
+            <p class="text-xs text-gray-400 line-through">Bs. 360.00</p>
+          </div>
+          <div class="mt-auto pt-2 border-t border-gray-100">
+            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
+              Ver más
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Producto 4 -->
+      <a 
+        href="/products" 
+        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
+        style="animation-delay: 0.4s;"
+        data-astro-prefetch
+      >
+        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
+          <img 
+            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80" 
+            alt="Podium 23Kg" 
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        </div>
+        <div class="p-3 sm:p-4 flex flex-col grow">
+          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Podium</h3>
+          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">23Kg - Adulto Raza Pequeña / Podium</p>
+          <div class="mb-3 flex items-center">
+            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 425.00</p>
+          </div>
+          <div class="mt-auto pt-2 border-t border-gray-100">
+            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
+              Ver más
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Producto 5 -->
+      <a 
+        href="/products" 
+        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
+        style="animation-delay: 0.5s;"
+        data-astro-prefetch
+      >
+        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
+          <div class="absolute top-2 left-2 z-20">
+            <span class="bg-red-500 text-white px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
+              -10%
+            </span>
+          </div>
+          <img 
+            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&q=80" 
+            alt="Cibau Adulto" 
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        </div>
+        <div class="p-3 sm:p-4 flex flex-col grow">
+          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Cibau</h3>
+          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">Cibau Adulto 15kg</p>
+          <div class="mb-3 flex items-center gap-1.5">
+            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 295.00</p>
+            <p class="text-xs text-gray-400 line-through">Bs. 330.00</p>
+          </div>
+          <div class="mt-auto pt-2 border-t border-gray-100">
+            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
+              Ver más
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- CTA para ver todos los productos -->
+    <div class="mt-8 sm:mt-10 lg:mt-12 text-center animate-fade-in-up" style="animation-delay: 0.6s;">
+      <a 
+        href="/products" 
+        class="inline-flex items-center gap-3 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-bold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+        data-astro-prefetch
+      >
+        <span>Ver todos los productos</span>
+        <svg class="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Animación de entrada */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out both;
+  }
+
+  /* Animación de pulso lento para el background */
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 8s ease-in-out infinite;
+  }
+
+  /* Efectos hover mejorados */
+  .product-card {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  .product-card:hover {
+    transform: translateY(-6px) scale(1.02);
+  }
+
+  /* Line clamp */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

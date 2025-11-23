@@ -1,0 +1,289 @@
+---
+---
+
+<!-- Categorías más Vendidas -->
+<section class="py-8 sm:py-10 lg:py-12 relative overflow-hidden">
+  <!-- Fondo lila con gradiente -->
+  <div class="absolute inset-0 bg-linear-to-br from-[#5d3fbb] via-[#6d4fcc] to-[#7d5fdd]"></div>
+  
+  <!-- Efectos decorativos de fondo -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-72 h-72 bg-[#ffff11]/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
+    <!-- Título -->
+    <div class="text-center mb-6 sm:mb-8 lg:mb-10">
+      <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-2">
+        Categorías más Vendidas
+      </h2>
+      <p class="text-white/90 text-sm sm:text-base max-w-2xl mx-auto">
+        Todo lo que necesitas para el cuidado y bienestar de tu mascota
+      </p>
+    </div>
+    
+    <!-- Grid de categorías compacto -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      <!-- Alimentos para Perro -->
+      <a 
+        href="/products?pet=dog&category=food" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.1s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Alimentos para Perro</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Nutrición completa y balanceada
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Snacks y Húmedos -->
+      <a 
+        href="/products?category=snacks" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.2s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Snacks y Húmedos</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Premios y alimentos húmedos
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Cuidado e Higiene -->
+      <a 
+        href="/products?category=hygiene" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.3s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Cuidado e Higiene</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Shampoos, cepillos y más
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Juguetes para Perro -->
+      <a 
+        href="/products?pet=dog&category=toys" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.4s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Juguetes para Perro</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Diversión y entretenimiento
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Alimentos para Gato -->
+      <a 
+        href="/products?pet=cat&category=food" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.5s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Alimentos para Gato</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Nutrición felina premium
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Arenas Sanitarias -->
+      <a 
+        href="/products?category=litter" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.6s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Arenas Sanitarias</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Higiene y comodidad felina
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Alimentos Medicados -->
+      <a 
+        href="/products?category=medicated" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.7s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Alimentos Medicados</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Nutrición terapéutica especial
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <!-- Juguetes para Gato -->
+      <a 
+        href="/products?pet=cat&category=toys" 
+        class="category-card group relative bg-white/95 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-1 flex flex-col border border-white/20 animate-fade-in-up"
+        style="animation-delay: 0.8s;"
+        data-astro-prefetch
+      >
+        <div class="flex items-center justify-center mb-3">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 bg-[#5d3fbb]/10 rounded-xl flex items-center justify-center group-hover:bg-[#5d3fbb]/20 transition-colors duration-300">
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 text-center group-hover:text-[#5d3fbb] transition-colors duration-300">Juguetes para Gato</h3>
+        <p class="text-xs sm:text-sm text-gray-600 text-center leading-relaxed mb-3 line-clamp-2">
+          Entretenimiento felino
+        </p>
+        <div class="mt-auto pt-3 border-t border-gray-100">
+          <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] flex items-center justify-center gap-1">
+            Ver más
+            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Animación de entrada */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out both;
+  }
+
+  /* Efectos hover mejorados */
+  .category-card {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  .category-card:hover {
+    border-color: rgba(93, 63, 187, 0.4);
+  }
+
+  /* Line clamp */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
