@@ -59,6 +59,44 @@ import '../styles/global.css';
         </a>
       </nav>
 
+      <!-- Barra de Búsqueda (Desktop) -->
+      <div class="hidden lg:block flex-1 max-w-md mx-4">
+        <div class="relative">
+          <input
+            type="text"
+            id="header-search-input"
+            placeholder="Buscar productos..."
+            class="w-full px-4 py-2.5 pl-11 pr-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-[#ffff11]/50 focus:bg-white/20 transition-all text-sm"
+          />
+          <svg class="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <button
+            id="header-clear-search-btn"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-white/70 hover:text-white hidden transition-colors"
+            aria-label="Limpiar búsqueda"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <!-- Dropdown de Resultados -->
+          <div id="search-results-dropdown" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-96 overflow-y-auto z-50 hidden">
+            <div id="search-results-content" class="p-2">
+              <!-- Los resultados se mostrarán aquí -->
+            </div>
+            <div id="search-loading" class="p-4 text-center hidden">
+              <div class="inline-block w-6 h-6 border-2 border-[#5d3fbb] border-t-transparent rounded-full animate-spin"></div>
+              <p class="text-gray-500 text-sm mt-2">Buscando...</p>
+            </div>
+            <div id="search-empty" class="p-4 text-center hidden">
+              <p class="text-gray-500 text-sm">No se encontraron productos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Acciones Derecha -->
       <div class="flex items-center gap-2 sm:gap-3 ml-4">
 
@@ -132,6 +170,20 @@ import '../styles/global.css';
           </div>
         </div>
 
+        <!-- Botón Búsqueda Móvil -->
+        <button 
+          id="mobile-search-toggle-btn" 
+          class="lg:hidden p-2.5 text-white rounded-xl hover:bg-white/10 transition-colors duration-200 active:scale-95"
+          aria-label="Buscar"
+        >
+          <svg id="search-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <svg id="search-close-icon" class="w-6 h-6 hidden text-[#ffff11]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         <!-- Carrito optimizado -->
         <a 
           href="/cart" 
@@ -157,6 +209,46 @@ import '../styles/global.css';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda Móvil Desplegable -->
+    <div id="mobile-search-container" class="lg:hidden max-h-0 overflow-hidden transition-all duration-300 border-t border-white/20">
+      <div class="px-4 py-4 bg-linear-to-b from-[#5d3fbb]/95 to-[#6d4fcc]/95 backdrop-blur-sm">
+        <div class="relative">
+          <input
+            type="text"
+            id="mobile-search-input"
+            placeholder="Buscar productos..."
+            class="w-full px-4 py-3 pl-11 pr-10 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-[#ffff11]/50 focus:bg-white/30 transition-all text-sm"
+          />
+          <svg class="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <button
+            id="mobile-clear-search-btn"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-white/70 hover:text-white hidden transition-colors"
+            aria-label="Limpiar búsqueda"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Dropdown de Resultados Móvil -->
+        <div id="mobile-search-results-dropdown" class="mt-3 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-80 overflow-y-auto hidden">
+          <div id="mobile-search-results-content" class="p-2">
+            <!-- Los resultados se mostrarán aquí -->
+          </div>
+          <div id="mobile-search-loading" class="p-4 text-center hidden">
+            <div class="inline-block w-6 h-6 border-2 border-[#5d3fbb] border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-gray-500 text-sm mt-2">Buscando...</p>
+          </div>
+          <div id="mobile-search-empty" class="p-4 text-center hidden">
+            <p class="text-gray-500 text-sm">No se encontraron productos</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -222,11 +314,57 @@ import '../styles/global.css';
       mobileMenu?.classList.add('max-h-screen');
       menuIcon?.classList.add('hidden');
       closeIcon?.classList.remove('hidden');
+      // Cerrar búsqueda si está abierta
+      const mobileSearchContainer = document.getElementById('mobile-search-container');
+      if (mobileSearchContainer && !mobileSearchContainer.classList.contains('max-h-0')) {
+        mobileSearchContainer.classList.add('max-h-0');
+        mobileSearchContainer.classList.remove('max-h-96');
+        const searchIcon = document.getElementById('search-icon');
+        const searchCloseIcon = document.getElementById('search-close-icon');
+        if (searchIcon) searchIcon.classList.remove('hidden');
+        if (searchCloseIcon) searchCloseIcon.classList.add('hidden');
+      }
     } else {
       mobileMenu?.classList.add('max-h-0');
       mobileMenu?.classList.remove('max-h-screen');
       menuIcon?.classList.remove('hidden');
       closeIcon?.classList.add('hidden');
+    }
+  });
+
+  // Toggle de búsqueda móvil
+  const mobileSearchToggleBtn = document.getElementById('mobile-search-toggle-btn');
+  const mobileSearchContainer = document.getElementById('mobile-search-container');
+  const searchIcon = document.getElementById('search-icon');
+  const searchCloseIcon = document.getElementById('search-close-icon');
+
+  mobileSearchToggleBtn?.addEventListener('click', () => {
+    const isOpen = mobileSearchContainer?.classList.contains('max-h-0');
+    if (isOpen) {
+      mobileSearchContainer?.classList.remove('max-h-0');
+      mobileSearchContainer?.classList.add('max-h-96');
+      if (searchIcon) searchIcon.classList.add('hidden');
+      if (searchCloseIcon) searchCloseIcon.classList.remove('hidden');
+      // Cerrar menú si está abierto
+      if (mobileMenu && !mobileMenu.classList.contains('max-h-0')) {
+        mobileMenu.classList.add('max-h-0');
+        mobileMenu.classList.remove('max-h-screen');
+        menuIcon?.classList.remove('hidden');
+        closeIcon?.classList.add('hidden');
+      }
+      // Focus en el input
+      setTimeout(() => {
+        const mobileSearchInput = document.getElementById('mobile-search-input') as HTMLInputElement;
+        mobileSearchInput?.focus();
+      }, 100);
+    } else {
+      mobileSearchContainer?.classList.add('max-h-0');
+      mobileSearchContainer?.classList.remove('max-h-96');
+      if (searchIcon) searchIcon.classList.remove('hidden');
+      if (searchCloseIcon) searchCloseIcon.classList.add('hidden');
+      // Ocultar dropdown de resultados
+      const mobileResultsDropdown = document.getElementById('mobile-search-results-dropdown');
+      if (mobileResultsDropdown) mobileResultsDropdown.classList.add('hidden');
     }
   });
 
@@ -309,7 +447,251 @@ import '../styles/global.css';
         console.error('Error parsing cart:', e);
       }
     }
+
+    // Búsqueda en tiempo real
+    initHeaderSearch();
   });
+
+  // Función de búsqueda en tiempo real
+  function initHeaderSearch() {
+    const searchInput = document.getElementById('header-search-input') as HTMLInputElement;
+    const mobileSearchInput = document.getElementById('mobile-search-input') as HTMLInputElement;
+    const clearSearchBtn = document.getElementById('header-clear-search-btn');
+    const mobileClearSearchBtn = document.getElementById('mobile-clear-search-btn');
+    const resultsDropdown = document.getElementById('search-results-dropdown');
+    const resultsContent = document.getElementById('search-results-content');
+    const searchLoading = document.getElementById('search-loading');
+    const searchEmpty = document.getElementById('search-empty');
+    const mobileResultsDropdown = document.getElementById('mobile-search-results-dropdown');
+    const mobileResultsContent = document.getElementById('mobile-search-results-content');
+    const mobileSearchLoading = document.getElementById('mobile-search-loading');
+    const mobileSearchEmpty = document.getElementById('mobile-search-empty');
+    
+    let allProducts: any[] = [];
+    let searchTimeout: NodeJS.Timeout | null = null;
+
+    // Cargar productos
+    async function loadProducts() {
+      try {
+        const response = await fetch('/data/products.json');
+        const data = await response.json();
+        allProducts = data.products || [];
+      } catch (error) {
+        console.error('Error cargando productos:', error);
+      }
+    }
+
+    // Función de búsqueda
+    function searchProducts(query: string) {
+      if (!query.trim() || allProducts.length === 0) {
+        if (resultsDropdown) resultsDropdown.classList.add('hidden');
+        if (mobileResultsDropdown) mobileResultsDropdown.classList.add('hidden');
+        return;
+      }
+
+      const searchTerm = query.toLowerCase().trim();
+      const results = allProducts.filter(product => {
+        const name = (product.name || '').toLowerCase();
+        const brand = (product.brand || '').toLowerCase();
+        const description = (product.description || '').toLowerCase();
+        return name.includes(searchTerm) || brand.includes(searchTerm) || description.includes(searchTerm);
+      }).slice(0, 5); // Limitar a 5 resultados
+
+      displayResults(results, query);
+    }
+
+    // Función para renderizar HTML de resultados
+    function renderResultsHTML(results: any[], query: string): string {
+      return results.map(product => `
+        <a 
+          href="/products?search=${encodeURIComponent(query)}" 
+          class="flex items-center gap-3 p-3 rounded-lg hover:bg-purple-50 transition-colors group"
+          data-astro-prefetch
+        >
+          <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+            <img 
+              src="${product.image}" 
+              alt="${product.name}"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform"
+              loading="lazy"
+            />
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-gray-900 truncate">${product.name}</p>
+            <p class="text-xs text-gray-500 truncate">${product.brand}</p>
+            <p class="text-sm font-bold text-[#5d3fbb] mt-0.5">Bs. ${product.price.toLocaleString()}</p>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    // Mostrar resultados (desktop y móvil)
+    function displayResults(results: any[], query: string) {
+      // Desktop dropdown
+      if (resultsDropdown && resultsContent) {
+        if (results.length === 0) {
+          resultsDropdown.classList.remove('hidden');
+          resultsContent.classList.add('hidden');
+          if (searchLoading) searchLoading.classList.add('hidden');
+          if (searchEmpty) searchEmpty.classList.remove('hidden');
+        } else {
+          resultsDropdown.classList.remove('hidden');
+          resultsContent.classList.remove('hidden');
+          if (searchLoading) searchLoading.classList.add('hidden');
+          if (searchEmpty) searchEmpty.classList.add('hidden');
+          resultsContent.innerHTML = renderResultsHTML(results, query);
+        }
+      }
+
+      // Mobile dropdown
+      if (mobileResultsDropdown && mobileResultsContent) {
+        if (results.length === 0) {
+          mobileResultsDropdown.classList.remove('hidden');
+          mobileResultsContent.classList.add('hidden');
+          if (mobileSearchLoading) mobileSearchLoading.classList.add('hidden');
+          if (mobileSearchEmpty) mobileSearchEmpty.classList.remove('hidden');
+        } else {
+          mobileResultsDropdown.classList.remove('hidden');
+          mobileResultsContent.classList.remove('hidden');
+          if (mobileSearchLoading) mobileSearchLoading.classList.add('hidden');
+          if (mobileSearchEmpty) mobileSearchEmpty.classList.add('hidden');
+          mobileResultsContent.innerHTML = renderResultsHTML(results, query);
+        }
+      }
+    }
+
+    // Función de búsqueda con debounce
+    function handleSearch(query: string) {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+
+      if (!query.trim()) {
+        if (resultsDropdown) resultsDropdown.classList.add('hidden');
+        if (mobileResultsDropdown) mobileResultsDropdown.classList.add('hidden');
+        if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+        if (mobileClearSearchBtn) mobileClearSearchBtn.classList.add('hidden');
+        return;
+      }
+
+      // Mostrar botón de limpiar
+      if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+      if (mobileClearSearchBtn) mobileClearSearchBtn.classList.remove('hidden');
+
+      // Mostrar loading en desktop
+      if (resultsDropdown) resultsDropdown.classList.remove('hidden');
+      if (resultsContent) resultsContent.classList.add('hidden');
+      if (searchLoading) searchLoading.classList.remove('hidden');
+      if (searchEmpty) searchEmpty.classList.add('hidden');
+
+      // Mostrar loading en móvil
+      if (mobileResultsDropdown) mobileResultsDropdown.classList.remove('hidden');
+      if (mobileResultsContent) mobileResultsContent.classList.add('hidden');
+      if (mobileSearchLoading) mobileSearchLoading.classList.remove('hidden');
+      if (mobileSearchEmpty) mobileSearchEmpty.classList.add('hidden');
+
+      searchTimeout = setTimeout(() => {
+        searchProducts(query);
+      }, 300);
+    }
+
+    // Event listeners para desktop
+    searchInput?.addEventListener('input', (e) => {
+      const query = (e.target as HTMLInputElement).value;
+      // Sincronizar con móvil
+      if (mobileSearchInput) mobileSearchInput.value = query;
+      handleSearch(query);
+    });
+
+    searchInput?.addEventListener('focus', () => {
+      const query = searchInput.value;
+      if (query.trim()) {
+        searchProducts(query);
+      }
+    });
+
+    clearSearchBtn?.addEventListener('click', () => {
+      searchInput.value = '';
+      if (mobileSearchInput) mobileSearchInput.value = '';
+      if (resultsDropdown) resultsDropdown.classList.add('hidden');
+      if (mobileResultsDropdown) mobileResultsDropdown.classList.add('hidden');
+      clearSearchBtn.classList.add('hidden');
+      if (mobileClearSearchBtn) mobileClearSearchBtn.classList.add('hidden');
+      searchInput.focus();
+    });
+
+    // Event listeners para móvil
+    mobileSearchInput?.addEventListener('input', (e) => {
+      const query = (e.target as HTMLInputElement).value;
+      // Sincronizar con desktop
+      if (searchInput) searchInput.value = query;
+      handleSearch(query);
+    });
+
+    mobileSearchInput?.addEventListener('focus', () => {
+      const query = mobileSearchInput.value;
+      if (query.trim()) {
+        searchProducts(query);
+      }
+    });
+
+    mobileClearSearchBtn?.addEventListener('click', () => {
+      mobileSearchInput.value = '';
+      if (searchInput) searchInput.value = '';
+      if (resultsDropdown) resultsDropdown.classList.add('hidden');
+      if (mobileResultsDropdown) mobileResultsDropdown.classList.add('hidden');
+      mobileClearSearchBtn.classList.add('hidden');
+      if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+      mobileSearchInput.focus();
+    });
+
+    // Cerrar dropdown al hacer click fuera
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const mobileSearchToggleBtn = document.getElementById('mobile-search-toggle-btn');
+      const mobileSearchContainer = document.getElementById('mobile-search-container');
+      
+      // Cerrar dropdown desktop
+      if (
+        resultsDropdown &&
+        !resultsDropdown.contains(target) &&
+        target !== searchInput &&
+        target !== mobileSearchInput &&
+        !mobileSearchToggleBtn?.contains(target)
+      ) {
+        resultsDropdown.classList.add('hidden');
+      }
+
+      // Cerrar dropdown móvil
+      if (
+        mobileResultsDropdown &&
+        !mobileResultsDropdown.contains(target) &&
+        target !== searchInput &&
+        target !== mobileSearchInput &&
+        !mobileSearchToggleBtn?.contains(target) &&
+        !mobileSearchContainer?.contains(target)
+      ) {
+        mobileResultsDropdown.classList.add('hidden');
+      }
+    });
+
+    // Cerrar dropdown con ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (resultsDropdown && !resultsDropdown.classList.contains('hidden')) {
+          resultsDropdown.classList.add('hidden');
+        }
+        if (mobileResultsDropdown && !mobileResultsDropdown.classList.contains('hidden')) {
+          mobileResultsDropdown.classList.add('hidden');
+        }
+        searchInput?.blur();
+        mobileSearchInput?.blur();
+      }
+    });
+
+    // Cargar productos al inicializar
+    loadProducts();
+  }
 </script>
 
 <style>
@@ -326,5 +708,109 @@ import '../styles/global.css';
   nav a,
   button {
     transform: translateZ(0);
+  }
+
+  /* Estilos para el dropdown de búsqueda */
+  #search-results-dropdown {
+    animation: slideDown 0.2s ease-out;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  #search-results-dropdown::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #search-results-dropdown::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  #search-results-dropdown::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  #search-results-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Efecto hover mejorado para resultados */
+  #search-results-content a {
+    transition: all 0.2s ease;
+  }
+
+  #search-results-content a:hover {
+    transform: translateX(4px);
+  }
+
+  /* Placeholder personalizado */
+  #header-search-input::placeholder,
+  #mobile-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Focus mejorado */
+  #header-search-input:focus,
+  #mobile-search-input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 17, 0.2);
+  }
+
+  /* Estilos para el contenedor de búsqueda móvil */
+  #mobile-search-container {
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  }
+
+  #mobile-search-container.max-h-0 {
+    opacity: 0;
+  }
+
+  #mobile-search-container:not(.max-h-0) {
+    opacity: 1;
+  }
+
+  /* Estilos para el dropdown de resultados móvil */
+  #mobile-search-results-dropdown {
+    animation: slideDown 0.2s ease-out;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+  }
+
+  #mobile-search-results-dropdown::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #mobile-search-results-dropdown::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  #mobile-search-results-dropdown::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  #mobile-search-results-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Efecto hover para resultados móviles */
+  #mobile-search-results-content a {
+    transition: all 0.2s ease;
+  }
+
+  #mobile-search-results-content a:hover {
+    transform: translateX(4px);
   }
 </style>

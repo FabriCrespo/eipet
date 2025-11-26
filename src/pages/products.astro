@@ -10,7 +10,7 @@ import Layout from '../layouts/Layout.astro';
         <!-- Título y Subtítulo -->
         <div class="mb-6">
           <div class="flex items-center gap-3 mb-3">
-            <div class="bg-gradient-to-br from-[#ffff11] to-[#ffd700] rounded-xl p-2 shadow-lg">
+            <div class="bg-linear-to-br from-[#ffff11] to-[#ffd700] rounded-xl p-2 shadow-lg">
               <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
                 <path d="M16 8C16 8 10 2 4 8C-2 14 4 20 4 20L16 28L28 20C28 20 34 14 28 8C22 2 16 8 16 8Z" fill="#5d3fbb"/>
                 <circle cx="10" cy="12" r="2" fill="#fff"/>
@@ -19,7 +19,7 @@ import Layout from '../layouts/Layout.astro';
                 <path d="M16 18C16 18 18 20 22 20C26 20 28 18 28 18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </div>
-            <h1 id="page-title" class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">
+            <h1 id="page-title" class="text-3xl lg:text-4xl font-bold bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">
               Productos
             </h1>
           </div>
@@ -31,7 +31,7 @@ import Layout from '../layouts/Layout.astro';
         <!-- Barra de Búsqueda Mejorada -->
         <div class="mb-6">
           <div class="relative group">
-            <div class="absolute inset-0 bg-gradient-to-r from-[#5d3fbb] to-[#6d4fcc] rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
+            <div class="absolute inset-0 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
             <div class="relative bg-white rounded-xl shadow-lg border border-gray-200">
               <input
                 type="text"
@@ -56,12 +56,12 @@ import Layout from '../layouts/Layout.astro';
         </div>
 
         <!-- Chips de Filtros Activos -->
-        <div id="active-filters-chips" class="mb-6 hidden p-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl border border-purple-100 shadow-sm" style="display: none;">
+        <div id="active-filters-chips" class="mb-6 hidden p-4 bg-linear-to-r from-purple-50/50 to-pink-50/50 rounded-xl border border-purple-100 shadow-sm" style="display: none;">
           <!-- Los chips se agregarán dinámicamente -->
         </div>
         
         <!-- Controles de ordenamiento y vista -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-sm border border-purple-100">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-sm border border-purple-100">
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Ordenar por:</label>
             <select 
@@ -431,7 +431,7 @@ import Layout from '../layouts/Layout.astro';
           <div id="empty-state" class="text-center py-20 hidden">
             <div class="max-w-md mx-auto">
               <div class="relative mb-6">
-                <div class="absolute inset-0 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full blur-2xl opacity-50"></div>
+                <div class="absolute inset-0 bg-linear-to-br from-purple-100 to-pink-100 rounded-full blur-2xl opacity-50"></div>
                 <svg class="relative w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
@@ -440,7 +440,7 @@ import Layout from '../layouts/Layout.astro';
               <p class="text-gray-500 mb-6">Intenta ajustar los filtros o la búsqueda para encontrar lo que buscas.</p>
               <button
                 id="clear-all-filters-empty"
-                class="px-6 py-2.5 bg-gradient-to-r from-[#5d3fbb] to-[#6d4fcc] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
+                class="px-6 py-2.5 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 Limpiar todos los filtros
               </button>
@@ -801,6 +801,12 @@ import Layout from '../layouts/Layout.astro';
       const urlParams = new URLSearchParams(window.location.search);
       const petFilter = urlParams.get('pet') || 'all';
       const filterType = urlParams.get('filter') || 'all';
+      const urlSearchQuery = urlParams.get('search') || '';
+      
+      // Establecer búsqueda desde URL si existe
+      if (urlSearchQuery) {
+        searchQuery = urlSearchQuery;
+      }
 
       // Función para obtener título y subtítulo
       function getTitle() {
@@ -1624,6 +1630,12 @@ import Layout from '../layouts/Layout.astro';
     // Búsqueda en tiempo real con debounce
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
     const clearSearchBtn = document.getElementById('clear-search-btn');
+    
+    // Establecer búsqueda desde URL si existe
+    if (urlSearchQuery && searchInput) {
+      searchInput.value = urlSearchQuery;
+      if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
+    }
     
     function handleSearch() {
       if (searchTimeout) {
