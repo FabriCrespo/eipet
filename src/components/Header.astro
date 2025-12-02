@@ -13,9 +13,9 @@ import '../styles/global.css';
     <!-- Barra principal -->
     <div class="flex items-center justify-between h-20 lg:h-24">
       <!-- Logo optimizado -->
-      <a href="/" class="flex items-center mr-4 space-x-3 group shrink-0" data-astro-prefetch>
-        <div class="bg-[#ffff11] rounded-xl p-2.5 shadow-lg group-hover:scale-105 transition-transform duration-200">
-          <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
+      <a href="/" class="flex items-center mr-4 space-x-3 group shrink-0 logo-link" data-astro-prefetch>
+        <div class="bg-[#ffff11] rounded-xl p-2.5 shadow-lg group-hover:scale-105 transition-transform duration-200 logo-icon">
+          <svg width="36" height="36" viewBox="0 0 32 32" fill="none" class="logo-svg">
             <path d="M16 8C16 8 10 2 4 8C-2 14 4 20 4 20L16 28L28 20C28 20 34 14 28 8C22 2 16 8 16 8Z" fill="#5d3fbb"/>
             <circle cx="10" cy="12" r="2" fill="#fff"/>
             <circle cx="22" cy="12" r="2" fill="#fff"/>
@@ -812,5 +812,47 @@ import '../styles/global.css';
 
   #mobile-search-results-content a:hover {
     transform: translateX(4px);
+  }
+
+  /* Animación sutil del logo - optimizada para performance */
+  .logo-link {
+    will-change: transform;
+  }
+
+  .logo-icon {
+    animation: logoFloat 3s ease-in-out infinite;
+    transform: translateZ(0); /* GPU acceleration */
+  }
+
+  .logo-svg {
+    animation: logoPulse 2s ease-in-out infinite;
+    transform-origin: center;
+    transform: translateZ(0); /* GPU acceleration */
+  }
+
+  @keyframes logoFloat {
+    0%, 100% {
+      transform: translateY(0) translateZ(0);
+    }
+    50% {
+      transform: translateY(-3px) translateZ(0);
+    }
+  }
+
+  @keyframes logoPulse {
+    0%, 100% {
+      transform: scale(1) translateZ(0);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.02) translateZ(0);
+      opacity: 0.95;
+    }
+  }
+
+  /* Pausar animación en hover para mejor UX */
+  .logo-link:hover .logo-icon,
+  .logo-link:hover .logo-svg {
+    animation-play-state: paused;
   }
 </style>

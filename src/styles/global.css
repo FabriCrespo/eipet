@@ -41,12 +41,7 @@
   font-display: swap;
 }
 
-/* Aplicar Baloo2 como fuente principal */
-@theme {
-  --font-family-sans: 'Baloo2', system-ui, -apple-system, sans-serif;
-}
-
-/* Asegurar que todos los elementos usen Baloo2 */
-body {
+/* Aplicar Baloo2 solo en el Header */
+header {
   font-family: 'Baloo2', system-ui, -apple-system, sans-serif;
 }

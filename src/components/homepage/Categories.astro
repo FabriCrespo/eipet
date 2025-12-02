@@ -10,30 +10,21 @@
   </div>
 
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
-    <!-- Título de sección -->
-    <div class="mb-6 lg:mb-8 text-center">
-      <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-2">
-        <span class="bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">
-          Explora nuestras categorías
-        </span>
-      </h2>
-      <p class="text-gray-600 text-sm sm:text-base">Encuentra todo lo que necesitas para tu mascota</p>
-    </div>
-
-    <!-- Grid Bento Box: 1 grande arriba (2 columnas) + 1 pequeña arriba, 2 pequeñas abajo -->
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-      <!-- Card 1: Alimentos para Perro (GRANDE - 2 columnas en desktop) -->
+    <!-- Grid horizontal: todas las categorías en una línea -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+      <!-- Card 1: Alimentos para Perro -->
       <a 
         href="/products?pet=dog&category=food" 
-        class="category-card category-card-large group relative h-40 sm:h-48 lg:h-[200px] lg:col-span-2 rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
+        class="category-card group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
         data-astro-prefetch
       >
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800&q=80" 
+            src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&h=350&fit=crop&q=85" 
             alt="Alimentos para Perro" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
+            loading="lazy"
           />
         </div>
 
@@ -45,25 +36,11 @@
         <div class="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
         <!-- Contenido -->
-        <div class="absolute inset-0 flex flex-col justify-between p-4 sm:p-5 lg:p-6 z-10">
-          <!-- Icono decorativo (solo desktop) -->
-          <div class="hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 shadow-lg">
-              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-          </div>
-
-          <!-- Título -->
-          <div class="mt-auto">
-            <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-extrabold text-white drop-shadow-2xl leading-tight mb-1 group-hover:translate-y-[-2px] transition-transform duration-300">
+        <div class="absolute inset-0 flex items-center justify-center lg:items-end lg:justify-start p-4 lg:p-5 z-10">
+          <div class="text-center lg:text-left">
+            <h3 class="text-sm sm:text-base lg:text-lg xl:text-xl font-extrabold text-white drop-shadow-2xl leading-tight group-hover:translate-y-[-2px] transition-transform duration-300">
               Alimentos para Perro
             </h3>
-            <!-- Descripción (solo desktop) -->
-            <p class="hidden lg:block text-white/90 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 mt-1">
-              Nutrición completa y balanceada
-            </p>
           </div>
         </div>
 
@@ -71,18 +48,19 @@
         <div class="absolute inset-0 rounded-xl lg:rounded-2xl border-2 border-transparent group-hover:border-white/30 transition-colors duration-500 pointer-events-none"></div>
       </a>
 
-      <!-- Card 2: Alimentos para Gato (PEQUEÑA - 1x1) -->
+      <!-- Card 2: Alimentos para Gato -->
       <a 
         href="/products?pet=cat&category=food" 
-        class="category-card category-card-small group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
+        class="category-card group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
         data-astro-prefetch
       >
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1545529468-42764ef8c85f?w=800&q=80" 
+            src="https://images.unsplash.com/photo-1545529468-42764ef8c85f?w=500&h=350&fit=crop&q=85" 
             alt="Alimentos para Gato" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
+            loading="lazy"
           />
         </div>
 
@@ -107,18 +85,19 @@
         <div class="absolute inset-0 rounded-xl lg:rounded-2xl border-2 border-transparent group-hover:border-white/30 transition-colors duration-500 pointer-events-none"></div>
       </a>
 
-      <!-- Card 3: Descuentos (PEQUEÑA - 1x1) -->
+      <!-- Card 3: Descuentos -->
       <a 
         href="/products?filter=discount" 
-        class="category-card category-card-small group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
+        class="category-card group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
         data-astro-prefetch
       >
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&q=80" 
+            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500&h=350&fit=crop&q=85" 
             alt="Descuentos" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
+            loading="lazy"
           />
         </div>
 
@@ -153,18 +132,19 @@
         <div class="absolute inset-0 rounded-xl lg:rounded-2xl border-2 border-transparent group-hover:border-white/30 transition-colors duration-500 pointer-events-none"></div>
       </a>
 
-      <!-- Card 4: Novedades (PEQUEÑA - 1x1) -->
+      <!-- Card 4: Novedades -->
       <a 
         href="/products?filter=new" 
-        class="category-card category-card-small group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
+        class="category-card group relative h-40 sm:h-48 lg:h-[200px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] active:scale-100 border border-white/20"
         data-astro-prefetch
       >
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&q=80" 
+            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500&h=350&fit=crop&q=85" 
             alt="Novedades" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
+            loading="lazy"
           />
         </div>
 
@@ -203,37 +183,6 @@
 </section>
 
 <style>
-  /* Grid Bento Box Layout */
-  @media (min-width: 1024px) {
-    .grid {
-      grid-template-rows: repeat(2, 200px);
-      gap: 1.25rem;
-    }
-    
-    /* Card grande: primera fila, 2 columnas */
-    .category-card-large {
-      grid-column: 1 / 3;
-      grid-row: 1;
-    }
-    
-    /* Card 2 (Gato): primera fila, columna 3 */
-    .category-card-small:nth-of-type(2) {
-      grid-column: 3;
-      grid-row: 1;
-    }
-    
-    /* Cards 3 y 4: segunda fila */
-    .category-card-small:nth-of-type(3) {
-      grid-column: 1;
-      grid-row: 2;
-    }
-    
-    .category-card-small:nth-of-type(4) {
-      grid-column: 2;
-      grid-row: 2;
-    }
-  }
-
   /* Animaciones de entrada escalonadas */
   .category-card {
     animation: fadeInUp 0.6s ease-out both;
@@ -278,11 +227,7 @@
 
   /* Efectos hover mejorados */
   @media (min-width: 1024px) {
-    .category-card-large:hover {
-      transform: translateY(-4px) scale(1.02);
-    }
-
-    .category-card-small:hover {
+    .category-card:hover {
       transform: translateY(-4px) scale(1.02);
     }
 
