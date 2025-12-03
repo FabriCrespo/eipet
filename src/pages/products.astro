@@ -3,7 +3,29 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-  <section class="py-8 lg:py-12 bg-white min-h-screen">
+  <!-- Estilo crítico para prevenir FOUC en móvil -->
+  <style is:inline>
+    @media (max-width: 1023px) {
+      #main-content {
+        opacity: 0 !important;
+        visibility: hidden !important;
+      }
+    }
+  </style>
+
+  <!-- Loader de transición -->
+  <div id="page-loader" class="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300">
+    <div class="text-center">
+      <div class="relative w-16 h-16 mx-auto mb-4">
+        <div class="absolute inset-0 border-4 border-[#5d3fbb]/20 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-transparent border-t-[#5d3fbb] rounded-full animate-spin"></div>
+      </div>
+      <p class="text-[#5d3fbb] font-semibold text-lg">Cargando productos...</p>
+    </div>
+  </div>
+
+  <!-- Contenido principal - Oculto hasta que esté listo -->
+  <section id="main-content" class="py-8 lg:py-12 bg-white min-h-screen" style="opacity: 0; visibility: hidden; position: relative;">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Header -->
       <div class="mb-8">
@@ -153,8 +175,8 @@ import Layout from '../layouts/Layout.astro';
       </aside>
 
       <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <!-- Sidebar de Filtros (Desktop) -->
-        <aside class="hidden lg:block lg:w-64 shrink-0" id="desktop-filters-sidebar">
+        <!-- Sidebar de Filtros (Desktop) - Oculto completamente en móvil -->
+        <aside class="hidden lg:block lg:w-64 shrink-0" id="desktop-filters-sidebar" style="display: none;">
           <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24" id="desktop-filters-container">
             <div class="mb-6">
               <h2 class="text-xl font-bold text-[#5d3fbb] mb-1">Filtros</h2>
@@ -770,6 +792,86 @@ import Layout from '../layouts/Layout.astro';
       box-shadow: 0 2px 8px rgba(93, 63, 187, 0.3);
     }
 
+    /* Loader de página */
+    #page-loader {
+      backdrop-filter: blur(4px);
+      will-change: opacity;
+    }
+
+    /* Contenido principal - Oculto inicialmente */
+    #main-content {
+      will-change: opacity;
+    }
+
+    /* Asegurar que el sidebar desktop esté oculto en móvil desde el inicio */
+    @media (max-width: 1023px) {
+      #desktop-filters-sidebar {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      #desktop-filters-sidebar {
+        display: block !important;
+        visibility: visible !important;
+      }
+    }
+
+    /* Prevenir FOUC (Flash of Unstyled Content) y optimizar carga móvil */
+    @media (max-width: 1023px) {
+      #main-content {
+        min-height: 100vh;
+        opacity: 0 !important;
+        visibility: hidden !important;
+      }
+      
+      #main-content.ready {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+      }
+      
+      /* Asegurar que el botón flotante de filtros esté oculto inicialmente */
+      #mobile-filters-btn {
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        pointer-events: none;
+      }
+      
+      #main-content.ready #mobile-filters-btn {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      
+      /* Asegurar que los skeleton loaders estén visibles durante la carga */
+      #loading-state {
+        opacity: 1;
+      }
+      
+      /* Ocultar todos los elementos hijos hasta que esté listo */
+      #main-content > * {
+        opacity: 0;
+      }
+      
+      #main-content.ready > * {
+        opacity: 1;
+        transition: opacity 0.3s ease-in-out;
+      }
+    }
+    
+    /* Optimización para desktop */
+    @media (min-width: 1024px) {
+      #main-content {
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      
+      #main-content > * {
+        opacity: 1 !important;
+      }
+    }
+
     /* Efecto hover mejorado para las tarjetas de productos */
     .product-card {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -782,6 +884,15 @@ import Layout from '../layouts/Layout.astro';
   </style>
 
   <script>
+    // Ocultar loader de navegación inmediatamente si existe (previene doble loader)
+    (function() {
+      const navigationLoader = document.getElementById('navigation-loader');
+      if (navigationLoader) {
+        navigationLoader.style.display = 'none';
+        navigationLoader.remove();
+      }
+    })();
+
     // Asegurar que el script se ejecute cuando el DOM esté listo
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initProductsPage);
@@ -1229,6 +1340,9 @@ import Layout from '../layouts/Layout.astro';
           const data = await response.json();
           allProducts = data.products || [];
           filterProducts();
+          
+          // Ocultar loader y mostrar contenido
+          hidePageLoader();
         } catch (error) {
           console.error('Error cargando productos:', error);
           const loadingState = document.getElementById('loading-state');
@@ -1242,8 +1356,88 @@ import Layout from '../layouts/Layout.astro';
               </div>
             `;
           }
+          // Ocultar loader incluso si hay error
+          hidePageLoader();
         }
       }
+
+      // Función para ocultar el loader de página y mostrar contenido
+      function hidePageLoader() {
+        const pageLoader = document.getElementById('page-loader');
+        const navigationLoader = document.getElementById('navigation-loader');
+        const desktopSidebar = document.getElementById('desktop-filters-sidebar');
+        const mainContent = document.getElementById('main-content');
+        const isMobile = window.innerWidth < 1024;
+        
+        // Asegurar que el sidebar desktop solo se muestre en desktop
+        if (desktopSidebar) {
+          if (!isMobile) {
+            desktopSidebar.style.display = 'block';
+            desktopSidebar.style.visibility = 'visible';
+          } else {
+            desktopSidebar.style.display = 'none';
+            desktopSidebar.style.visibility = 'hidden';
+          }
+        }
+        
+        // Asegurar que el loader de navegación esté oculto (si existe)
+        if (navigationLoader) {
+          navigationLoader.style.display = 'none';
+          navigationLoader.remove();
+        }
+        
+        // Mostrar contenido principal con animación suave
+        if (mainContent) {
+          if (isMobile) {
+            // En móvil: esperar un frame para asegurar que el layout esté calculado
+            requestAnimationFrame(() => {
+              // Forzar reflow para calcular layout
+              void mainContent.offsetHeight;
+              
+              // Marcar como listo
+              mainContent.classList.add('ready');
+              
+              // Mostrar con pequeño delay para suavizar transición
+              setTimeout(() => {
+                mainContent.style.visibility = 'visible';
+                mainContent.style.opacity = '1';
+              }, 100);
+            });
+          } else {
+            // En desktop: mostrar inmediatamente
+            mainContent.style.visibility = 'visible';
+            mainContent.style.opacity = '1';
+            mainContent.classList.add('ready');
+          }
+        }
+        
+        // Ocultar loader de página con animación (después de mostrar contenido)
+        if (pageLoader) {
+          const delay = isMobile ? 200 : 100;
+          setTimeout(() => {
+            pageLoader.style.opacity = '0';
+            setTimeout(() => {
+              pageLoader.style.display = 'none';
+            }, 300);
+          }, delay);
+        }
+      }
+
+      // Manejar resize para ocultar/mostrar sidebar desktop correctamente
+      let resizeTimeout: NodeJS.Timeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const desktopSidebar = document.getElementById('desktop-filters-sidebar');
+          if (desktopSidebar) {
+            if (window.innerWidth >= 1024) {
+              desktopSidebar.style.display = 'block';
+            } else {
+              desktopSidebar.style.display = 'none';
+            }
+          }
+        }, 100);
+      });
 
     // Toggle filtros
     const filterButtons = [

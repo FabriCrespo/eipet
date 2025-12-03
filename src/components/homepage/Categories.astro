@@ -21,7 +21,7 @@
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&h=350&fit=crop&q=85" 
+            src="/images/eipetcat (4).jpg" 
             alt="Alimentos para Perro" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
             loading="lazy"
@@ -57,7 +57,7 @@
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1545529468-42764ef8c85f?w=500&h=350&fit=crop&q=85" 
+            src="/images/eipetcat (3).jpg" 
             alt="Alimentos para Gato" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
             loading="lazy"
@@ -94,7 +94,7 @@
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500&h=350&fit=crop&q=85" 
+            src="/images/eipetcat (2).jpg" 
             alt="Descuentos" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
             loading="lazy"
@@ -141,7 +141,7 @@
         <!-- Imagen con efecto parallax -->
         <div class="absolute inset-0 overflow-hidden">
           <img 
-            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500&h=350&fit=crop&q=85" 
+            src="/images/eipetcat (1).jpg" 
             alt="Novedades" 
             class="category-image absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700"
             loading="lazy"
@@ -236,3 +236,38 @@
     }
   }
 </style>
+
+<script>
+  // Mostrar loader cuando se hace clic en una categoría
+  document.addEventListener('DOMContentLoaded', () => {
+    const categoryCards = document.querySelectorAll('.category-card');
+    
+    categoryCards.forEach(card => {
+      card.addEventListener('click', (e) => {
+        const href = (card as HTMLAnchorElement).href;
+        // Solo mostrar loader si el enlace va a /products
+        if (href && href.includes('/products')) {
+          // Crear loader si no existe
+          let loader = document.getElementById('navigation-loader');
+          if (!loader) {
+            loader = document.createElement('div');
+            loader.id = 'navigation-loader';
+            loader.className = 'fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300';
+            loader.innerHTML = `
+              <div class="text-center">
+                <div class="relative w-16 h-16 mx-auto mb-4">
+                  <div class="absolute inset-0 border-4 border-[#5d3fbb]/20 rounded-full"></div>
+                  <div class="absolute inset-0 border-4 border-transparent border-t-[#5d3fbb] rounded-full animate-spin"></div>
+                </div>
+                <p class="text-[#5d3fbb] font-semibold text-lg">Cargando productos...</p>
+              </div>
+            `;
+            document.body.appendChild(loader);
+          }
+          loader.style.display = 'flex';
+          loader.style.opacity = '1';
+        }
+      });
+    });
+  });
+</script>
