@@ -86,37 +86,37 @@ import Layout from '../layouts/Layout.astro';
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-sm border border-purple-100">
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Ordenar por:</label>
-            <select 
-              id="sort-select"
+          <select 
+            id="sort-select"
               class="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all shadow-sm"
-            >
-              <option value="relevant">Más relevantes</option>
-              <option value="price-low">Precio: menor a mayor</option>
-              <option value="price-high">Precio: mayor a menor</option>
-              <option value="discount">Mayor descuento</option>
-            </select>
+          >
+            <option value="relevant">Más relevantes</option>
+            <option value="price-low">Precio: menor a mayor</option>
+            <option value="price-high">Precio: mayor a menor</option>
+            <option value="discount">Mayor descuento</option>
+          </select>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-semibold text-gray-700 hidden sm:inline">Vista:</span>
             <div class="flex gap-1 bg-white border border-gray-300 rounded-lg p-1 shadow-sm">
-              <button 
-                id="grid-view"
+            <button 
+              id="grid-view"
                 class="p-2.5 rounded-md hover:bg-purple-50 transition-all active:scale-95 bg-purple-50 text-[#5d3fbb] shadow-sm"
-                aria-label="Vista de cuadrícula"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-              <button 
-                id="list-view"
+              aria-label="Vista de cuadrícula"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button 
+              id="list-view"
                 class="p-2.5 rounded-md hover:bg-purple-50 text-gray-600 hover:text-[#5d3fbb] transition-all active:scale-95"
-                aria-label="Vista de lista"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+              aria-label="Vista de lista"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
             </div>
           </div>
         </div>
@@ -442,7 +442,7 @@ import Layout from '../layouts/Layout.astro';
               <span id="results-number" class="font-semibold text-[#5d3fbb]">0</span>
               <span id="results-text"> productos encontrados</span>
             </p>
-          </div>
+                    </div>
 
           <!-- Products Grid -->
           <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6" style="display: none;">
@@ -456,7 +456,7 @@ import Layout from '../layouts/Layout.astro';
                 <div class="absolute inset-0 bg-linear-to-br from-purple-100 to-pink-100 rounded-full blur-2xl opacity-50"></div>
                 <svg class="relative w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
+                    </svg>
               </div>
               <h3 class="text-xl font-bold text-gray-800 mb-2">No se encontraron productos</h3>
               <p class="text-gray-500 mb-6">Intenta ajustar los filtros o la búsqueda para encontrar lo que buscas.</p>
@@ -467,7 +467,7 @@ import Layout from '../layouts/Layout.astro';
                 Limpiar todos los filtros
               </button>
             </div>
-          </div>
+                    </div>
                 </div>
                   </div>
     </div>
@@ -909,9 +909,9 @@ import Layout from '../layouts/Layout.astro';
       let searchTimeout: NodeJS.Timeout | null = null;
 
       // Obtener parámetros de la URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const petFilter = urlParams.get('pet') || 'all';
-      const filterType = urlParams.get('filter') || 'all';
+    const urlParams = new URLSearchParams(window.location.search);
+    const petFilter = urlParams.get('pet') || 'all';
+    const filterType = urlParams.get('filter') || 'all';
       const urlSearchQuery = urlParams.get('search') || '';
       
       // Establecer búsqueda desde URL si existe
