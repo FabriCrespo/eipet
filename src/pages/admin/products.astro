@@ -563,9 +563,6 @@ const stats = {
       }
       
       currentUser = userDataResult.user;
-      
-      // Load products
-      await loadProducts();
     })();
 
     (function() {
@@ -1591,6 +1588,9 @@ const stats = {
           });
         }
       }
+      
+      // Load products after everything is initialized
+      loadProducts();
     })();
   </script>
 </Layout>
