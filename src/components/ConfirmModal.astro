@@ -1,0 +1,154 @@
+---
+interface Props {
+  id?: string;
+}
+
+const modalId = Astro.props.id || 'confirm-modal';
+---
+
+<div id={modalId} class="hidden fixed inset-0 z-[9999]">
+  <!-- Overlay con backdrop blur -->
+  <div 
+    class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+    onclick={`closeModal('${modalId}')`}
+  ></div>
+
+  <!-- Modal Container -->
+  <div class="absolute inset-0 flex items-center justify-center px-4 pointer-events-none">
+    <!-- Modal Content -->
+    <div class="relative bg-white rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-lg pointer-events-auto">
+      <!-- Header con gradiente -->
+      <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 pt-6 pb-4">
+        <div class="flex items-center gap-4">
+          <div id={`${modalId}-icon`} class="flex-shrink-0 w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
+            <!-- Icono se llenará dinámicamente -->
+          </div>
+          <div class="flex-1">
+            <h3 id={`${modalId}-title`} class="text-2xl font-bold text-white"></h3>
+          </div>
+          <button
+            onclick={`closeModal('${modalId}')`}
+            class="flex-shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors flex items-center justify-center"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="bg-white px-6 py-6">
+        <p id={`${modalId}-message`} class="text-gray-700 leading-relaxed"></p>
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-gray-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3 border-t border-gray-200">
+        <button
+          id={`${modalId}-confirm-btn`}
+          onclick={`confirmAction('${modalId}')`}
+          class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
+        >
+          Confirmar
+        </button>
+        <button
+          onclick={`closeModal('${modalId}')`}
+          class="w-full sm:w-auto px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Animaciones para el modal */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px) scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  /* Aplicar animaciones cuando el modal no está oculto */
+  [id^="admin-role-modal"]:not(.hidden) {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  [id^="admin-role-modal"]:not(.hidden) .relative {
+    animation: slideUp 0.3s ease-out;
+  }
+</style>
+
+<script>
+  // Funciones globales para el modal
+  (window as any).closeModal = function(modalId: string) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  };
+
+  (window as any).showConfirmModal = function(
+    modalId: string,
+    config: {
+      icon: string;
+      iconBg: string;
+      iconColor: string;
+      title: string;
+      message: string;
+      confirmText: string;
+      confirmClass: string;
+      onConfirm: () => void;
+    }
+  ) {
+    const modal = document.getElementById(modalId);
+    const iconEl = document.getElementById(`${modalId}-icon`);
+    const titleEl = document.getElementById(`${modalId}-title`);
+    const messageEl = document.getElementById(`${modalId}-message`);
+    const confirmBtn = document.getElementById(`${modalId}-confirm-btn`) as HTMLButtonElement;
+
+    if (!modal || !iconEl || !titleEl || !messageEl || !confirmBtn) return;
+
+    // Configurar icono
+    iconEl.className = `flex-shrink-0 w-14 h-14 rounded-full ${config.iconBg} flex items-center justify-center shadow-lg`;
+    iconEl.innerHTML = config.icon;
+
+    // Configurar contenido
+    titleEl.textContent = config.title;
+    messageEl.textContent = config.message;
+    confirmBtn.textContent = config.confirmText;
+    confirmBtn.className = `w-full sm:w-auto px-6 py-3 ${config.confirmClass} text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95`;
+
+    // Guardar callback
+    (window as any)[`${modalId}_onConfirm`] = config.onConfirm;
+
+    // Mostrar modal
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  (window as any).confirmAction = function(modalId: string) {
+    const onConfirm = (window as any)[`${modalId}_onConfirm`];
+    if (onConfirm) {
+      onConfirm();
+    }
+    (window as any).closeModal(modalId);
+  };
+</script>
+

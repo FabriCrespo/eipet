@@ -109,14 +109,27 @@ import Layout from '../layouts/Layout.astro';
           </button>
         </form>
 
-        <!-- Credenciales de prueba -->
-        <div class="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-xl">
-          <p class="text-xs font-semibold text-purple-900 mb-2">🔐 Credenciales de Prueba:</p>
-          <div class="space-y-1.5 text-xs text-purple-800">
-            <p><strong>Admin:</strong> admin@eipet.com / admin123</p>
-            <p><strong>Cliente:</strong> cliente@eipet.com / cliente123</p>
-          </div>
+        <!-- Divider -->
+        <div class="my-6 flex items-center">
+          <div class="flex-1 border-t border-gray-200"></div>
+          <span class="px-4 text-sm text-gray-500">o</span>
+          <div class="flex-1 border-t border-gray-200"></div>
         </div>
+
+        <!-- Botón de Google -->
+        <button
+          type="button"
+          id="google-login-btn"
+          class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 hover:shadow-md active:scale-95"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          <span>Continuar con Google</span>
+        </button>
 
         <!-- Divider -->
         <div class="my-6 flex items-center">
@@ -141,7 +154,7 @@ import Layout from '../layouts/Layout.astro';
   <script>
     // Toggle password visibility
     const togglePassword = document.getElementById('toggle-password');
-    const passwordInput = document.getElementById('password');
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
     const eyeIcon = document.getElementById('eye-icon');
     const eyeOffIcon = document.getElementById('eye-off-icon');
 
@@ -160,11 +173,12 @@ import Layout from '../layouts/Layout.astro';
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
+    const submitButton = loginForm?.querySelector('button[type="submit"]') as HTMLButtonElement;
 
     loginForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const email = (document.getElementById('email') as HTMLInputElement)?.value;
+      const email = (document.getElementById('email') as HTMLInputElement)?.value.trim().toLowerCase();
       const password = (document.getElementById('password') as HTMLInputElement)?.value;
       const remember = (document.getElementById('remember') as HTMLInputElement)?.checked;
 
@@ -177,60 +191,201 @@ import Layout from '../layouts/Layout.astro';
         return;
       }
 
-      // Simulate API call (replace with actual API endpoint)
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError('Por favor, ingresa un correo electrónico válido');
+        return;
+      }
+
+      // Deshabilitar botón durante el proceso
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = `
+          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Iniciando sesión...</span>
+        `;
+      }
+
       try {
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/auth/login', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ email, password })
-        // });
+        // Importar función de login
+        const { login, getCurrentUserData } = await import('../lib/auth');
         
-        // Credenciales de prueba
-        const isAdmin = email.toLowerCase() === 'admin@eipet.com' && password === 'admin123';
-        const isClient = email.toLowerCase() === 'cliente@eipet.com' && password === 'cliente123';
-        
-        if (!isAdmin && !isClient) {
-          showError('Credenciales incorrectas. Usa admin@eipet.com / admin123 o cliente@eipet.com / cliente123');
+        // Iniciar sesión con Firebase
+        const result = await login(email, password);
+
+        if (!result.success) {
+          showError(result.error || 'Error al iniciar sesión. Por favor, intenta de nuevo.');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Iniciar Sesión</span>
+            `;
+          }
           return;
         }
 
-        // Determine user role and data
-        const role = isAdmin ? 'admin' : 'user';
-        const mockUser = {
-          id: isAdmin ? 'admin-1' : 'user-1',
-          email: email,
-          firstName: isAdmin ? 'Admin' : email.split('@')[0],
-          lastName: isAdmin ? 'Eipet' : 'Usuario',
-          role: role
-        };
+        // Obtener datos completos del usuario desde Firestore
+        const userDataResult = await getCurrentUserData();
 
-        // Store token and user data
-        localStorage.setItem('token', 'mock-token-' + Date.now());
-        localStorage.setItem('user', JSON.stringify(mockUser));
+        if (!userDataResult.success || !userDataResult.user) {
+          showError('Error al obtener los datos del usuario. Por favor, intenta de nuevo.');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              <span>Iniciar Sesión</span>
+            `;
+          }
+          return;
+        }
 
-        // Redirect based on role
-        const redirectTo = isAdmin 
-          ? '/admin/dashboard' 
-          : (new URLSearchParams(window.location.search).get('redirect') || '/profile');
+        // Guardar datos del usuario en localStorage (opcional, para compatibilidad)
+        localStorage.setItem('user', JSON.stringify(userDataResult.user));
+
+        // Redirigir según el rol del usuario
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        const redirectTo = redirectParam || 
+          (userDataResult.user.role === 'admin' ? '/admin/dashboard' : '/profile');
+        
         window.location.href = redirectTo;
-      } catch (error) {
-        showError('Error al iniciar sesión. Por favor, intenta de nuevo.');
+      } catch (error: any) {
         console.error('Login error:', error);
+        showError(error.message || 'Error al iniciar sesión. Por favor, intenta de nuevo.');
+        
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <span>Iniciar Sesión</span>
+          `;
+        }
       }
     });
 
     function showError(message: string) {
       if (errorText) errorText.textContent = message;
       if (errorMessage) errorMessage.classList.remove('hidden');
+      // Scroll to error message
+      errorMessage?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Check if already logged in
-    document.addEventListener('DOMContentLoaded', () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/profile';
+    // Google Login
+    const googleLoginBtn = document.getElementById('google-login-btn') as HTMLButtonElement;
+    googleLoginBtn?.addEventListener('click', async () => {
+      try {
+        // Deshabilitar botón durante el proceso
+        if (googleLoginBtn) {
+          googleLoginBtn.disabled = true;
+          googleLoginBtn.innerHTML = `
+            <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Conectando...</span>
+          `;
+        }
+
+        // Ocultar mensajes de error
+        if (errorMessage) errorMessage.classList.add('hidden');
+
+        // Importar función de autenticación con Google
+        const { signInWithGoogle } = await import('../lib/auth');
+        
+        // Iniciar sesión con Google
+        const result = await signInWithGoogle();
+
+        if (!result.success) {
+          showError(result.error || 'Error al iniciar sesión con Google. Por favor, intenta de nuevo.');
+          if (googleLoginBtn) {
+            googleLoginBtn.disabled = false;
+            googleLoginBtn.innerHTML = `
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              <span>Continuar con Google</span>
+            `;
+          }
+          return;
+        }
+
+        // Obtener datos completos del usuario desde Firestore
+        const { getCurrentUserData } = await import('../lib/auth');
+        const userDataResult = await getCurrentUserData();
+
+        if (!userDataResult.success || !userDataResult.user) {
+          showError('Error al obtener los datos del usuario. Por favor, intenta de nuevo.');
+          if (googleLoginBtn) {
+            googleLoginBtn.disabled = false;
+            googleLoginBtn.innerHTML = `
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              <span>Continuar con Google</span>
+            `;
+          }
+          return;
+        }
+
+        // Guardar datos del usuario en localStorage
+        localStorage.setItem('user', JSON.stringify(userDataResult.user));
+
+        // Redirigir según el rol del usuario
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        const redirectTo = redirectParam || 
+          (userDataResult.user.role === 'admin' ? '/admin/dashboard' : '/profile');
+        
         window.location.href = redirectTo;
+      } catch (error: any) {
+        console.error('Google login error:', error);
+        showError(error.message || 'Error al iniciar sesión con Google. Por favor, intenta de nuevo.');
+        
+        if (googleLoginBtn) {
+          googleLoginBtn.disabled = false;
+          googleLoginBtn.innerHTML = `
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Continuar con Google</span>
+          `;
+        }
+      }
+    });
+
+    // Check if already logged in
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const { getCurrentUser } = await import('../lib/auth');
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          const { getCurrentUserData } = await import('../lib/auth');
+          const userDataResult = await getCurrentUserData();
+          if (userDataResult.success && userDataResult.user) {
+            const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+            const redirectTo = redirectParam || 
+              (userDataResult.user.role === 'admin' ? '/admin/dashboard' : '/profile');
+            window.location.href = redirectTo;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth state:', error);
       }
     });
   </script>

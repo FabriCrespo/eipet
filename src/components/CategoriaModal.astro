@@ -1,0 +1,301 @@
+<!-- Modal: Nueva/Editar Categoría -->
+<div id="category-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-gray-900" id="modal-title">Nueva Categoría</h2>
+      <button type="button" id="close-modal-btn" class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <form id="category-form" class="space-y-4">
+      <!-- Nombre -->
+      <div>
+        <label for="category-name" class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Nombre de la Categoría <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="category-name"
+          required
+          class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+          placeholder="Ej: Alimento Premium"
+        />
+      </div>
+
+      <!-- Tipo de Animal -->
+      <div>
+        <label for="category-animal-type" class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Tipo de Animal <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="category-animal-type"
+          required
+          class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+        >
+          <option value="">Selecciona un tipo</option>
+          <option value="Perro">Perro</option>
+          <option value="Gato">Gato</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <!-- Imagen -->
+      <div>
+        <label for="category-image-file" class="block text-sm font-semibold text-gray-700 mb-1.5">
+          Imagen <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="file"
+          id="category-image-file"
+          accept="image/*"
+          required
+          class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+        />
+        <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP (máx. 5MB)</p>
+      </div>
+
+      <!-- Vista previa de imagen -->
+      <div id="image-preview-container" class="hidden">
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Vista Previa</label>
+        <div class="relative">
+          <img id="image-preview" src="" alt="Vista previa" class="w-full h-48 object-cover rounded-lg border-2 border-gray-200" />
+          <button
+            type="button"
+            id="remove-image-preview"
+            class="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress bar para subida -->
+      <div id="upload-progress" class="hidden">
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div id="upload-progress-bar" class="bg-purple-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p class="text-xs text-gray-600 mt-1 text-center">Subiendo imagen...</p>
+      </div>
+
+      <!-- ID oculto para edición -->
+      <input type="hidden" id="category-id" />
+
+      <!-- Botones -->
+      <div class="flex gap-3 pt-2">
+        <button
+          type="button"
+          id="cancel-btn"
+          class="flex-1 px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:border-gray-300 transition-all text-sm"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="submit-btn"
+          class="flex-1 px-4 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-all text-sm"
+        >
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Esperar a que el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initModal);
+    } else {
+      initModal();
+    }
+
+    function initModal() {
+      const categoryModal = document.getElementById('category-modal') as HTMLElement | null;
+      const categoryForm = document.getElementById('category-form') as HTMLFormElement | null;
+      const modalTitle = document.getElementById('modal-title') as HTMLElement | null;
+      const categoryIdInput = document.getElementById('category-id') as HTMLInputElement | null;
+      const imagePreviewContainer = document.getElementById('image-preview-container') as HTMLElement | null;
+      const imagePreview = document.getElementById('image-preview') as HTMLImageElement | null;
+      const imageFileInput = document.getElementById('category-image-file') as HTMLInputElement | null;
+      const uploadProgress = document.getElementById('upload-progress') as HTMLElement | null;
+      const uploadProgressBar = document.getElementById('upload-progress-bar') as HTMLElement | null;
+
+      let editingCategoryId: string | null = null;
+      let currentImageUrl: string | null = null;
+
+      // Funciones para abrir/cerrar modal
+      function openModal() {
+        if (!categoryModal) return;
+        categoryModal.classList.remove('hidden');
+        categoryModal.classList.add('flex');
+        categoryModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        if (!categoryModal) return;
+        categoryModal.classList.add('hidden');
+        categoryModal.classList.remove('flex');
+        categoryModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // Función para resetear el formulario
+      function resetForm() {
+        if (!categoryForm) return;
+        categoryForm.reset();
+        if (categoryIdInput) categoryIdInput.value = '';
+        editingCategoryId = null;
+        currentImageUrl = null;
+        if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+        if (uploadProgress) uploadProgress.classList.add('hidden');
+        if (uploadProgressBar) uploadProgressBar.style.width = '0%';
+        if (modalTitle) modalTitle.textContent = 'Nueva Categoría';
+      }
+
+      // Función para abrir modal en modo edición
+      function openEditModal(category: any) {
+        if (!category) {
+          openNewModal();
+          return;
+        }
+
+        editingCategoryId = category.id || null;
+        if (categoryIdInput) categoryIdInput.value = category.id || '';
+        const nameInput = document.getElementById('category-name') as HTMLInputElement | null;
+        const animalTypeInput = document.getElementById('category-animal-type') as HTMLSelectElement | null;
+        
+        if (nameInput) nameInput.value = category.name || '';
+        if (animalTypeInput) animalTypeInput.value = category.animalType || '';
+        currentImageUrl = category.image || null;
+
+        if (category.image && imagePreview) {
+          imagePreview.src = category.image;
+          if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
+        }
+
+        if (modalTitle) modalTitle.textContent = 'Editar Categoría';
+        openModal();
+      }
+
+      // Función para abrir modal en modo nuevo
+      function openNewModal() {
+        resetForm();
+        openModal();
+      }
+
+      // Preview de imagen desde archivo
+      if (imageFileInput) {
+        imageFileInput.addEventListener('change', (e) => {
+          const target = e.target as HTMLInputElement;
+          const file = target.files ? target.files[0] : null;
+          if (file && imagePreview) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target && event.target.result && imagePreview) {
+                imagePreview.src = event.target.result as string;
+                if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Remover preview
+      const removePreviewBtn = document.getElementById('remove-image-preview');
+      if (removePreviewBtn) {
+        removePreviewBtn.addEventListener('click', () => {
+          if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+          if (imageFileInput) imageFileInput.value = '';
+          if (imagePreview) imagePreview.src = '';
+          currentImageUrl = null;
+        });
+      }
+
+      // Submit del formulario
+      if (categoryForm) {
+        categoryForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+
+          const nameInput = document.getElementById('category-name') as HTMLInputElement | null;
+          const animalTypeInput = document.getElementById('category-animal-type') as HTMLSelectElement | null;
+          
+          const name = nameInput ? nameInput.value.trim() : '';
+          const animalType = animalTypeInput ? animalTypeInput.value : '';
+          const imageFile = imageFileInput && imageFileInput.files ? imageFileInput.files[0] : null;
+
+          if (!name || !animalType) {
+            alert('Por favor, completa todos los campos requeridos');
+            return;
+          }
+
+          // Preparar datos del formulario
+          const formData = {
+            id: editingCategoryId,
+            name,
+            animalType,
+            image: currentImageUrl || '',
+            imageFile: imageFile || null
+          };
+
+          // Disparar evento personalizado con los datos
+          const event = new CustomEvent('categoryFormSubmit', {
+            detail: formData
+          });
+          document.dispatchEvent(event);
+
+          // Por ahora solo cerramos el modal
+          // La lógica de guardado se manejará en la página principal
+          resetForm();
+          closeModal();
+        });
+      }
+
+      // Cerrar modales
+      const closeBtn = document.getElementById('close-modal-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          resetForm();
+          closeModal();
+        });
+      }
+
+      const cancelBtn = document.getElementById('cancel-btn');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          resetForm();
+          closeModal();
+        });
+      }
+
+      // Cerrar modal al hacer clic fuera
+      if (categoryModal) {
+        categoryModal.addEventListener('click', (e) => {
+          if (e.target === categoryModal) {
+            resetForm();
+            closeModal();
+          }
+        });
+      }
+
+      // Cerrar modal con ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && categoryModal && !categoryModal.classList.contains('hidden')) {
+          resetForm();
+          closeModal();
+        }
+      });
+
+      // Exportar funciones globalmente
+      (window as any).openCategoryModal = openNewModal;
+      (window as any).openEditCategoryModal = openEditModal;
+      (window as any).closeCategoryModal = closeModal;
+    }
+  })();
+</script>

@@ -10,262 +10,34 @@ function formatNumber(value: number): string {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// Datos de ejemplo - en producción vendrían de una API
-const products = [
-  {
-    id: 'PROD-001',
-    name: 'Royal Canin Puppy 15kg',
-    category: 'Alimentos',
-    sku: 'RC-PUPPY-15KG',
-    price: 450.00,
-    stock: 45,
-    minStock: 20,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    stockStatus: 'normal',
-    stockColor: 'bg-green-50 text-green-700',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=100&h=100&fit=crop',
-    sales: 145,
-    revenue: 65250.00
-  },
-  {
-    id: 'PROD-002',
-    name: 'Collar Antipulgas para Perros',
-    category: 'Accesorios',
-    sku: 'COL-ANTI-MED',
-    price: 85.50,
-    stock: 8,
-    minStock: 15,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    stockStatus: 'low',
-    stockColor: 'bg-red-50 text-red-700',
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=100&h=100&fit=crop',
-    sales: 98,
-    revenue: 8379.00
-  },
-  {
-    id: 'PROD-003',
-    name: 'Juguete Pelota Interactiva',
-    category: 'Juguetes',
-    sku: 'JUG-PEL-001',
-    price: 45.00,
-    stock: 0,
-    minStock: 10,
-    status: 'Agotado',
-    statusColor: 'bg-gray-50 text-gray-700 border border-gray-200',
-    stockStatus: 'out',
-    stockColor: 'bg-gray-50 text-gray-700',
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop',
-    sales: 87,
-    revenue: 3915.00
-  },
-  {
-    id: 'PROD-004',
-    name: 'Shampoo Antipulgas',
-    category: 'Higiene',
-    sku: 'SHAM-ANTI-500',
-    price: 65.00,
-    stock: 12,
-    minStock: 15,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    stockStatus: 'low',
-    stockColor: 'bg-yellow-50 text-yellow-700',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=100&h=100&fit=crop',
-    sales: 76,
-    revenue: 4940.00
-  },
-  {
-    id: 'PROD-005',
-    name: 'Cama Ortopédica para Perros Grandes',
-    category: 'Camas',
-    sku: 'CAM-ORT-GRAN',
-    price: 320.00,
-    stock: 25,
-    minStock: 10,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    stockStatus: 'normal',
-    stockColor: 'bg-green-50 text-green-700',
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=100&h=100&fit=crop',
-    sales: 34,
-    revenue: 10880.00
-  },
-  {
-    id: 'PROD-006',
-    name: 'Comedero Automático Inteligente',
-    category: 'Accesorios',
-    sku: 'COM-AUTO-001',
-    price: 280.00,
-    stock: 5,
-    minStock: 10,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    stockStatus: 'low',
-    stockColor: 'bg-red-50 text-red-700',
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop',
-    sales: 42,
-    revenue: 11760.00
-  }
-];
-
-const stats = {
-  totalProducts: products.length,
-  activeProducts: products.filter(p => p.status === 'Activo').length,
-  outOfStock: products.filter(p => p.stockStatus === 'out').length,
-  lowStock: products.filter(p => p.stockStatus === 'low').length,
-  totalStock: products.reduce((sum, p) => sum + p.stock, 0),
-  totalValue: products.reduce((sum, p) => sum + (p.price * p.stock), 0)
-};
-
-// Datos de ejemplo para categorías
-const categories = [
-  {
-    id: 'CAT-001',
-    name: 'Comida para Perro (Seca)',
-    description: 'Alimentos secos para perros de todas las edades',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200&h=200&fit=crop',
-    productCount: 12,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    createdAt: '2024-01-15'
-  },
-  {
-    id: 'CAT-002',
-    name: 'Comida para Gato (Húmeda)',
-    description: 'Alimentos húmedos para gatos',
-    image: 'https://images.unsplash.com/photo-1545529468-42764ef8c85f?w=200&h=200&fit=crop',
-    productCount: 8,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    createdAt: '2024-01-20'
-  },
-  {
-    id: 'CAT-003',
-    name: 'Accesorios',
-    description: 'Collares, correas y accesorios para mascotas',
-    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=200&h=200&fit=crop',
-    productCount: 25,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    createdAt: '2024-02-01'
-  }
-];
-
-// Datos de ejemplo para marcas
-const brands = [
-  {
-    id: 'BRAND-001',
-    name: 'Dog Chow',
-    categoryId: 'CAT-001',
-    categoryName: 'Comida para Perro (Seca)',
-    description: 'Marca líder en alimentos para perros',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200&h=200&fit=crop',
-    productCount: 5,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    createdAt: '2024-01-16'
-  },
-  {
-    id: 'BRAND-002',
-    name: 'Royal Canin',
-    categoryId: 'CAT-001',
-    categoryName: 'Comida para Perro (Seca)',
-    description: 'Nutrición especializada para perros',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200&h=200&fit=crop',
-    productCount: 7,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    createdAt: '2024-01-18'
-  },
-  {
-    id: 'BRAND-003',
-    name: 'Whiskas',
-    categoryId: 'CAT-002',
-    categoryName: 'Comida para Gato (Húmeda)',
-    description: 'Alimentos húmedos premium para gatos',
-    image: 'https://images.unsplash.com/photo-1545529468-42764ef8c85f?w=200&h=200&fit=crop',
-    productCount: 6,
-    status: 'Activo',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    createdAt: '2024-01-22'
-  }
-];
 ---
 
 <Layout>
   <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Header -->
-      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Gestión de Productos</h1>
-          <p class="text-gray-600">Gestiona categorías, marcas y productos</p>
-        </div>
-        <div class="flex gap-2">
-          <button
-            type="button"
-            id="new-category-btn"
-            class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 hover:shadow-lg transition-all duration-300 flex items-center gap-2 text-sm hidden category-action-btn"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Nueva Categoría</span>
-          </button>
-          <button
-            type="button"
-            id="new-brand-btn"
-            class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 hover:shadow-lg transition-all duration-300 flex items-center gap-2 text-sm hidden brand-action-btn"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Nueva Marca</span>
-          </button>
-          <button
-            type="button"
-            id="new-product-btn"
-            class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 hover:shadow-lg transition-all duration-300 flex items-center gap-2 product-action-btn"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Nuevo Producto</span>
-          </button>
+      <div class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Gestión de Productos</h1>
+            <p class="text-gray-600">Gestiona tus productos de manera eficiente</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              id="new-product-btn"
+              class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Nuevo Producto</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Tabs Navigation -->
-      <div class="mb-8 border-b border-gray-200">
-        <nav class="flex gap-2 -mb-px">
-          <button
-            type="button"
-            data-tab="products"
-            class="tab-btn px-6 py-3 font-semibold text-sm border-b-2 border-purple-600 text-purple-600 transition-colors"
-          >
-            Productos
-          </button>
-          <button
-            type="button"
-            data-tab="categories"
-            class="tab-btn px-6 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
-          >
-            Categorías
-          </button>
-          <button
-            type="button"
-            data-tab="brands"
-            class="tab-btn px-6 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
-          >
-            Marcas
-          </button>
-        </nav>
-      </div>
-
-      <!-- Tab Content: Productos -->
-      <div id="products-tab" class="tab-content">
+      <!-- Sección: Productos -->
       <!-- Estadísticas -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total Productos -->
@@ -278,7 +50,7 @@ const brands = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Total Productos</p>
-              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.totalProducts)}</p>
+              <p class="text-2xl font-bold text-gray-900" id="stats-total-products">0</p>
             </div>
           </div>
         </div>
@@ -293,7 +65,7 @@ const brands = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Activos</p>
-              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.activeProducts)}</p>
+              <p class="text-2xl font-bold text-gray-900" id="stats-active-products">0</p>
             </div>
           </div>
         </div>
@@ -308,7 +80,7 @@ const brands = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Bajo Stock</p>
-              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.lowStock)}</p>
+              <p class="text-2xl font-bold text-gray-900" id="stats-low-stock">0</p>
             </div>
           </div>
         </div>
@@ -323,7 +95,7 @@ const brands = [
             </div>
             <div>
               <p class="text-sm text-gray-600">Agotados</p>
-              <p class="text-2xl font-bold text-gray-900">{formatNumber(stats.outOfStock)}</p>
+              <p class="text-2xl font-bold text-gray-900" id="stats-out-of-stock">0</p>
             </div>
           </div>
         </div>
@@ -341,7 +113,7 @@ const brands = [
             </div>
             <div>
               <p class="text-sm text-gray-600 mb-1">Valor Total del Inventario</p>
-              <p class="text-3xl font-bold text-gray-900">Bs. {formatCurrency(stats.totalValue)}</p>
+              <p class="text-3xl font-bold text-gray-900" id="stats-total-value">Bs. 0.00</p>
             </div>
           </div>
         </div>
@@ -356,7 +128,7 @@ const brands = [
             </div>
             <div>
               <p class="text-sm text-gray-600 mb-1">Total de Unidades en Stock</p>
-              <p class="text-3xl font-bold text-gray-900">{formatNumber(stats.totalStock)}</p>
+              <p class="text-3xl font-bold text-gray-900" id="stats-total-stock">0</p>
             </div>
           </div>
         </div>
@@ -374,20 +146,10 @@ const brands = [
             </div>
             <input
               type="text"
-              placeholder="Buscar por nombre, SKU o categoría..."
+              placeholder="Buscar por nombre o SKU..."
               class="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
             />
           </div>
-
-          <!-- Filtro por Categoría -->
-          <select class="px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
-            <option value="all">Todas las categorías</option>
-            <option value="alimentos">Alimentos</option>
-            <option value="accesorios">Accesorios</option>
-            <option value="juguetes">Juguetes</option>
-            <option value="higiene">Higiene</option>
-            <option value="camas">Camas</option>
-          </select>
 
           <!-- Filtro por Stock -->
           <select class="px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all">
@@ -406,7 +168,6 @@ const brands = [
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Producto</th>
-                <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Categoría</th>
                 <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">SKU</th>
                 <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Precio</th>
                 <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Stock</th>
@@ -415,111 +176,13 @@ const brands = [
                 <th class="text-right py-4 px-6 text-sm font-semibold text-gray-700">Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td class="py-4 px-6">
-                    <div class="flex items-center gap-3">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        class="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                      />
-                      <div>
-                        <p class="font-semibold text-gray-900">{product.name}</p>
-                        <p class="text-xs text-gray-500">ID: {product.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="py-4 px-6">
-                    <span class="text-sm text-gray-700">{product.category}</span>
-                  </td>
-                  <td class="py-4 px-6">
-                    <span class="text-sm font-mono text-gray-600">{product.sku}</span>
-                  </td>
-                  <td class="py-4 px-6">
-                    <p class="font-semibold text-gray-900">Bs. {formatCurrency(product.price)}</p>
-                  </td>
-                  <td class="py-4 px-6">
-                    <div class="flex flex-col gap-1">
-                      <div class="flex items-center gap-2">
-                        <span class={`px-2 py-1 rounded text-xs font-medium ${product.stockColor}`}>
-                          {product.stock} unidades
-                        </span>
-                        {product.stockStatus === 'low' && (
-                          <span class="text-xs text-yellow-600">⚠ Mín: {product.minStock}</span>
-                        )}
-                        {product.stockStatus === 'out' && (
-                          <span class="text-xs text-red-600">⚠ Agotado</span>
-                        )}
-                      </div>
-                      {product.stockStatus === 'normal' && (
-                        <span class="text-xs text-gray-500">Mín: {product.minStock}</span>
-                      )}
-                    </div>
-                  </td>
-                  <td class="py-4 px-6">
-                    <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${product.statusColor}`}>
-                      {product.status}
-                    </span>
-                  </td>
-                  <td class="py-4 px-6">
-                    <div>
-                      <p class="text-sm font-semibold text-gray-900">{product.sales} ventas</p>
-                      <p class="text-xs text-gray-500">Bs. {formatCurrency(product.revenue)}</p>
-                    </div>
-                  </td>
-                  <td class="py-4 px-6 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        data-product-id={product.id}
-                        data-action="view"
-                        class="view-product-btn p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Ver detalles"
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        data-product-id={product.id}
-                        data-action="edit"
-                        class="edit-product-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Editar"
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        data-product-id={product.id}
-                        data-action="stock"
-                        class="adjust-stock-btn p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                        title="Ajustar stock"
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        data-product-id={product.id}
-                        data-action="delete"
-                        class="delete-product-btn p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Eliminar"
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+            <tbody id="products-tbody">
+              <tr>
+                <td colspan="7" class="py-8 px-6 text-center text-gray-500">
+                  <p class="mb-2">No hay productos registrados</p>
+                  <p class="text-sm">Crea tu primer producto usando el botón "Nuevo Producto"</p>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -527,7 +190,7 @@ const brands = [
         <!-- Paginación -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 border-t border-gray-200">
           <div class="text-sm text-gray-600">
-            Mostrando <span class="font-semibold">1</span> - <span class="font-semibold">{products.length}</span> de <span class="font-semibold">{products.length}</span> productos
+            Mostrando <span class="font-semibold" id="products-showing-start">0</span> - <span class="font-semibold" id="products-showing-end">0</span> de <span class="font-semibold" id="products-total">0</span> productos
           </div>
           <div class="flex items-center gap-2">
             <button class="px-4 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
@@ -542,249 +205,6 @@ const brands = [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
-          </div>
-        </div>
-      </div>
-      </div>
-
-      <!-- Tab Content: Categorías -->
-      <div id="categories-tab" class="tab-content hidden">
-        <!-- Estadísticas de Categorías -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600">Total Categorías</p>
-                <p class="text-2xl font-bold text-gray-900">{formatNumber(categories.length)}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600">Categorías Activas</p>
-                <p class="text-2xl font-bold text-gray-900">{formatNumber(categories.filter(c => c.status === 'Activo').length)}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600">Total Productos</p>
-                <p class="text-2xl font-bold text-gray-900">{formatNumber(categories.reduce((sum, c) => sum + c.productCount, 0))}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabla de Categorías -->
-        <div class="bg-white rounded-3xl border border-gray-200 shadow-md overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Categoría</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Descripción</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Productos</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Estado</th>
-                  <th class="text-right py-4 px-6 text-sm font-semibold text-gray-700">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((category) => (
-                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6">
-                      <div class="flex items-center gap-3">
-                        <img
-                          src={category.image}
-                          alt={category.name}
-                          class="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                        />
-                        <div>
-                          <p class="font-semibold text-gray-900">{category.name}</p>
-                          <p class="text-xs text-gray-500">ID: {category.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="py-4 px-6">
-                      <p class="text-sm text-gray-700 max-w-xs truncate">{category.description}</p>
-                    </td>
-                    <td class="py-4 px-6">
-                      <span class="text-sm font-semibold text-gray-900">{category.productCount} productos</span>
-                    </td>
-                    <td class="py-4 px-6">
-                      <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${category.statusColor}`}>
-                        {category.status}
-                      </span>
-                    </td>
-                    <td class="py-4 px-6 text-right">
-                      <div class="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          data-category-id={category.id}
-                          data-action="edit"
-                          class="edit-category-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          data-category-id={category.id}
-                          data-action="delete"
-                          class="delete-category-btn p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar"
-                        >
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab Content: Marcas -->
-      <div id="brands-tab" class="tab-content hidden">
-        <!-- Estadísticas de Marcas -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600">Total Marcas</p>
-                <p class="text-2xl font-bold text-gray-900">{formatNumber(brands.length)}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600">Marcas Activas</p>
-                <p class="text-2xl font-bold text-gray-900">{formatNumber(brands.filter(b => b.status === 'Activo').length)}</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-gray-600">Total Productos</p>
-                <p class="text-2xl font-bold text-gray-900">{formatNumber(brands.reduce((sum, b) => sum + b.productCount, 0))}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabla de Marcas -->
-        <div class="bg-white rounded-3xl border border-gray-200 shadow-md overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Marca</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Categoría</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Descripción</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Productos</th>
-                  <th class="text-left py-4 px-6 text-sm font-semibold text-gray-700">Estado</th>
-                  <th class="text-right py-4 px-6 text-sm font-semibold text-gray-700">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {brands.map((brand) => (
-                  <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-4 px-6">
-                      <div class="flex items-center gap-3">
-                        <img
-                          src={brand.image}
-                          alt={brand.name}
-                          class="w-12 h-12 rounded-lg object-cover border border-gray-200"
-                        />
-                        <div>
-                          <p class="font-semibold text-gray-900">{brand.name}</p>
-                          <p class="text-xs text-gray-500">ID: {brand.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="py-4 px-6">
-                      <span class="text-sm text-gray-700">{brand.categoryName}</span>
-                    </td>
-                    <td class="py-4 px-6">
-                      <p class="text-sm text-gray-700 max-w-xs truncate">{brand.description}</p>
-                    </td>
-                    <td class="py-4 px-6">
-                      <span class="text-sm font-semibold text-gray-900">{brand.productCount} productos</span>
-                    </td>
-                    <td class="py-4 px-6">
-                      <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${brand.statusColor}`}>
-                        {brand.status}
-                      </span>
-                    </td>
-                    <td class="py-4 px-6 text-right">
-                      <div class="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          data-brand-id={brand.id}
-                          data-action="edit"
-                          class="edit-brand-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          data-brand-id={brand.id}
-                          data-action="delete"
-                          class="delete-brand-btn p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar"
-                        >
-                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -912,40 +332,6 @@ const brands = [
             />
           </div>
 
-          <!-- Categoría -->
-          <div>
-            <label for="new-product-category" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Categoría <span class="text-red-500">*</span>
-            </label>
-            <select
-              id="new-product-category"
-              required
-              class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
-            >
-              <option value="">Seleccionar categoría</option>
-              {categories.map((cat) => (
-                <option value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <!-- Marca -->
-          <div>
-            <label for="new-product-brand" class="block text-sm font-semibold text-gray-700 mb-1.5">
-              Marca <span class="text-red-500">*</span>
-            </label>
-            <select
-              id="new-product-brand"
-              required
-              class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
-            >
-              <option value="">Seleccionar marca</option>
-              {brands.map((brand) => (
-                <option value={brand.id} data-category={brand.categoryId}>{brand.name}</option>
-              ))}
-            </select>
-          </div>
-
           <!-- SKU -->
           <div>
             <label for="new-product-sku" class="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -1047,195 +433,370 @@ const brands = [
     </div>
   </div>
 
-  <!-- Modal: Nueva/Editar Categoría -->
-  <div id="category-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-gray-900" id="category-modal-title">Nueva Categoría</h2>
-        <button type="button" id="close-category-modal-btn" class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <form id="category-form" class="space-y-4">
-        <div>
-          <label for="category-name" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Nombre de la Categoría <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="category-name"
-            required
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
-            placeholder="Ej: Comida para Perro (Seca)"
-          />
-        </div>
-        <div>
-          <label for="category-description" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Descripción
-          </label>
-          <textarea
-            id="category-description"
-            rows="3"
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all resize-none"
-            placeholder="Descripción de la categoría..."
-          ></textarea>
-        </div>
-        <div>
-          <label for="category-image" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            URL de Imagen
-          </label>
-          <input
-            type="url"
-            id="category-image"
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
-            placeholder="https://ejemplo.com/imagen.jpg"
-          />
-          <p class="text-xs text-gray-500 mt-1">O sube una imagen desde tu dispositivo</p>
-          <input
-            type="file"
-            id="category-image-file"
-            accept="image/*"
-            class="mt-2 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Estado</label>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-2">
-              <input type="radio" name="category-status" value="Activo" checked class="w-4 h-4 text-blue-600" />
-              <span class="text-sm text-gray-700">Activo</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="category-status" value="Inactivo" class="w-4 h-4 text-blue-600" />
-              <span class="text-sm text-gray-700">Inactivo</span>
-            </label>
-          </div>
-        </div>
-        <input type="hidden" id="category-id" />
-        <div class="flex gap-2 pt-3 border-t border-gray-200">
-          <button type="button" id="cancel-category-btn" class="flex-1 px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:border-gray-300 transition-all text-sm">
-            Cancelar
-          </button>
-          <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all text-sm">
-            Guardar Categoría
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- Modal: Nueva/Editar Marca -->
-  <div id="brand-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-gray-900" id="brand-modal-title">Nueva Marca</h2>
-        <button type="button" id="close-brand-modal-btn" class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <form id="brand-form" class="space-y-4">
-        <div>
-          <label for="brand-name" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Nombre de la Marca <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="brand-name"
-            required
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
-            placeholder="Ej: Dog Chow"
-          />
-        </div>
-        <div>
-          <label for="brand-category" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Categoría <span class="text-red-500">*</span>
-          </label>
-          <select
-            id="brand-category"
-            required
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
-          >
-            <option value="">Seleccionar categoría</option>
-            {categories.map((cat) => (
-              <option value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label for="brand-description" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            Descripción
-          </label>
-          <textarea
-            id="brand-description"
-            rows="3"
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all resize-none"
-            placeholder="Descripción de la marca..."
-          ></textarea>
-        </div>
-        <div>
-          <label for="brand-image" class="block text-sm font-semibold text-gray-700 mb-1.5">
-            URL de Imagen
-          </label>
-          <input
-            type="url"
-            id="brand-image"
-            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
-            placeholder="https://ejemplo.com/imagen.jpg"
-          />
-          <p class="text-xs text-gray-500 mt-1">O sube una imagen desde tu dispositivo</p>
-          <input
-            type="file"
-            id="brand-image-file"
-            accept="image/*"
-            class="mt-2 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-          />
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Estado</label>
-          <div class="flex gap-4">
-            <label class="flex items-center gap-2">
-              <input type="radio" name="brand-status" value="Activo" checked class="w-4 h-4 text-indigo-600" />
-              <span class="text-sm text-gray-700">Activo</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="radio" name="brand-status" value="Inactivo" class="w-4 h-4 text-indigo-600" />
-              <span class="text-sm text-gray-700">Inactivo</span>
-            </label>
-          </div>
-        </div>
-        <input type="hidden" id="brand-id" />
-        <div class="flex gap-2 pt-3 border-t border-gray-200">
-          <button type="button" id="cancel-brand-btn" class="flex-1 px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:border-gray-300 transition-all text-sm">
-            Cancelar
-          </button>
-          <button type="submit" class="flex-1 px-4 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all text-sm">
-            Guardar Marca
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <script type="module">
+    (async function() {
+      // Obtener datos - inicialmente vacío, se cargará desde Firestore
+      let productsData = [];
 
-  <!-- Data para JavaScript -->
-  <script type="application/json" id="products-data-json" set:html={JSON.stringify(products)}></script>
-  <script type="application/json" id="categories-data-json" set:html={JSON.stringify(categories)}></script>
-  <script type="application/json" id="brands-data-json" set:html={JSON.stringify(brands)}></script>
+      // Funciones helper para formatear
+      function formatCurrency(value) {
+        return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
 
-  <script>
-    (function() {
-      // Obtener datos
-      let productsData: any[] = [];
-      const dataScript = document.getElementById('products-data-json');
-      if (dataScript && dataScript.textContent) {
-        try {
-          productsData = JSON.parse(dataScript.textContent);
-        } catch (e) {
-          console.error('Error parsing products data:', e);
+      function formatNumber(value) {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      // Función para actualizar estadísticas
+      function updateStats() {
+        const stats = {
+          totalProducts: productsData.length,
+          activeProducts: productsData.filter((p) => p.status === 'Activo').length,
+          outOfStock: productsData.filter((p) => {
+            const stock = p.stock || 0;
+            const minStock = p.minStock || 0;
+            return stock === 0;
+          }).length,
+          lowStock: productsData.filter((p) => {
+            const stock = p.stock || 0;
+            const minStock = p.minStock || 0;
+            return stock > 0 && stock < minStock;
+          }).length,
+          totalStock: productsData.reduce((sum, p) => sum + (p.stock || 0), 0),
+          totalValue: productsData.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0)
+        };
+
+        const totalProductsEl = document.getElementById('stats-total-products');
+        const activeProductsEl = document.getElementById('stats-active-products');
+        const lowStockEl = document.getElementById('stats-low-stock');
+        const outOfStockEl = document.getElementById('stats-out-of-stock');
+        const totalStockEl = document.getElementById('stats-total-stock');
+        const totalValueEl = document.getElementById('stats-total-value');
+
+        if (totalProductsEl) totalProductsEl.textContent = formatNumber(stats.totalProducts);
+        if (activeProductsEl) activeProductsEl.textContent = formatNumber(stats.activeProducts);
+        if (lowStockEl) lowStockEl.textContent = formatNumber(stats.lowStock);
+        if (outOfStockEl) outOfStockEl.textContent = formatNumber(stats.outOfStock);
+        if (totalStockEl) totalStockEl.textContent = formatNumber(stats.totalStock);
+        if (totalValueEl) totalValueEl.textContent = `Bs. ${formatCurrency(stats.totalValue)}`;
+      }
+
+      // Función para renderizar la tabla de productos
+      function renderProductsTable() {
+        const tbody = document.getElementById('products-tbody');
+        if (!tbody) return;
+
+        if (productsData.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-8 px-6 text-center text-gray-500">
+                <p class="mb-2">No hay productos registrados</p>
+                <p class="text-sm">Crea tu primer producto usando el botón "Nuevo Producto"</p>
+              </td>
+            </tr>
+          `;
+          updateStats();
+          updatePagination();
+          return;
         }
+
+        tbody.innerHTML = productsData.map((product) => {
+          const stockStatus = product.stock === 0 ? 'out' : (product.stock < (product.minStock || 0) ? 'low' : 'normal');
+          const stockColor = stockStatus === 'out' 
+            ? 'bg-gray-50 text-gray-700' 
+            : stockStatus === 'low' 
+            ? 'bg-red-50 text-red-700' 
+            : 'bg-green-50 text-green-700';
+          const statusColor = product.status === 'Activo' 
+            ? 'bg-green-50 text-green-700 border border-green-200' 
+            : 'bg-gray-50 text-gray-700 border border-gray-200';
+
+          return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <td class="py-4 px-6">
+                <div class="flex items-center gap-3">
+                  ${product.image ? `<img
+                    src="${product.image}"
+                    alt="${product.name}"
+                    class="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                  />` : `<div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>`}
+                  <div>
+                    <p class="font-semibold text-gray-900">${product.name || 'Sin nombre'}</p>
+                    <p class="text-xs text-gray-500">ID: ${product.id}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="py-4 px-6">
+                <span class="text-sm font-mono text-gray-600">${product.sku || 'N/A'}</span>
+              </td>
+              <td class="py-4 px-6">
+                <p class="font-semibold text-gray-900">Bs. ${formatCurrency(product.price || 0)}</p>
+              </td>
+              <td class="py-4 px-6">
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 rounded text-xs font-medium ${stockColor}">
+                      ${product.stock || 0} unidades
+                    </span>
+                    ${stockStatus === 'low' ? `<span class="text-xs text-yellow-600">⚠ Mín: ${product.minStock || 0}</span>` : ''}
+                    ${stockStatus === 'out' ? `<span class="text-xs text-red-600">⚠ Agotado</span>` : ''}
+                  </div>
+                  ${stockStatus === 'normal' ? `<span class="text-xs text-gray-500">Mín: ${product.minStock || 0}</span>` : ''}
+                </div>
+              </td>
+              <td class="py-4 px-6">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
+                  ${product.status || 'Activo'}
+                </span>
+              </td>
+              <td class="py-4 px-6">
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">${product.sales || 0} ventas</p>
+                  <p class="text-xs text-gray-500">Bs. ${formatCurrency(product.revenue || 0)}</p>
+                </div>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    data-product-id="${product.id}"
+                    data-action="view"
+                    class="view-product-btn p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    title="Ver detalles"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    data-product-id="${product.id}"
+                    data-action="edit"
+                    class="edit-product-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    data-product-id="${product.id}"
+                    data-action="stock"
+                    class="adjust-stock-btn p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                    title="Ajustar stock"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    data-product-id="${product.id}"
+                    data-action="delete"
+                    class="delete-product-btn p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Eliminar"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Re-asignar event listeners
+        attachProductEventListeners();
+        updateStats();
+        updatePagination();
+      }
+
+      // Función para actualizar paginación
+      function updatePagination() {
+        const total = productsData.length;
+        const showingStart = total > 0 ? 1 : 0;
+        const showingEnd = total;
+
+        const startEl = document.getElementById('products-showing-start');
+        const endEl = document.getElementById('products-showing-end');
+        const totalEl = document.getElementById('products-total');
+
+        if (startEl) startEl.textContent = formatNumber(showingStart);
+        if (endEl) endEl.textContent = formatNumber(showingEnd);
+        if (totalEl) totalEl.textContent = formatNumber(total);
+      }
+
+      // Función para asignar event listeners a los botones de productos
+      function attachProductEventListeners() {
+        // Abrir modal de ver detalles
+        document.querySelectorAll('.view-product-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const productId = btn.getAttribute('data-product-id');
+            const product = productsData.find((p) => p.id === productId);
+            if (!product || !viewModal) return;
+
+            const statusColor = product.status === 'Activo' 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-gray-50 text-gray-700 border border-gray-200';
+
+            const content = document.getElementById('view-product-content');
+            if (content) {
+              content.innerHTML = `
+                <div class="flex gap-4 pb-4 border-b border-gray-200">
+                  ${product.image ? `<img src="${product.image}" alt="${product.name || 'Producto'}" class="w-20 h-20 rounded-lg object-cover border border-gray-200" />` : `<div class="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                  </div>`}
+                  <div class="flex-1">
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">${product.name || 'Sin nombre'}</h3>
+                    <p class="text-xs text-gray-600 mb-0.5">ID: ${product.id}</p>
+                    <p class="text-xs text-gray-600 mb-1">SKU: ${product.sku || 'N/A'}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                      ${product.status || 'Activo'}
+                    </span>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-xs font-semibold text-gray-700 mb-0.5">Precio</p>
+                    <p class="text-sm text-gray-900 font-bold">Bs. ${formatCurrency(product.price || 0)}</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-700 mb-0.5">Stock Actual</p>
+                    <p class="text-sm text-gray-900">${product.stock || 0} unidades</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-700 mb-0.5">Stock Mínimo</p>
+                    <p class="text-sm text-gray-900">${product.minStock || 0} unidades</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-700 mb-0.5">Ventas</p>
+                    <p class="text-sm text-gray-900">${product.sales || 0} ventas</p>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-700 mb-0.5">Ingresos</p>
+                    <p class="text-sm text-gray-900 font-bold">Bs. ${formatCurrency(product.revenue || 0)}</p>
+                  </div>
+                </div>
+              `;
+            }
+            openModal(viewModal);
+          });
+        });
+
+        // Abrir modal de editar
+        document.querySelectorAll('.edit-product-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const productId = btn.getAttribute('data-product-id');
+            const product = productsData.find((p) => p.id === productId);
+            if (!product || !editModal) return;
+
+            const content = document.getElementById('edit-product-content');
+            if (content) {
+              content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nombre del Producto</label>
+                    <input type="text" id="edit-name" value="${product.name || ''}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">SKU</label>
+                    <input type="text" id="edit-sku" value="${product.sku || ''}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Precio (Bs.)</label>
+                    <input type="number" id="edit-price" step="0.01" value="${product.price || 0}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Stock Mínimo</label>
+                    <input type="number" id="edit-min-stock" value="${product.minStock || 0}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">URL de Imagen</label>
+                    <input type="url" id="edit-image" value="${product.image || ''}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
+                  </div>
+                </div>
+                <input type="hidden" id="edit-product-id" value="${product.id}" />
+              `;
+            }
+            openModal(editModal);
+          });
+        });
+
+        // Abrir modal de ajustar stock
+        document.querySelectorAll('.adjust-stock-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const productId = btn.getAttribute('data-product-id');
+            const product = productsData.find((p) => p.id === productId);
+            if (!product || !stockModal) return;
+
+            const content = document.getElementById('adjust-stock-content');
+            if (content) {
+              content.innerHTML = `
+                <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <p class="text-xs text-gray-600 mb-0.5">Producto</p>
+                  <p class="text-sm font-semibold text-gray-900">${product.name || 'Sin nombre'}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-1">Stock Actual</label>
+                  <p class="text-base font-bold text-gray-900 mb-3">${product.stock || 0} unidades</p>
+                </div>
+                <div>
+                  <label for="stock-adjustment" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Ajuste de Stock <span class="text-gray-500 font-normal text-xs">(positivo para agregar, negativo para quitar)</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="stock-adjustment"
+                    class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
+                    placeholder="Ej: +10 o -5"
+                  />
+                </div>
+                <div>
+                  <label for="stock-reason" class="block text-sm font-semibold text-gray-700 mb-1.5">Motivo del Ajuste</label>
+                  <textarea
+                    id="stock-reason"
+                    rows="2"
+                    class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 resize-none"
+                    placeholder="Ej: Recepción de mercancía, pérdida de inventario, etc."
+                  ></textarea>
+                </div>
+                <input type="hidden" id="adjust-product-id" value="${product.id}" />
+              `;
+            }
+            openModal(stockModal);
+          });
+        });
+
+        // Abrir modal de eliminar
+        document.querySelectorAll('.delete-product-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const productId = btn.getAttribute('data-product-id');
+            const product = productsData.find((p) => p.id === productId);
+            if (!product || !deleteModal) return;
+
+            const message = document.getElementById('delete-product-message');
+            if (message) {
+              message.textContent = `¿Estás seguro de que deseas eliminar "${product.name || 'este producto'}"? Esta acción no se puede deshacer.`;
+            }
+            
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            if (confirmBtn && productId) {
+              confirmBtn.setAttribute('data-product-id', productId);
+            }
+            
+            openModal(deleteModal);
+          });
+        });
       }
 
       // Modales
@@ -1246,7 +807,7 @@ const brands = [
       const newModal = document.getElementById('new-product-modal');
 
       // Funciones para abrir/cerrar modales
-      function openModal(modal: HTMLElement | null) {
+      function openModal(modal) {
         if (!modal) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -1254,7 +815,7 @@ const brands = [
         document.body.style.overflow = 'hidden';
       }
 
-      function closeModal(modal: HTMLElement | null) {
+      function closeModal(modal) {
         if (!modal) return;
         modal.classList.add('hidden');
         modal.classList.remove('flex');
@@ -1262,178 +823,27 @@ const brands = [
         document.body.style.overflow = '';
       }
 
-      // Abrir modal de ver detalles
-      document.querySelectorAll('.view-product-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const productId = btn.getAttribute('data-product-id');
-          const product = productsData.find((p: any) => p.id === productId);
-          if (!product || !viewModal) return;
-
-          const content = document.getElementById('view-product-content');
-          if (content) {
-            content.innerHTML = `
-              <div class="flex gap-4 pb-4 border-b border-gray-200">
-                <img src="${product.image}" alt="${product.name}" class="w-20 h-20 rounded-lg object-cover border border-gray-200" />
-                <div class="flex-1">
-                  <h3 class="text-lg font-bold text-gray-900 mb-1">${product.name}</h3>
-                  <p class="text-xs text-gray-600 mb-0.5">ID: ${product.id}</p>
-                  <p class="text-xs text-gray-600 mb-1">SKU: ${product.sku}</p>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${product.statusColor}">
-                    ${product.status}
-                  </span>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <p class="text-xs font-semibold text-gray-700 mb-0.5">Categoría</p>
-                  <p class="text-sm text-gray-900">${product.category}</p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-700 mb-0.5">Precio</p>
-                  <p class="text-sm text-gray-900 font-bold">Bs. ${product.price.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-700 mb-0.5">Stock Actual</p>
-                  <p class="text-sm text-gray-900">${product.stock} unidades</p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-700 mb-0.5">Stock Mínimo</p>
-                  <p class="text-sm text-gray-900">${product.minStock} unidades</p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-700 mb-0.5">Ventas</p>
-                  <p class="text-sm text-gray-900">${product.sales} ventas</p>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-700 mb-0.5">Ingresos</p>
-                  <p class="text-sm text-gray-900 font-bold">Bs. ${product.revenue.toFixed(2)}</p>
-                </div>
-              </div>
-            `;
-          }
-          openModal(viewModal);
-        });
-      });
-
-      // Abrir modal de editar
-      document.querySelectorAll('.edit-product-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const productId = btn.getAttribute('data-product-id');
-          const product = productsData.find((p: any) => p.id === productId);
-          if (!product || !editModal) return;
-
-          const content = document.getElementById('edit-product-content');
-          if (content) {
-            content.innerHTML = `
-              <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nombre del Producto</label>
-                <input type="text" id="edit-name" value="${product.name}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Categoría</label>
-                <select id="edit-category" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100">
-                  <option value="Alimentos" ${product.category === 'Alimentos' ? 'selected' : ''}>Alimentos</option>
-                  <option value="Accesorios" ${product.category === 'Accesorios' ? 'selected' : ''}>Accesorios</option>
-                  <option value="Juguetes" ${product.category === 'Juguetes' ? 'selected' : ''}>Juguetes</option>
-                  <option value="Higiene" ${product.category === 'Higiene' ? 'selected' : ''}>Higiene</option>
-                  <option value="Camas" ${product.category === 'Camas' ? 'selected' : ''}>Camas</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">SKU</label>
-                <input type="text" id="edit-sku" value="${product.sku}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Precio (Bs.)</label>
-                <input type="number" id="edit-price" step="0.01" value="${product.price}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Stock Mínimo</label>
-                <input type="number" id="edit-min-stock" value="${product.minStock}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-gray-700 mb-1.5">URL de Imagen</label>
-                <input type="url" id="edit-image" value="${product.image}" class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100" />
-              </div>
-              <input type="hidden" id="edit-product-id" value="${product.id}" />
-            `;
-          }
-          openModal(editModal);
-        });
-      });
-
-      // Abrir modal de ajustar stock
-      document.querySelectorAll('.adjust-stock-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const productId = btn.getAttribute('data-product-id');
-          const product = productsData.find((p: any) => p.id === productId);
-          if (!product || !stockModal) return;
-
-          const content = document.getElementById('adjust-stock-content');
-          if (content) {
-            content.innerHTML = `
-              <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <p class="text-xs text-gray-600 mb-0.5">Producto</p>
-                <p class="text-sm font-semibold text-gray-900">${product.name}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Stock Actual</label>
-                <p class="text-base font-bold text-gray-900 mb-3">${product.stock} unidades</p>
-              </div>
-              <div>
-                <label for="stock-adjustment" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Ajuste de Stock <span class="text-gray-500 font-normal text-xs">(positivo para agregar, negativo para quitar)</span>
-                </label>
-                <input
-                  type="number"
-                  id="stock-adjustment"
-                  class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
-                  placeholder="Ej: +10 o -5"
-                />
-              </div>
-              <div>
-                <label for="stock-reason" class="block text-sm font-semibold text-gray-700 mb-1.5">Motivo del Ajuste</label>
-                <textarea
-                  id="stock-reason"
-                  rows="2"
-                  class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100 resize-none"
-                  placeholder="Ej: Recepción de mercancía, pérdida de inventario, etc."
-                ></textarea>
-              </div>
-              <input type="hidden" id="adjust-product-id" value="${product.id}" />
-            `;
-          }
-          openModal(stockModal);
-        });
-      });
-
-      // Abrir modal de eliminar
-      document.querySelectorAll('.delete-product-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const productId = btn.getAttribute('data-product-id');
-          const product = productsData.find((p: any) => p.id === productId);
-          if (!product || !deleteModal) return;
-
-          const message = document.getElementById('delete-product-message');
-          if (message) {
-            message.textContent = `¿Estás seguro de que deseas eliminar "${product.name}"? Esta acción no se puede deshacer.`;
-          }
-          
-          const confirmBtn = document.getElementById('confirm-delete-btn');
-          if (confirmBtn && productId) {
-            confirmBtn.setAttribute('data-product-id', productId);
-          }
-          
-          openModal(deleteModal);
-        });
-      });
+      // Renderizar tabla inicialmente
+      renderProductsTable();
 
       // Abrir modal de nuevo producto
       const newProductBtn = document.getElementById('new-product-btn');
       if (newProductBtn) {
         newProductBtn.addEventListener('click', () => {
+          const newForm = document.getElementById('new-product-form');
+          if (newForm) {
+            newForm.reset();
+          }
           openModal(newModal);
         });
+      }
+
+      // Función para resetear el formulario de nuevo producto
+      function resetNewProductForm() {
+        const newForm = document.getElementById('new-product-form');
+        if (newForm) {
+          newForm.reset();
+        }
       }
 
       // Cerrar modales
@@ -1441,17 +851,20 @@ const brands = [
         { id: 'close-view-modal-btn', modal: viewModal },
         { id: 'close-edit-modal-btn', modal: editModal },
         { id: 'close-stock-modal-btn', modal: stockModal },
-        { id: 'close-new-modal-btn', modal: newModal },
+        { id: 'close-new-modal-btn', modal: newModal, resetFn: resetNewProductForm },
         { id: 'cancel-edit-btn', modal: editModal },
         { id: 'cancel-stock-btn', modal: stockModal },
         { id: 'cancel-delete-btn', modal: deleteModal },
-        { id: 'cancel-new-btn', modal: newModal }
+        { id: 'cancel-new-btn', modal: newModal, resetFn: resetNewProductForm }
       ];
 
-      closeButtons.forEach(({ id, modal }) => {
+      closeButtons.forEach(({ id, modal, resetFn }) => {
         const btn = document.getElementById(id);
         if (btn) {
-          btn.addEventListener('click', () => closeModal(modal));
+          btn.addEventListener('click', () => {
+            if (resetFn) resetFn();
+            closeModal(modal);
+          });
         }
       });
 
@@ -1470,34 +883,73 @@ const brands = [
       }
 
       // Submit formularios
-      const editForm = document.getElementById('edit-product-form') as HTMLFormElement;
+      const editForm = document.getElementById('edit-product-form');
       if (editForm) {
         editForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          const productId = (document.getElementById('edit-product-id') as HTMLInputElement)?.value;
-          console.log('Editar producto:', productId);
+          
+          // Validar que se haya ingresado el nombre
+          const productId = document.getElementById('edit-product-id')?.value;
+          const productName = document.getElementById('edit-name')?.value;
+          
+          if (!productName || productName.trim() === '') {
+            alert('Por favor, ingrese el nombre del producto');
+            return;
+          }
+          
+          // Obtener todos los datos del formulario
+          const formData = {
+            id: productId,
+            name: productName,
+            sku: document.getElementById('edit-sku')?.value,
+            price: parseFloat(document.getElementById('edit-price')?.value || '0'),
+            minStock: parseInt(document.getElementById('edit-min-stock')?.value || '0'),
+            image: document.getElementById('edit-image')?.value || ''
+          };
+          
+          console.log('Editar producto:', formData);
           alert('Producto actualizado exitosamente');
           closeModal(editModal);
         });
       }
 
-      const stockForm = document.getElementById('adjust-stock-form') as HTMLFormElement;
+      const stockForm = document.getElementById('adjust-stock-form');
       if (stockForm) {
         stockForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          const productId = (document.getElementById('adjust-product-id') as HTMLInputElement)?.value;
-          const adjustment = (document.getElementById('stock-adjustment') as HTMLInputElement)?.value;
+          const productId = document.getElementById('adjust-product-id')?.value;
+          const adjustment = document.getElementById('stock-adjustment')?.value;
           console.log('Ajustar stock:', productId, adjustment);
           alert('Stock ajustado exitosamente');
           closeModal(stockModal);
         });
       }
 
-      const newForm = document.getElementById('new-product-form') as HTMLFormElement;
+      const newForm = document.getElementById('new-product-form');
       if (newForm) {
         newForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          console.log('Nuevo producto creado');
+          
+          // Validar que se haya ingresado el nombre
+          const productName = document.getElementById('new-product-name')?.value;
+          
+          if (!productName || productName.trim() === '') {
+            alert('Por favor, ingrese el nombre del producto');
+            return;
+          }
+          
+          // Obtener todos los datos del formulario
+          const formData = {
+            name: productName,
+            sku: document.getElementById('new-product-sku')?.value,
+            price: parseFloat(document.getElementById('new-product-price')?.value || '0'),
+            stock: parseInt(document.getElementById('new-product-stock')?.value || '0'),
+            minStock: parseInt(document.getElementById('new-product-min-stock')?.value || '0'),
+            image: document.getElementById('new-product-image')?.value || '',
+            status: document.querySelector('input[name="new-product-status"]:checked')?.value || 'Activo'
+          };
+          
+          console.log('Nuevo producto creado:', formData);
           alert('Producto creado exitosamente');
           closeModal(newModal);
           newForm.reset();
@@ -1505,7 +957,7 @@ const brands = [
       }
 
       // Cerrar modales al hacer clic fuera
-      [viewModal, editModal, stockModal, deleteModal, newModal].forEach((modal) => {
+      [viewModal, editModal, stockModal, deleteModal].forEach((modal) => {
         if (modal) {
           modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -1514,251 +966,37 @@ const brands = [
           });
         }
       });
+      
+      // Cerrar modal de nuevo producto al hacer clic fuera (con reset)
+      if (newModal) {
+        newModal.addEventListener('click', (e) => {
+          if (e.target === newModal) {
+            resetNewProductForm();
+            closeModal(newModal);
+          }
+        });
+      }
 
       // Cerrar modales con ESC
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          [viewModal, editModal, stockModal, deleteModal, newModal].forEach((modal) => {
+          [viewModal, editModal, stockModal, deleteModal].forEach((modal) => {
             if (modal && !modal.classList.contains('hidden')) {
               closeModal(modal);
             }
           });
-        }
-      });
-
-      // ========== SISTEMA DE TABS ==========
-      const tabs = document.querySelectorAll('.tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
-      const actionButtons = {
-        products: document.querySelectorAll('.product-action-btn'),
-        categories: document.querySelectorAll('.category-action-btn'),
-        brands: document.querySelectorAll('.brand-action-btn')
-      };
-
-      function switchTab(tabName: string) {
-        // Ocultar todos los tabs
-        tabContents.forEach(content => {
-          content.classList.add('hidden');
-        });
-        
-        // Mostrar tab seleccionado
-        const selectedTab = document.getElementById(`${tabName}-tab`);
-        if (selectedTab) {
-          selectedTab.classList.remove('hidden');
-        }
-
-        // Actualizar estilos de botones de tab
-        tabs.forEach(btn => {
-          const btnTab = btn.getAttribute('data-tab');
-          if (btnTab === tabName) {
-            btn.classList.add('border-purple-600', 'text-purple-600');
-            btn.classList.remove('border-transparent', 'text-gray-500');
-          } else {
-            btn.classList.remove('border-purple-600', 'text-purple-600');
-            btn.classList.add('border-transparent', 'text-gray-500');
-          }
-        });
-
-        // Mostrar/ocultar botones de acción
-        Object.keys(actionButtons).forEach(key => {
-          actionButtons[key as keyof typeof actionButtons].forEach(btn => {
-            if (key === tabName) {
-              (btn as HTMLElement).classList.remove('hidden');
-            } else {
-              (btn as HTMLElement).classList.add('hidden');
-            }
-          });
-        });
-      }
-
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          const tabName = tab.getAttribute('data-tab');
-          if (tabName) {
-            switchTab(tabName);
-          }
-        });
-      });
-
-      // ========== GESTIÓN DE CATEGORÍAS ==========
-      let categoriesData: any[] = [];
-      const categoriesDataScript = document.getElementById('categories-data-json');
-      if (categoriesDataScript && categoriesDataScript.textContent) {
-        try {
-          categoriesData = JSON.parse(categoriesDataScript.textContent);
-        } catch (e) {
-          console.error('Error parsing categories data:', e);
-        }
-      }
-
-      const categoryModal = document.getElementById('category-modal');
-      const categoryForm = document.getElementById('category-form') as HTMLFormElement;
-      const newCategoryBtn = document.getElementById('new-category-btn');
-      const closeCategoryModalBtn = document.getElementById('close-category-modal-btn');
-      const cancelCategoryBtn = document.getElementById('cancel-category-btn');
-
-      function openCategoryModal(category?: any) {
-        if (!categoryModal) return;
-        const title = document.getElementById('category-modal-title');
-        if (title) {
-          title.textContent = category ? 'Editar Categoría' : 'Nueva Categoría';
-        }
-        
-        if (category) {
-          (document.getElementById('category-id') as HTMLInputElement).value = category.id;
-          (document.getElementById('category-name') as HTMLInputElement).value = category.name;
-          (document.getElementById('category-description') as HTMLTextAreaElement).value = category.description || '';
-          (document.getElementById('category-image') as HTMLInputElement).value = category.image || '';
-          const statusRadio = document.querySelector(`input[name="category-status"][value="${category.status}"]`) as HTMLInputElement;
-          if (statusRadio) statusRadio.checked = true;
-        } else {
-          categoryForm?.reset();
-          (document.getElementById('category-id') as HTMLInputElement).value = '';
-        }
-        
-        openModal(categoryModal);
-      }
-
-      function closeCategoryModal() {
-        closeModal(categoryModal);
-        categoryForm?.reset();
-      }
-
-      newCategoryBtn?.addEventListener('click', () => openCategoryModal());
-      closeCategoryModalBtn?.addEventListener('click', closeCategoryModal);
-      cancelCategoryBtn?.addEventListener('click', closeCategoryModal);
-
-      document.querySelectorAll('.edit-category-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const categoryId = btn.getAttribute('data-category-id');
-          const category = categoriesData.find((c: any) => c.id === categoryId);
-          if (category) {
-            openCategoryModal(category);
-          }
-        });
-      });
-
-      document.querySelectorAll('.delete-category-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const categoryId = btn.getAttribute('data-category-id');
-          const category = categoriesData.find((c: any) => c.id === categoryId);
-          if (category && confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
-            console.log('Eliminar categoría:', categoryId);
-            alert('Categoría eliminada exitosamente');
-          }
-        });
-      });
-
-      categoryForm?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const categoryId = (document.getElementById('category-id') as HTMLInputElement).value;
-        console.log(categoryId ? 'Editar categoría' : 'Crear categoría');
-        alert(categoryId ? 'Categoría actualizada exitosamente' : 'Categoría creada exitosamente');
-        closeCategoryModal();
-      });
-
-      // ========== GESTIÓN DE MARCAS ==========
-      let brandsData: any[] = [];
-      const brandsDataScript = document.getElementById('brands-data-json');
-      if (brandsDataScript && brandsDataScript.textContent) {
-        try {
-          brandsData = JSON.parse(brandsDataScript.textContent);
-        } catch (e) {
-          console.error('Error parsing brands data:', e);
-        }
-      }
-
-      const brandModal = document.getElementById('brand-modal');
-      const brandForm = document.getElementById('brand-form') as HTMLFormElement;
-      const newBrandBtn = document.getElementById('new-brand-btn');
-      const closeBrandModalBtn = document.getElementById('close-brand-modal-btn');
-      const cancelBrandBtn = document.getElementById('cancel-brand-btn');
-
-      function openBrandModal(brand?: any) {
-        if (!brandModal) return;
-        const title = document.getElementById('brand-modal-title');
-        if (title) {
-          title.textContent = brand ? 'Editar Marca' : 'Nueva Marca';
-        }
-        
-        if (brand) {
-          (document.getElementById('brand-id') as HTMLInputElement).value = brand.id;
-          (document.getElementById('brand-name') as HTMLInputElement).value = brand.name;
-          (document.getElementById('brand-category') as HTMLSelectElement).value = brand.categoryId;
-          (document.getElementById('brand-description') as HTMLTextAreaElement).value = brand.description || '';
-          (document.getElementById('brand-image') as HTMLInputElement).value = brand.image || '';
-          const statusRadio = document.querySelector(`input[name="brand-status"][value="${brand.status}"]`) as HTMLInputElement;
-          if (statusRadio) statusRadio.checked = true;
-        } else {
-          brandForm?.reset();
-          (document.getElementById('brand-id') as HTMLInputElement).value = '';
-        }
-        
-        openModal(brandModal);
-      }
-
-      function closeBrandModal() {
-        closeModal(brandModal);
-        brandForm?.reset();
-      }
-
-      newBrandBtn?.addEventListener('click', () => openBrandModal());
-      closeBrandModalBtn?.addEventListener('click', closeBrandModal);
-      cancelBrandBtn?.addEventListener('click', closeBrandModal);
-
-      document.querySelectorAll('.edit-brand-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const brandId = btn.getAttribute('data-brand-id');
-          const brand = brandsData.find((b: any) => b.id === brandId);
-          if (brand) {
-            openBrandModal(brand);
-          }
-        });
-      });
-
-      document.querySelectorAll('.delete-brand-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const brandId = btn.getAttribute('data-brand-id');
-          const brand = brandsData.find((b: any) => b.id === brandId);
-          if (brand && confirm(`¿Estás seguro de eliminar la marca "${brand.name}"?`)) {
-            console.log('Eliminar marca:', brandId);
-            alert('Marca eliminada exitosamente');
-          }
-        });
-      });
-
-      brandForm?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const brandId = (document.getElementById('brand-id') as HTMLInputElement).value;
-        console.log(brandId ? 'Editar marca' : 'Crear marca');
-        alert(brandId ? 'Marca actualizada exitosamente' : 'Marca creada exitosamente');
-        closeBrandModal();
-      });
-
-      // Cerrar modales de categorías y marcas con ESC
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          if (categoryModal && !categoryModal.classList.contains('hidden')) {
-            closeCategoryModal();
-          }
-          if (brandModal && !brandModal.classList.contains('hidden')) {
-            closeBrandModal();
+          
+          // Cerrar modal de nuevo producto con ESC (con reset)
+          if (newModal && !newModal.classList.contains('hidden')) {
+            resetNewProductForm();
+            closeModal(newModal);
           }
         }
       });
 
-      // Cerrar modales al hacer clic fuera
-      [categoryModal, brandModal].forEach((modal) => {
-        if (modal) {
-          modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-              if (modal === categoryModal) closeCategoryModal();
-              if (modal === brandModal) closeBrandModal();
-            }
-          });
-        }
-      });
     })();
   </script>
+
+
 </Layout>
 

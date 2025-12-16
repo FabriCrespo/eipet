@@ -26,9 +26,26 @@ const sectionIds = sectionConfig.map((section) => section.id);
 ---
 
 <UserLayout currentSection={initialSection} sectionConfig={sectionConfig}>
+  <!-- Loading State -->
+  <div id="profile-loading" class="flex items-center justify-center min-h-[400px]">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4"></div>
+      <p class="text-gray-600">Cargando tu perfil...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div id="profile-error" class="hidden flex items-center justify-center min-h-[400px]">
+    <div class="text-center">
+      <p class="text-red-500 mb-4">Error al cargar tu perfil</p>
+      <a href="/login" class="text-purple-600 hover:underline">Volver al login</a>
+    </div>
+  </div>
+
+  <!-- Content -->
   <section
-    class="space-y-6"
     id="profile-content-panel"
+    class="space-y-6 hidden"
     data-section-ids={JSON.stringify(sectionIds)}
     data-initial-section={initialSection}
   >
@@ -45,67 +62,129 @@ const sectionIds = sectionConfig.map((section) => section.id);
   </section>
 
   <script>
-    type ProfileWindow = Window &
-      typeof globalThis & {
-        currentProfileSection?: string;
-        updateProfileSidebarSection?: (section: string) => void;
-        onProfileSectionChange?: (section: string) => void;
-      };
-
-    const profileWindow = typeof window !== 'undefined' ? (window as ProfileWindow) : undefined;
-
-    function initProfileContent() {
-      const container = document.getElementById('profile-content-panel');
-      if (!container) return;
-
-      const sectionIdsAttr = container.getAttribute('data-section-ids');
-      const initialSectionAttr = container.getAttribute('data-initial-section');
-
-      const sectionIds: string[] = sectionIdsAttr ? JSON.parse(sectionIdsAttr) : [];
-      const defaultSection = initialSectionAttr || sectionIds[0] || 'info';
-
-      const setActiveProfileSection = (sectionId: string) => {
-        sectionIds.forEach((id) => {
-          const el = document.querySelector<HTMLElement>(`[data-profile-section="${id}"]`);
-          if (!el) return;
-          const isActive = id === sectionId;
-          el.classList.toggle('hidden', !isActive);
-          el.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-        });
-        if (profileWindow?.updateProfileSidebarSection) {
-          profileWindow.updateProfileSidebarSection(sectionId);
-        }
-      };
-
-      const resolveInitialSection = () => {
-        if (profileWindow?.currentProfileSection && sectionIds.includes(profileWindow.currentProfileSection)) {
-          return profileWindow.currentProfileSection;
-        }
-        return defaultSection;
-      };
-
-      const applySection = (sectionId: string) => {
-        if (!sectionIds.includes(sectionId)) return;
-        profileWindow && (profileWindow.currentProfileSection = sectionId);
-        setActiveProfileSection(sectionId);
-      };
-
-      const initialActiveSection = resolveInitialSection();
-      applySection(initialActiveSection);
-
-      if (profileWindow) {
-        profileWindow.onProfileSectionChange = (sectionId: string) => {
-          applySection(sectionId);
+    (async function() {
+      type ProfileWindow = Window &
+        typeof globalThis & {
+          currentProfileSection?: string;
+          updateProfileSidebarSection?: (section: string) => void;
+          onProfileSectionChange?: (section: string) => void;
         };
-      }
-    }
 
-    if (typeof document !== 'undefined') {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initProfileContent, { once: true });
-      } else {
-        initProfileContent();
+      const profileWindow = typeof window !== 'undefined' ? (window as ProfileWindow) : undefined;
+      const loadingDiv = document.getElementById('profile-loading');
+      const errorDiv = document.getElementById('profile-error');
+      const contentPanel = document.getElementById('profile-content-panel');
+
+      // Verificar autenticación y cargar datos del usuario
+      async function checkAuthAndLoad() {
+        try {
+          const { getCurrentUser, getCurrentUserData, onAuthStateChange } = await import('../../lib/auth');
+          
+          // Esperar a que Firebase Auth esté listo
+          return new Promise<void>((resolve) => {
+            const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+              unsubscribe();
+              
+              if (!firebaseUser) {
+                // No hay usuario autenticado, redirigir al login
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                resolve();
+                return;
+              }
+
+              try {
+                // Obtener datos completos del usuario
+                const userDataResult = await getCurrentUserData();
+                
+                if (!userDataResult.success || !userDataResult.user) {
+                  console.error('Error loading user data:', userDataResult.error);
+                  // Mostrar error
+                  if (loadingDiv) loadingDiv.classList.add('hidden');
+                  if (errorDiv) errorDiv.classList.remove('hidden');
+                  resolve();
+                  return;
+                }
+
+                // Guardar datos del usuario en localStorage para uso en componentes
+                localStorage.setItem('user', JSON.stringify(userDataResult.user));
+                
+                // Ocultar loading y mostrar contenido
+                if (loadingDiv) loadingDiv.classList.add('hidden');
+                if (errorDiv) errorDiv.classList.add('hidden');
+                if (contentPanel) contentPanel.classList.remove('hidden');
+                
+                // Inicializar contenido del perfil
+                initProfileContent();
+                
+                resolve();
+              } catch (error) {
+                console.error('Error loading user data:', error);
+                if (loadingDiv) loadingDiv.classList.add('hidden');
+                if (errorDiv) errorDiv.classList.remove('hidden');
+                resolve();
+              }
+            });
+          });
+        } catch (error) {
+          console.error('Error checking auth:', error);
+          if (loadingDiv) loadingDiv.classList.add('hidden');
+          if (errorDiv) errorDiv.classList.remove('hidden');
+        }
       }
-    }
+
+      function initProfileContent() {
+        if (!contentPanel) return;
+
+        const sectionIdsAttr = contentPanel.getAttribute('data-section-ids');
+        const initialSectionAttr = contentPanel.getAttribute('data-initial-section');
+
+        const sectionIds: string[] = sectionIdsAttr ? JSON.parse(sectionIdsAttr) : [];
+        const defaultSection = initialSectionAttr || sectionIds[0] || 'info';
+
+        const setActiveProfileSection = (sectionId: string) => {
+          sectionIds.forEach((id) => {
+            const el = document.querySelector<HTMLElement>(`[data-profile-section="${id}"]`);
+            if (!el) return;
+            const isActive = id === sectionId;
+            el.classList.toggle('hidden', !isActive);
+            el.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+          });
+          if (profileWindow?.updateProfileSidebarSection) {
+            profileWindow.updateProfileSidebarSection(sectionId);
+          }
+        };
+
+        const resolveInitialSection = () => {
+          if (profileWindow?.currentProfileSection && sectionIds.includes(profileWindow.currentProfileSection)) {
+            return profileWindow.currentProfileSection;
+          }
+          return defaultSection;
+        };
+
+        const applySection = (sectionId: string) => {
+          if (!sectionIds.includes(sectionId)) return;
+          profileWindow && (profileWindow.currentProfileSection = sectionId);
+          setActiveProfileSection(sectionId);
+        };
+
+        const initialActiveSection = resolveInitialSection();
+        applySection(initialActiveSection);
+
+        if (profileWindow) {
+          profileWindow.onProfileSectionChange = (sectionId: string) => {
+            applySection(sectionId);
+          };
+        }
+      }
+
+      // Inicializar cuando el DOM esté listo
+      if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', checkAuthAndLoad, { once: true });
+        } else {
+          await checkAuthAndLoad();
+        }
+      }
+    })();
   </script>
 </UserLayout>

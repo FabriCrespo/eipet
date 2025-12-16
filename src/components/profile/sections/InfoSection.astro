@@ -19,13 +19,25 @@ const headerStats = [
     <div class="relative flex flex-col gap-6 sm:flex-row sm:items-center">
       <div class="relative mx-auto shrink-0">
         <div class="absolute -inset-1 rounded-full bg-linear-to-r from-fuchsia-500 to-amber-400 blur opacity-70 transition duration-700 group-hover:opacity-100"></div>
-        <div class="relative h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-xl">
-          <img
-            id="profile-avatar"
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop"
-            alt="Avatar de usuario"
-            class="h-full w-full object-cover"
-          />
+        <div class="relative h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-xl bg-gradient-to-br from-purple-400 to-pink-400">
+          <!-- Avatar con imagen o icono por defecto -->
+          <div id="profile-avatar-container" class="h-full w-full flex items-center justify-center">
+            <img
+              id="profile-avatar"
+              src=""
+              alt="Avatar de usuario"
+              class="h-full w-full object-cover hidden"
+            />
+            <svg
+              id="profile-avatar-icon"
+              class="h-20 w-20 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
           <label
             for="profile-avatar-input"
             class="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 hover:opacity-100"
@@ -130,14 +142,35 @@ const headerStats = [
           <svg class="h-4 w-4 text-gray-400 transition-colors duration-300 data-[editing=true]:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          <span>Nombre completo</span>
+          <span>Nombre</span>
         </label>
         <div class="relative">
           <input
             type="text"
-            data-input="name"
+            data-input="firstName"
             class="peer w-full rounded-2xl border-2 border-gray-200 bg-gray-50 px-5 py-3.5 pl-12 text-gray-800 transition-all duration-300 placeholder:text-gray-400 focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-purple-100 disabled:cursor-not-allowed disabled:opacity-60"
-            placeholder="Tu nombre completo"
+            placeholder="Tu nombre"
+          />
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300 peer-focus:text-purple-500">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="group space-y-2.5">
+        <label class="flex items-center gap-2 text-sm font-semibold text-gray-600 transition-colors duration-300 data-[editing=true]:text-purple-600" data-label>
+          <svg class="h-4 w-4 text-gray-400 transition-colors duration-300 data-[editing=true]:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span>Apellido</span>
+        </label>
+        <div class="relative">
+          <input
+            type="text"
+            data-input="lastName"
+            class="peer w-full rounded-2xl border-2 border-gray-200 bg-gray-50 px-5 py-3.5 pl-12 text-gray-800 transition-all duration-300 placeholder:text-gray-400 focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-purple-100 disabled:cursor-not-allowed disabled:opacity-60"
+            placeholder="Tu apellido"
           />
           <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-300 peer-focus:text-purple-500">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,50 +374,94 @@ const headerStats = [
       const logoutButton = profileSection.querySelector('[data-action="logout"]');
       const toolbar = profileSection.querySelector('[data-edit-toolbar]');
       const avatar = profileSection.querySelector('#profile-avatar');
+      const avatarIcon = profileSection.querySelector('#profile-avatar-icon');
       const avatarInput = profileSection.querySelector('#profile-avatar-input');
-      const defaultAvatar = avatar?.getAttribute('src') || '';
-
-      const defaultData = {
-        name: 'Usuario Demo',
-        email: 'usuario@demo.com',
-        phone: '+591 71234567',
-        birthdate: '1990-05-15',
-        newsletter: true,
-        notifications: true
-      };
-
-      const stats = {
-        orders: 24,
-        points: 1250,
-        savedPets: 3,
-        memberSince: '2024'
-      };
+      const defaultAvatar = '';
 
       let currentUser = null;
-      let formData = { ...defaultData };
-      let tempData = { ...defaultData };
+      let formData = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        birthdate: '',
+        newsletter: false,
+        notifications: false
+      };
+      let tempData = { ...formData };
       let profileImage = defaultAvatar;
       let isEditing = false;
       let isSaving = false;
+      let stats = {
+        orders: 0,
+        points: 0,
+        savedPets: 0,
+        memberSince: ''
+      };
+
+      async function loadStats() {
+        try {
+          const { getCurrentUser } = await import('../../../lib/auth');
+          const firebaseUser = getCurrentUser();
+          if (!firebaseUser) return;
+
+          const { getUserOrders } = await import('../../../lib/db/orders');
+          const ordersResult = await getUserOrders(firebaseUser.uid);
+          const orders = ordersResult.data || [];
+
+          // Calcular puntos (ejemplo: 10 puntos por pedido)
+          const points = orders.length * 10;
+
+          // Obtener fecha de creación del usuario
+          let memberSince = '';
+          if (currentUser?.createdAt) {
+            const createdDate = currentUser.createdAt.toDate 
+              ? currentUser.createdAt.toDate() 
+              : new Date(currentUser.createdAt);
+            memberSince = createdDate.getFullYear().toString();
+          }
+
+          stats = {
+            orders: orders.length,
+            points: points,
+            savedPets: 0, // TODO: Implementar cuando haya sistema de mascotas
+            memberSince: memberSince || new Date().getFullYear().toString()
+          };
+
+          syncStats();
+        } catch (error) {
+          console.error('Error loading stats:', error);
+        }
+      }
 
       function syncStats() {
         statsElements.forEach((el) => {
           const key = el.getAttribute('data-stat');
           if (key && stats[key] !== undefined) {
-            el.textContent = stats[key];
+            el.textContent = stats[key].toString();
           }
         });
       }
 
       function syncHeader() {
+        const fullName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Tu nombre';
         profileSection.querySelectorAll('[data-text="name"]').forEach((el) => {
-          el.textContent = formData.name || 'Tu nombre';
+          el.textContent = fullName;
         });
         profileSection.querySelectorAll('[data-text="email"]').forEach((el) => {
-          el.textContent = formData.email || 'correo@demo.com';
+          el.textContent = formData.email || 'correo@ejemplo.com';
         });
-        if (avatar && profileImage) {
-          avatar.setAttribute('src', profileImage);
+        
+        // Actualizar avatar: mostrar imagen si existe, sino mostrar icono
+        if (avatar instanceof HTMLImageElement && avatarIcon instanceof SVGElement) {
+          if (profileImage && profileImage !== defaultAvatar && profileImage.trim() !== '') {
+            avatar.src = profileImage;
+            avatar.classList.remove('hidden');
+            avatarIcon.classList.add('hidden');
+          } else {
+            avatar.classList.add('hidden');
+            avatarIcon.classList.remove('hidden');
+          }
         }
       }
 
@@ -392,9 +469,19 @@ const headerStats = [
         inputs?.forEach((input) => {
           const key = input.getAttribute('data-input');
           if (!key) return;
-          input.value = targetData[key] ?? '';
+          
           if (key === 'birthdate' && targetData[key]) {
-            input.value = targetData[key].slice(0, 10);
+            const dateValue = targetData[key];
+            if (dateValue instanceof Date) {
+              input.value = dateValue.toISOString().slice(0, 10);
+            } else if (typeof dateValue === 'string') {
+              input.value = dateValue.slice(0, 10);
+            } else if (dateValue.toDate) {
+              // Firestore Timestamp
+              input.value = dateValue.toDate().toISOString().slice(0, 10);
+            }
+          } else {
+            input.value = targetData[key] ?? '';
           }
         });
 
@@ -480,45 +567,123 @@ const headerStats = [
         }
       }
 
-      function loadUser() {
+      async function loadUser() {
         try {
-          const userStr = localStorage.getItem('currentUser');
-          if (!userStr) {
-            formData = { ...defaultData };
-            tempData = { ...defaultData };
-            profileImage = defaultAvatar;
-            return;
+          // Los datos del usuario ya están cargados por la página principal
+          // Intentar obtenerlos desde localStorage primero
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            try {
+              currentUser = JSON.parse(userStr);
+            } catch (e) {
+              console.error('Error parsing user from localStorage:', e);
+            }
           }
-          currentUser = JSON.parse(userStr);
+
+          // Si no hay datos en localStorage, obtenerlos desde Firebase
+          if (!currentUser) {
+            const { getCurrentUserData } = await import('../../../lib/auth');
+            const userDataResult = await getCurrentUserData();
+            
+            if (!userDataResult.success || !userDataResult.user) {
+              console.error('Error loading user data:', userDataResult.error);
+              return;
+            }
+
+            currentUser = userDataResult.user;
+            localStorage.setItem('user', JSON.stringify(currentUser));
+          }
+
+          // Mapear datos del usuario a formData
           formData = {
-            ...defaultData,
-            ...currentUser
+            firstName: currentUser.firstName || '',
+            lastName: currentUser.lastName || '',
+            email: currentUser.email || '',
+            phone: currentUser.phone || '',
+            birthdate: currentUser.birthdate || '',
+            newsletter: currentUser.newsletter || false,
+            notifications: currentUser.notifications || false
           };
+          
           tempData = { ...formData };
           profileImage = currentUser.avatar || defaultAvatar;
+          
+          // Sincronizar UI
+          syncHeader();
+          applyValues(formData);
+          
+          // Cargar estadísticas
+          await loadStats();
         } catch (error) {
-          console.error('No se pudo cargar el usuario:', error);
+          console.error('Error loading user:', error);
         }
       }
 
-      function persistUser() {
+      async function persistUser() {
         if (!currentUser) {
-          currentUser = { id: '1' };
+          console.error('No hay usuario para actualizar');
+          return;
         }
-        const updatedUser = {
-          ...currentUser,
-          ...formData,
-          avatar: profileImage
-        };
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-        currentUser = updatedUser;
+
+        try {
+          const { getCurrentUser } = await import('../../../lib/auth');
+          const firebaseUser = getCurrentUser();
+          if (!firebaseUser) {
+            throw new Error('Usuario no autenticado');
+          }
+
+          const { updateUser } = await import('../../../lib/db/users');
+          
+          // Preparar datos para actualizar
+          const updateData = {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
+            avatar: profileImage !== defaultAvatar ? profileImage : undefined,
+            // Nota: email no se puede cambiar aquí, se maneja en Firebase Auth
+            // birthdate, newsletter, notifications se pueden agregar si están en el tipo UpdateUserData
+          };
+
+          const result = await updateUser(firebaseUser.uid, updateData);
+          
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Error al actualizar el usuario');
+          }
+
+          // Actualizar currentUser local
+          currentUser = {
+            ...currentUser,
+            ...formData,
+            avatar: profileImage
+          };
+        } catch (error) {
+          console.error('Error saving user:', error);
+          throw error;
+        }
       }
 
-      function init() {
-        loadUser();
-        syncHeader();
-        syncStats();
-        applyValues(formData);
+      async function init() {
+        // Deshabilitar inputs mientras se cargan los datos
+        inputs?.forEach((input) => {
+          input.disabled = true;
+        });
+        toggles.forEach((toggle) => {
+          toggle.disabled = true;
+        });
+        if (editButton) {
+          editButton.disabled = true;
+        }
+        
+        // Mostrar estado de carga en el header
+        const nameElements = profileSection.querySelectorAll('[data-text="name"]');
+        const emailElements = profileSection.querySelectorAll('[data-text="email"]');
+        nameElements.forEach(el => el.textContent = 'Cargando...');
+        emailElements.forEach(el => el.textContent = 'Cargando...');
+        
+        await loadUser();
+        
+        // Si llegamos aquí, los datos se cargaron correctamente
+        // syncHeader y applyValues ya se llamaron en loadUser
         setEditingState(false);
       }
 
@@ -531,22 +696,54 @@ const headerStats = [
         setEditingState(false);
       });
 
-      saveButton?.addEventListener('click', () => {
+      saveButton?.addEventListener('click', async () => {
         if (isSaving) return;
         setSavingState(true);
-        setTimeout(() => {
+        
+        try {
+          // Validar datos antes de guardar
+          if (!tempData.firstName || !tempData.lastName) {
+            alert('Por favor, completa tu nombre y apellido');
+            setSavingState(false);
+            return;
+          }
+
+          if (!tempData.email) {
+            alert('Por favor, ingresa tu correo electrónico');
+            setSavingState(false);
+            return;
+          }
+
           formData = { ...tempData };
-          persistUser();
+          await persistUser();
           syncHeader();
           setEditingState(false);
           setSavingState(false);
-        }, 1200);
+          
+          // Mostrar notificación de éxito
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg z-50 flex items-center gap-3';
+          notification.innerHTML = `
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-semibold">Perfil actualizado exitosamente</span>
+          `;
+          document.body.appendChild(notification);
+          setTimeout(() => notification.remove(), 3000);
+        } catch (error) {
+          console.error('Error saving:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+          alert(`Error al guardar: ${errorMessage}`);
+          setSavingState(false);
+        }
       });
 
       inputs?.forEach((input) => {
         input.addEventListener('input', (event) => {
           if (!isEditing) return;
           const target = event.currentTarget;
+          if (!(target instanceof HTMLInputElement)) return;
           const key = target.getAttribute('data-input');
           if (!key) return;
           tempData[key] = target.value;
@@ -590,10 +787,19 @@ const headerStats = [
         reader.readAsDataURL(file);
       });
 
-      logoutButton?.addEventListener('click', () => {
+      logoutButton?.addEventListener('click', async () => {
         if (confirm('¿Seguro que deseas cerrar sesión?')) {
-          localStorage.removeItem('currentUser');
-          window.location.href = '/';
+          try {
+            const { logout } = await import('../../../lib/auth');
+            await logout();
+            localStorage.removeItem('user');
+            window.location.href = '/';
+          } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            // Intentar redirigir de todas formas
+            localStorage.removeItem('user');
+            window.location.href = '/';
+          }
         }
       });
 
