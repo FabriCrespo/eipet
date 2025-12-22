@@ -1,0 +1,504 @@
+<!-- Modal: Nueva/Editar Marca -->
+<div
+  id="brand-modal"
+  class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
+  style="display: none;"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-gray-900" id="modal-title">
+        Nueva Marca
+      </h2>
+      <button
+        type="button"
+        id="close-modal-btn"
+        class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <svg
+          class="w-5 h-5 text-gray-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <form id="brand-form" class="space-y-4">
+      <!-- Nombre -->
+      <div>
+        <label
+          for="brand-name"
+          class="block text-sm font-semibold text-gray-700 mb-1.5"
+        >
+          Nombre de la Marca <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="brand-name"
+          required
+          class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+          placeholder="Ej: Purina, Royal Canin"
+        />
+      </div>
+
+      <!-- Categoría -->
+      <div>
+        <label
+          for="brand-category"
+          class="block text-sm font-semibold text-gray-700 mb-1.5"
+        >
+          Categoría <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="brand-category"
+          required
+          class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+        >
+          <option value="">Selecciona una categoría</option>
+          <!-- Las opciones se cargarán dinámicamente -->
+        </select>
+        <p class="text-xs text-gray-500 mt-1">
+          Selecciona la categoría a la que pertenece esta marca
+        </p>
+      </div>
+
+      <!-- Imagen -->
+      <div>
+        <label
+          for="brand-image-file"
+          class="block text-sm font-semibold text-gray-700 mb-1.5"
+        >
+          Imagen <span class="text-red-500" id="image-required-indicator"
+            >*</span
+          >
+        </label>
+        <input
+          type="file"
+          id="brand-image-file"
+          accept="image/*"
+          class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+        />
+        <p class="text-xs text-gray-500 mt-1">
+          Formatos: JPG, PNG, WEBP (máx. 5MB). Si estás editando, puedes dejar
+          vacío para mantener la imagen actual.
+        </p>
+      </div>
+
+      <!-- Vista previa de imagen -->
+      <div id="image-preview-container" class="hidden">
+        <label class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >Vista Previa</label
+        >
+        <div class="relative">
+          <img
+            id="image-preview"
+            src=""
+            alt="Vista previa"
+            class="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+          />
+          <button
+            type="button"
+            id="remove-image-preview"
+            class="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress bar para subida -->
+      <div id="upload-progress" class="hidden">
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div
+            id="upload-progress-bar"
+            class="bg-purple-600 h-2.5 rounded-full transition-all duration-300"
+            style="width: 0%"
+          >
+          </div>
+        </div>
+        <p class="text-xs text-gray-600 mt-1 text-center">Subiendo imagen...</p>
+      </div>
+
+      <!-- ID oculto para edición -->
+      <input type="hidden" id="brand-id" />
+
+      <!-- Botones -->
+      <div class="flex gap-3 pt-2">
+        <button
+          type="button"
+          id="cancel-btn"
+          class="flex-1 px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:border-gray-300 transition-all text-sm"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="submit-btn"
+          class="flex-1 px-4 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-all text-sm"
+        >
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // Esperar a que el DOM esté listo
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initModal);
+    } else {
+      initModal();
+    }
+
+    function initModal() {
+      const brandModal = document.getElementById(
+        "brand-modal",
+      ) as HTMLElement | null;
+      const brandForm = document.getElementById(
+        "brand-form",
+      ) as HTMLFormElement | null;
+      const modalTitle = document.getElementById(
+        "modal-title",
+      ) as HTMLElement | null;
+      const brandIdInput = document.getElementById(
+        "brand-id",
+      ) as HTMLInputElement | null;
+      const imagePreviewContainer = document.getElementById(
+        "image-preview-container",
+      ) as HTMLElement | null;
+      const imagePreview = document.getElementById(
+        "image-preview",
+      ) as HTMLImageElement | null;
+      const imageFileInput = document.getElementById(
+        "brand-image-file",
+      ) as HTMLInputElement | null;
+      const uploadProgress = document.getElementById(
+        "upload-progress",
+      ) as HTMLElement | null;
+      const uploadProgressBar = document.getElementById(
+        "upload-progress-bar",
+      ) as HTMLElement | null;
+
+      let editingBrandId: string | null = null;
+      let currentImageUrl: string | null = null;
+
+      // Funciones para abrir/cerrar modal
+      function openModal() {
+        if (!brandModal) return;
+        brandModal.classList.remove("hidden");
+        brandModal.classList.add("flex");
+        brandModal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal() {
+        if (!brandModal) return;
+        brandModal.classList.add("hidden");
+        brandModal.classList.remove("flex");
+        brandModal.style.display = "none";
+        document.body.style.overflow = "";
+      }
+
+      // Función para cargar categorías en el select
+      async function loadCategories() {
+        const categorySelect = document.getElementById(
+          "brand-category",
+        ) as HTMLSelectElement | null;
+        if (!categorySelect) return;
+
+        try {
+          // @ts-ignore - El módulo existe, TypeScript no puede resolverlo en componentes Astro
+          const { getCategories } = await import("../lib/db/categories");
+          const result = await getCategories();
+
+          if (result.error) {
+            console.error("Error cargando categorías:", result.error);
+            return;
+          }
+
+          // Limpiar opciones existentes excepto la primera
+          categorySelect.innerHTML =
+            '<option value="">Selecciona una categoría</option>';
+
+          // Agregar categorías al select
+          result.data.forEach((category: any) => {
+            const option = document.createElement("option");
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error cargando categorías:", error);
+        }
+      }
+
+      // Función para mostrar/ocultar estado de carga
+      function setLoadingState(loading: boolean) {
+        const submitBtn = document.getElementById(
+          "submit-btn",
+        ) as HTMLButtonElement | null;
+        if (submitBtn) {
+          submitBtn.disabled = loading;
+          if (loading) {
+            submitBtn.innerHTML = `
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Guardando...
+            `;
+          } else {
+            submitBtn.innerHTML = "Guardar";
+          }
+        }
+      }
+
+      // Función para resetear el formulario
+      function resetForm() {
+        if (!brandForm) return;
+        brandForm.reset();
+        if (brandIdInput) brandIdInput.value = "";
+        editingBrandId = null;
+        currentImageUrl = null;
+        if (imagePreviewContainer)
+          imagePreviewContainer.classList.add("hidden");
+        if (uploadProgress) uploadProgress.classList.add("hidden");
+        if (uploadProgressBar) uploadProgressBar.style.width = "0%";
+        if (modalTitle) modalTitle.textContent = "Nueva Marca";
+        setLoadingState(false);
+
+        // Mostrar indicador de requerido de imagen
+        const imageRequiredIndicator = document.getElementById(
+          "image-required-indicator",
+        );
+        if (imageRequiredIndicator) {
+          imageRequiredIndicator.style.display = "inline";
+        }
+      }
+
+      // Función para abrir modal en modo edición
+      async function openEditModal(brand: any) {
+        if (!brand) {
+          openNewModal();
+          return;
+        }
+
+        editingBrandId = brand.id || null;
+        if (brandIdInput) brandIdInput.value = brand.id || "";
+        const nameInput = document.getElementById(
+          "brand-name",
+        ) as HTMLInputElement | null;
+        const categorySelect = document.getElementById(
+          "brand-category",
+        ) as HTMLSelectElement | null;
+        const imageRequiredIndicator = document.getElementById(
+          "image-required-indicator",
+        );
+
+        if (nameInput) nameInput.value = brand.name || "";
+
+        // Cargar categorías primero
+        await loadCategories();
+
+        // Luego establecer el valor seleccionado
+        if (categorySelect) categorySelect.value = brand.categoryId || "";
+        currentImageUrl = brand.image || null;
+
+        // Si hay imagen existente, ocultar el indicador de requerido
+        if (imageRequiredIndicator) {
+          imageRequiredIndicator.style.display = brand.image
+            ? "none"
+            : "inline";
+        }
+
+        if (brand.image && imagePreview) {
+          imagePreview.src = brand.image;
+          if (imagePreviewContainer)
+            imagePreviewContainer.classList.remove("hidden");
+        }
+
+        if (modalTitle) modalTitle.textContent = "Editar Marca";
+        openModal();
+      }
+
+      // Función para abrir modal en modo nuevo
+      function openNewModal() {
+        resetForm();
+        loadCategories(); // Cargar categorías disponibles
+        openModal();
+      }
+
+      // Preview de imagen desde archivo
+      if (imageFileInput) {
+        imageFileInput.addEventListener("change", (e) => {
+          const target = e.target as HTMLInputElement;
+          const file = target.files ? target.files[0] : null;
+          if (file && imagePreview) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target && event.target.result && imagePreview) {
+                imagePreview.src = event.target.result as string;
+                if (imagePreviewContainer)
+                  imagePreviewContainer.classList.remove("hidden");
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      // Remover preview
+      const removePreviewBtn = document.getElementById("remove-image-preview");
+      if (removePreviewBtn) {
+        removePreviewBtn.addEventListener("click", () => {
+          if (imagePreviewContainer)
+            imagePreviewContainer.classList.add("hidden");
+          if (imageFileInput) imageFileInput.value = "";
+          if (imagePreview) imagePreview.src = "";
+          currentImageUrl = null;
+        });
+      }
+
+      // Submit del formulario
+      if (brandForm) {
+        brandForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const nameInput = document.getElementById(
+            "brand-name",
+          ) as HTMLInputElement | null;
+          const categorySelect = document.getElementById(
+            "brand-category",
+          ) as HTMLSelectElement | null;
+
+          const name = nameInput ? nameInput.value.trim() : "";
+          const categoryId = categorySelect ? categorySelect.value : "";
+          const imageFile =
+            imageFileInput && imageFileInput.files
+              ? imageFileInput.files[0]
+              : null;
+
+          if (!name || !categoryId) {
+            alert("Por favor, completa todos los campos requeridos");
+            return;
+          }
+
+          // Validar que hay imagen (nueva o existente)
+          if (!imageFile && !currentImageUrl) {
+            alert("Por favor, selecciona una imagen para la marca");
+            return;
+          }
+
+          setLoadingState(true);
+
+          // Preparar datos del formulario
+          const formData = {
+            id: editingBrandId,
+            name,
+            categoryId,
+            image: currentImageUrl || "",
+            imageFile: imageFile || null,
+          };
+
+          // Disparar evento personalizado con los datos
+          const event = new CustomEvent("brandFormSubmit", {
+            detail: formData,
+          });
+          document.dispatchEvent(event);
+
+          // El modal se cerrará cuando se emita el evento 'brandFormSaved'
+          // Este evento será emitido desde la página principal después de guardar
+        });
+      }
+
+      // Escuchar evento de confirmación de guardado para cerrar el modal
+      document.addEventListener("brandFormSaved", () => {
+        resetForm();
+        closeModal();
+        setLoadingState(false);
+      });
+
+      // Escuchar evento de error para resetear estado de carga
+      document.addEventListener("brandFormError", () => {
+        setLoadingState(false);
+      });
+
+      // Cerrar modales
+      const closeBtn = document.getElementById("close-modal-btn");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+          resetForm();
+          closeModal();
+        });
+      }
+
+      const cancelBtn = document.getElementById("cancel-btn");
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+          resetForm();
+          closeModal();
+        });
+      }
+
+      // Cerrar modal al hacer clic fuera
+      if (brandModal) {
+        brandModal.addEventListener("click", (e) => {
+          if (e.target === brandModal) {
+            resetForm();
+            closeModal();
+          }
+        });
+      }
+
+      // Cerrar modal con ESC
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "Escape" &&
+          brandModal &&
+          !brandModal.classList.contains("hidden")
+        ) {
+          resetForm();
+          closeModal();
+        }
+      });
+
+      // Exportar funciones globalmente
+      (window as any).openBrandModal = openNewModal;
+      (window as any).openEditBrandModal = openEditModal;
+      (window as any).closeBrandModal = closeModal;
+
+      // Listeners de eventos personalizados
+      document.addEventListener("open-new-brand-modal", () => {
+        openNewModal();
+      });
+
+      document.addEventListener("open-edit-brand-modal", (e: any) => {
+        if (e.detail) {
+          openEditModal(e.detail);
+        }
+      });
+
+      console.log("MarcaModal initialized");
+    }
+  })();
+</script>

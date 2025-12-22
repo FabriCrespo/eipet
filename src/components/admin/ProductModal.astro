@@ -1,0 +1,299 @@
+---
+interface Props {
+  categories: Array<{ id: string; name: string }>;
+  brands: Array<{ id: string; name: string; categoryId: string }>;
+  mode?: "create" | "edit";
+  modalId?: string;
+  formId?: string;
+  closeButtonId?: string;
+  cancelButtonId?: string;
+}
+
+const { 
+  categories, 
+  brands, 
+  mode = "create",
+  modalId = "new-product-modal",
+  formId = "new-product-form",
+  closeButtonId = "close-new-modal-btn",
+  cancelButtonId = "cancel-new-btn"
+} = Astro.props;
+
+const isEditMode = mode === "edit";
+const title = isEditMode ? "Editar Producto" : "Nuevo Producto";
+const submitButtonText = isEditMode ? "Guardar Cambios" : "Crear Producto";
+const submitButtonClass = isEditMode ? "bg-blue-600 hover:bg-blue-700" : "bg-purple-600 hover:bg-purple-700";
+---
+
+<!-- Modal: Producto -->
+<div
+  id={modalId}
+  class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
+  style="display: none;"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-5"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-gray-900">{title}</h2>
+      <button
+        type="button"
+        id={closeButtonId}
+        class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <svg
+          class="w-5 h-5 text-gray-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <form id={formId} class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Nombre -->
+        <div class="md:col-span-2">
+          <label
+            for={`${formId}-name`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Nombre del Producto <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id={`${formId}-name`}
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+            placeholder="Ej: Royal Canin Puppy 15kg"
+          />
+        </div>
+
+        <!-- Categoría -->
+        <div>
+          <label
+            for={`${formId}-category`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Categoría <span class="text-red-500">*</span>
+          </label>
+          <select
+            id={`${formId}-category`}
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+          >
+            <option value="">Seleccionar categoría</option>
+            {
+              categories.map((cat) => (
+                <option value={cat.id}>{cat.name}</option>
+              ))
+            }
+          </select>
+        </div>
+
+        <!-- Marca -->
+        <div>
+          <label
+            for={`${formId}-brand`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Marca <span class="text-red-500">*</span>
+          </label>
+          <select
+            id={`${formId}-brand`}
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-700 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+          >
+            <option value="">Seleccionar marca</option>
+            {
+              brands.map((brand) => (
+                <option value={brand.id} data-category={brand.categoryId}>
+                  {brand.name}
+                </option>
+              ))
+            }
+          </select>
+        </div>
+
+        <!-- SKU -->
+        <div>
+          <label
+            for={`${formId}-sku`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Codigo <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id={`${formId}-sku`}
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+            placeholder="Ej: RC-PUPPY-15KG"
+          />
+        </div>
+
+        <!-- Precio -->
+        <div>
+          <label
+            for={`${formId}-price`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Precio (Bs.) <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id={`${formId}-price`}
+            step="0.01"
+            min="0"
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+            placeholder="0.00"
+          />
+        </div>
+
+        <!-- Stock Inicial -->
+        <div>
+          <label
+            for={`${formId}-stock`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Stock Inicial <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id={`${formId}-stock`}
+            min="0"
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+            placeholder="0"
+          />
+        </div>
+
+        <!-- Stock Mínimo -->
+        <div>
+          <label
+            for={`${formId}-min-stock`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Stock Mínimo <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id={`${formId}-min-stock`}
+            min="0"
+            required
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+            placeholder="0"
+          />
+        </div>
+
+        <!-- Imagen del Producto -->
+        <div class="md:col-span-2">
+          <label
+            for={`${formId}-image-file`}
+            class="block text-sm font-semibold text-gray-700 mb-1.5"
+          >
+            Imagen del Producto
+          </label>
+          <input
+            type="file"
+            id={`${formId}-image-file`}
+            accept="image/*"
+            class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
+          />
+          <p class="text-xs text-gray-500 mt-1">
+            Formatos: JPG, PNG, WEBP (máx. 5MB)
+            {isEditMode && <span>. Dejar vacío si no se cambia.</span>}
+          </p>
+
+          <!-- Preview -->
+          <div id={`${formId}-image-preview-container`} class="hidden mt-3">
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5"
+              >Vista Previa</label
+            >
+            <div class="relative w-32 h-32">
+              <img
+                id={`${formId}-image-preview`}
+                src=""
+                alt="Vista previa"
+                class="w-full h-full object-cover rounded-lg border-2 border-gray-200"
+              />
+              <button
+                type="button"
+                id={`remove-${formId}-image`}
+                class="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+              >
+                <svg
+                  class="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"></path></svg
+                >
+              </button>
+            </div>
+          </div>
+          
+          {isEditMode && (
+            <input type="hidden" id={`${formId}-product-id`} />
+            <input type="hidden" id={`${formId}-current-image-url`} />
+          )}
+        </div>
+
+        <!-- Estado -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5"
+            >Estado</label
+          >
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                name={`${formId}-status`}
+                value="Activo"
+                checked
+                class="w-4 h-4 text-purple-600"
+              />
+              <span class="text-sm text-gray-700">Activo</span>
+            </label>
+            <label class="flex items-center gap-2">
+              <input
+                type="radio"
+                name={`${formId}-status`}
+                value="Inactivo"
+                class="w-4 h-4 text-purple-600"
+              />
+              <span class="text-sm text-gray-700">Inactivo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3 border-t border-gray-200">
+        <button
+          type="button"
+          id={cancelButtonId}
+          class="flex-1 px-4 py-2.5 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-lg hover:border-gray-300 transition-all text-sm"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class={`flex-1 px-4 py-2.5 text-white font-medium rounded-lg transition-all text-sm ${submitButtonClass}`}
+        >
+          {submitButtonText}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+

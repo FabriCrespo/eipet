@@ -10,8 +10,6 @@ import {
   onAuthStateChanged,
   updatePassword,
   sendPasswordResetEmail,
-  signInWithPopup,
-  GoogleAuthProvider,
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from './firebase';
@@ -218,76 +216,6 @@ export function onAuthStateChange(
   callback: (user: FirebaseUser | null) => void
 ): () => void {
   return onAuthStateChanged(auth, callback);
-}
-
-/**
- * Iniciar sesión o registrarse con Google
- */
-export async function signInWithGoogle(): Promise<{
-  success: boolean;
-  user?: FirebaseUser;
-  error?: string;
-  isNewUser?: boolean;
-}> {
-  try {
-    const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    const firebaseUser = userCredential.user;
-    
-    // Verificar si el usuario ya existe en Firestore
-    const userResult = await getUser(firebaseUser.uid);
-    const isNewUser = !userResult.data;
-
-    // Si es un usuario nuevo, crear su perfil en Firestore
-    if (isNewUser && firebaseUser.email) {
-      // Extraer nombre y apellido del displayName
-      const displayName = firebaseUser.displayName || '';
-      const nameParts = displayName.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      const createResult = await createUserWithId(firebaseUser.uid, {
-        email: firebaseUser.email,
-        firstName,
-        lastName,
-        phone: firebaseUser.phoneNumber || '',
-        role: 'user',
-        avatar: firebaseUser.photoURL || undefined,
-      });
-
-      if (!createResult.success) {
-        // Si falla la creación en Firestore, cerrar sesión
-        await signOut(auth);
-        return {
-          success: false,
-          error: 'Error al crear el perfil de usuario. Por favor, intenta de nuevo.',
-        };
-      }
-    }
-
-    return {
-      success: true,
-      user: firebaseUser,
-      isNewUser,
-    };
-  } catch (error: any) {
-    let errorMessage = 'Error al iniciar sesión con Google. Por favor, intenta de nuevo.';
-    
-    if (error.code === 'auth/popup-closed-by-user') {
-      errorMessage = 'El popup fue cerrado. Por favor, intenta de nuevo.';
-    } else if (error.code === 'auth/popup-blocked') {
-      errorMessage = 'El popup fue bloqueado. Por favor, permite popups para este sitio.';
-    } else if (error.code === 'auth/cancelled-popup-request') {
-      errorMessage = 'Solo se puede abrir un popup a la vez.';
-    } else if (error.code === 'auth/account-exists-with-different-credential') {
-      errorMessage = 'Ya existe una cuenta con este correo electrónico usando otro método de autenticación.';
-    }
-    
-    return {
-      success: false,
-      error: errorMessage,
-    };
-  }
 }
 
 /**

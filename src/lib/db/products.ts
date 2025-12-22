@@ -101,12 +101,10 @@ export async function getProducts(filters?: ProductFilters): Promise<QueryResult
       constraints.push(where('discount', '>', 0));
     }
 
-    // Filtro por estado
-    if (filters?.status) {
+    // Filtro por estado - solo aplicar si se especifica explícitamente
+    // Para el admin, no filtrar por defecto para ver todos los productos
+    if (filters?.status !== undefined && filters?.status !== null) {
       constraints.push(where('status', '==', filters.status));
-    } else {
-      // Por defecto, solo productos activos
-      constraints.push(where('status', '==', 'active'));
     }
 
     // Ordenamiento
@@ -139,8 +137,12 @@ export async function getProducts(filters?: ProductFilters): Promise<QueryResult
     }
 
     return { data: products };
-  } catch (error) {
-    console.error('Error getting products:', error);
+  } catch (error: any) {
+    // No mostrar errores esperados cuando no hay datos (permisos o índices faltantes)
+    const errorCode = error?.code;
+    if (errorCode !== 'permission-denied' && errorCode !== 'failed-precondition') {
+      console.error('Error getting products:', error);
+    }
     return { data: [], error: error as Error };
   }
 }
@@ -282,8 +284,8 @@ export async function adjustStock(id: string, adjustment: number): Promise<Write
 export async function validateAndAdjustStockMultiple(
   items: Array<{ productId: string; quantity: number }>
 ): Promise<{ success: boolean; errors: string[]; error?: Error }> {
+  let errors: string[] = [];
   try {
-    const errors: string[] = [];
     
     // Usar transacción para validar y actualizar stock de todos los productos
     await runTransaction(db, async (transaction) => {

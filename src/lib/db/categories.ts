@@ -68,8 +68,12 @@ export async function getCategories(): Promise<QueryResult<Category>> {
     });
 
     return { data: categories };
-  } catch (error) {
-    console.error('Error getting categories:', error);
+  } catch (error: any) {
+    // No mostrar errores esperados cuando no hay datos (permisos o índices faltantes)
+    const errorCode = error?.code;
+    if (errorCode !== 'permission-denied' && errorCode !== 'failed-precondition') {
+      console.error('Error getting categories:', error);
+    }
     return { data: [], error: error as Error };
   }
 }

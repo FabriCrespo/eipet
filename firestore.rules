@@ -15,6 +15,7 @@ service cloud.firestore {
     // Verificar si el usuario es admin
     function isAdmin() {
       return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
@@ -103,6 +104,38 @@ service cloud.firestore {
       // Validar estructura al crear
       allow create: if isAdmin() && 
                        request.resource.data.keys().hasAll(['name', 'slug', 'type', 'isActive', 'order', 'createdAt', 'updatedAt']);
+    }
+    
+    // ============================================================================
+    // CATEGORÍAS DE PRODUCTOS
+    // ============================================================================
+    
+    match /categories/{categoryId} {
+      // Consultas de lista: solo usuarios autenticados (para admin)
+      allow list: if isAuthenticated() && userExists();
+      
+      // Lectura de documentos individuales: usuarios autenticados o categorías activas públicas
+      allow get: if (isAuthenticated() && userExists()) ||
+                    (resource != null && resource.data.status == 'Activo');
+      
+      // Solo admin puede crear/actualizar/eliminar categorías
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // MARCAS DE PRODUCTOS
+    // ============================================================================
+    
+    match /brands/{brandId} {
+      // Consultas de lista: solo usuarios autenticados (para admin)
+      allow list: if isAuthenticated() && userExists();
+      
+      // Lectura de documentos individuales: usuarios autenticados o marcas activas públicas
+      allow get: if (isAuthenticated() && userExists()) ||
+                    (resource != null && resource.data.status == 'Activo');
+      
+      // Solo admin puede crear/actualizar/eliminar marcas
+      allow create, update, delete: if isAdmin();
     }
     
     // ============================================================================

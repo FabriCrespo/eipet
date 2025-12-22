@@ -56,12 +56,58 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
 
   <CategoriaModal />
 
+  <!-- Modal: Eliminar Categoría -->
+  <div
+    id="delete-category-modal"
+    class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
+    style="display: none;"
+  >
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
+      <div
+        class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <svg
+          class="w-8 h-8 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          ></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">¿Eliminar Categoría?</h3>
+      <p id="delete-category-message" class="text-gray-600 mb-6">
+        ¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se
+        puede deshacer.
+      </p>
+      <div class="flex gap-4">
+        <button
+          type="button"
+          id="cancel-delete-category-btn"
+          class="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all"
+          >Cancelar</button
+        >
+        <button
+          type="button"
+          id="confirm-delete-category-btn"
+          class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all"
+          >Eliminar</button
+        >
+      </div>
+    </div>
+  </div>
+
   <script>
     (function() {
       // Esperar a que el DOM esté completamente listo
-      function init() {
-        // Datos mock por ahora (sin backend)
+      async function init() {
         let categoriesData: any[] = [];
+        let isLoading = false;
 
         const categoriesTbody = document.getElementById('categories-tbody');
         const newCategoryBtn = document.getElementById('new-category-btn');
@@ -69,6 +115,23 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
       // Función para renderizar la tabla
       function renderCategories() {
         if (!categoriesTbody) return;
+
+        if (isLoading) {
+          categoriesTbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="py-8 px-6 text-center text-gray-500">
+                <div class="flex flex-col items-center justify-center">
+                  <svg class="animate-spin h-8 w-8 text-purple-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p class="text-gray-600">Cargando categorías...</p>
+                </div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
 
         if (categoriesData.length === 0) {
           categoriesTbody.innerHTML = `
@@ -146,6 +209,115 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
         attachEventListeners();
       }
 
+      // Función para cargar categorías desde Firestore
+      async function loadCategories() {
+        try {
+          isLoading = true;
+          renderCategories();
+
+          const { getCategories } = await import('../../lib/db/categories');
+          const result = await getCategories();
+
+          if (result.error) {
+            throw result.error;
+          }
+
+          // Convertir Timestamps a formato compatible con la UI
+          categoriesData = result.data.map((cat: any) => ({
+            ...cat,
+            createdAt: cat.createdAt,
+            updatedAt: cat.updatedAt
+          }));
+
+          isLoading = false;
+          renderCategories();
+        } catch (error) {
+          console.error('Error cargando categorías:', error);
+          isLoading = false;
+          if (categoriesTbody) {
+            categoriesTbody.innerHTML = `
+              <tr>
+                <td colspan="4" class="py-8 px-6 text-center text-red-500">
+                  <p class="text-lg font-semibold mb-2">Error al cargar categorías</p>
+                  <p class="text-sm">${error instanceof Error ? error.message : 'Error desconocido'}</p>
+                </td>
+              </tr>
+            `;
+          }
+        }
+      }
+
+      // Funciones de notificación tipo toast
+      function showSuccessToast(message: string) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg z-[60] flex items-center gap-3 animate-slide-in';
+        toast.innerHTML = `
+          <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="font-semibold">${message}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      function showErrorToast(message: string) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-lg z-[60] flex items-center gap-3 animate-slide-in';
+        toast.innerHTML = `
+          <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span class="font-semibold">${message}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      // Agregar estilos de animación para los toasts
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Funciones para abrir/cerrar modal
+      function openModal(modal: HTMLElement | null) {
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal(modal: HTMLElement | null) {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
       // Función para asignar event listeners
       function attachEventListeners() {
         // Botones editar
@@ -164,71 +336,102 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
           btn.addEventListener('click', () => {
             const categoryId = btn.getAttribute('data-category-id');
             const categoryName = btn.getAttribute('data-category-name');
-            if (confirm(`¿Estás seguro de que deseas eliminar "${categoryName}"?`)) {
-              categoriesData = categoriesData.filter((c: any) => c.id !== categoryId);
-              renderCategories();
+            const category = categoriesData.find((c: any) => c.id === categoryId);
+            
+            if (!category || !categoryId) return;
+
+            // Mostrar modal de confirmación
+            const deleteModal = document.getElementById('delete-category-modal');
+            const messageEl = document.getElementById('delete-category-message');
+            const confirmBtn = document.getElementById('confirm-delete-category-btn') as HTMLButtonElement | null;
+            
+            if (deleteModal && messageEl && confirmBtn) {
+              messageEl.textContent = `¿Estás seguro de que deseas eliminar "${categoryName}"? Esta acción no se puede deshacer.`;
+              confirmBtn.setAttribute('data-category-id', categoryId);
+              confirmBtn.setAttribute('data-category-name', categoryName || '');
+              
+              // Abrir modal
+              deleteModal.classList.remove('hidden');
+              deleteModal.classList.add('flex');
+              deleteModal.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
             }
           });
         });
       }
 
       // Escuchar evento del formulario del modal
-      document.addEventListener('categoryFormSubmit', (e: any) => {
+      document.addEventListener('categoryFormSubmit', async (e: any) => {
         const formData = e.detail;
         
-        // Generar ID si es nueva categoría
-        if (!formData.id) {
-          formData.id = 'cat_' + Date.now();
-        }
+        try {
+          const { createCategory, updateCategory } = await import('../../lib/db/categories');
+          const { uploadCategoryImage } = await import('../../lib/utils/storage');
+          const { deleteCategoryImage } = await import('../../lib/utils/storage');
+          const { isFirebaseStorageUrl } = await import('../../lib/utils/storage');
 
-        // Si hay imagen desde archivo, convertir a URL base64 para preview
+          let imageUrl = formData.image || '';
+
+          // Si hay un archivo nuevo, subirlo a Firebase Storage
         if (formData.imageFile) {
-          const reader = new FileReader();
-          reader.onload = (event: ProgressEvent<FileReader>) => {
-            if (event.target && event.target.result) {
-              formData.image = event.target.result as string;
-              
-              // Buscar si existe la categoría para actualizar o crear nueva
-              const existingIndex = categoriesData.findIndex((c: any) => c.id === formData.id);
-              const categoryData = {
-                id: formData.id,
-                name: formData.name,
-                animalType: formData.animalType,
-                image: formData.image
-              };
-
-              if (existingIndex >= 0) {
-                categoriesData[existingIndex] = categoryData;
-              } else {
-                categoriesData.push(categoryData);
-              }
-              
-              renderCategories();
+            const uploadResult = await uploadCategoryImage(formData.imageFile, formData.id || undefined);
+            if (uploadResult.error || !uploadResult.url) {
+              throw new Error(uploadResult.error?.message || 'Error al subir la imagen');
             }
-          };
-          reader.readAsDataURL(formData.imageFile);
-        } else {
-          // Sin archivo, usar URL o imagen existente
-          const existingIndex = categoriesData.findIndex((c: any) => c.id === formData.id);
-          const categoryData = {
-            id: formData.id,
+            imageUrl = uploadResult.url;
+
+            // Si estamos editando y había una imagen anterior, eliminarla
+            if (formData.id && formData.image && isFirebaseStorageUrl(formData.image)) {
+              try {
+                await deleteCategoryImage(formData.image);
+              } catch (imgError) {
+                console.error('Error eliminando imagen anterior:', imgError);
+                // Continuar aunque falle la eliminación
+            }
+            }
+          }
+
+          if (formData.id) {
+            // Actualizar categoría existente
+            const updateResult = await updateCategory(formData.id, {
             name: formData.name,
             animalType: formData.animalType,
-            image: formData.image || ''
-          };
+              image: imageUrl
+            });
 
-          if (existingIndex >= 0) {
-            categoriesData[existingIndex] = categoryData;
+            if (updateResult.error) {
+              throw updateResult.error;
+            }
           } else {
-            categoriesData.push(categoryData);
+            // Crear nueva categoría
+            const createResult = await createCategory({
+              name: formData.name,
+              animalType: formData.animalType,
+              image: imageUrl,
+              status: 'Activo'
+            });
+
+            if (createResult.error) {
+              throw createResult.error;
+            }
           }
-          
-          renderCategories();
+
+          // Recargar categorías desde el backend
+          await loadCategories();
+
+          // Emitir evento de éxito para cerrar el modal
+          document.dispatchEvent(new CustomEvent('categoryFormSaved'));
+        } catch (error) {
+          console.error('Error guardando categoría:', error);
+          alert(`Error al guardar categoría: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+
+          // Emitir evento de error para resetear estado de carga en el modal
+          document.dispatchEvent(new CustomEvent('categoryFormError'));
         }
       });
 
-        // Renderizar inicialmente
-        renderCategories();
+        // Cargar categorías desde el backend
+        await loadCategories();
 
         // Botón nueva categoría - asignar listener directamente
         if (newCategoryBtn) {
@@ -241,6 +444,82 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
                 console.error('openCategoryModal no está disponible');
               }
             }, 100);
+          });
+        }
+
+        // Configurar modal de eliminación
+        const deleteModal = document.getElementById('delete-category-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-category-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-category-btn') as HTMLButtonElement | null;
+
+        // Cerrar modal con botón cancelar
+        if (cancelDeleteBtn) {
+          cancelDeleteBtn.addEventListener('click', () => {
+            closeModal(deleteModal);
+          });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        if (deleteModal) {
+          deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+              closeModal(deleteModal);
+            }
+          });
+        }
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            closeModal(deleteModal);
+          }
+        });
+
+        // Confirmar eliminación
+        if (confirmDeleteBtn) {
+          confirmDeleteBtn.addEventListener('click', async () => {
+            const categoryId = confirmDeleteBtn.getAttribute('data-category-id');
+            const categoryName = confirmDeleteBtn.getAttribute('data-category-name');
+            
+            if (!categoryId) return;
+
+            // Deshabilitar botón mientras se procesa
+            const originalText = confirmDeleteBtn.textContent;
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = 'Eliminando...';
+
+            try {
+              const { deleteCategory } = await import('../../lib/db/categories');
+              const result = await deleteCategory(categoryId);
+
+              if (result.error) {
+                throw result.error;
+              }
+
+              // Eliminar imagen del Storage si existe
+              const category = categoriesData.find((c: any) => c.id === categoryId);
+              if (category?.image) {
+                try {
+                  const { deleteCategoryImage } = await import('../../lib/utils/storage');
+                  await deleteCategoryImage(category.image);
+                } catch (imgError) {
+                  console.error('Error eliminando imagen:', imgError);
+                  // Continuar aunque falle la eliminación de la imagen
+                }
+              }
+
+              // Mostrar toast de éxito
+              showSuccessToast('Categoría eliminada exitosamente');
+              closeModal(deleteModal);
+
+              // Recargar categorías
+              await loadCategories();
+            } catch (error) {
+              console.error('Error eliminando categoría:', error);
+              showErrorToast(error instanceof Error ? error.message : 'Error al eliminar la categoría');
+              confirmDeleteBtn.disabled = false;
+              confirmDeleteBtn.textContent = originalText || 'Eliminar';
+            }
           });
         }
       }

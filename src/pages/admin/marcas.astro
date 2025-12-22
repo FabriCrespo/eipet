@@ -1,7 +1,556 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import MarcaModal from "../../components/MarcaModal.astro";
 ---
 
 <Layout>
-    
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Header -->
+      <div class="mb-8">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
+        >
+          <div>
+            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+              Gestión de Marcas
+            </h1>
+            <p class="text-gray-600">Administra las marcas de productos</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              id="new-brand-btn"
+              class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"></path>
+              </svg>
+              <span>Nueva Marca</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Marcas -->
+      <div
+        class="bg-white rounded-3xl border border-gray-200 shadow-md overflow-hidden"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th
+                  class="text-left py-4 px-6 text-sm font-semibold text-gray-700"
+                  >Imagen</th
+                >
+                <th
+                  class="text-left py-4 px-6 text-sm font-semibold text-gray-700"
+                  >Nombre</th
+                >
+                <th
+                  class="text-right py-4 px-6 text-sm font-semibold text-gray-700"
+                  >Acciones</th
+                >
+              </tr>
+            </thead>
+            <tbody id="brands-tbody">
+              <tr>
+                <td colspan="3" class="py-8 px-6 text-center text-gray-500">
+                  <p class="mb-2">No hay marcas registradas</p>
+                  <p class="text-sm">
+                    Crea tu primera marca usando el botón "Nueva Marca"
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <MarcaModal />
+
+  <!-- Modal: Eliminar Marca -->
+  <div
+    id="delete-brand-modal"
+    class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
+    style="display: none;"
+  >
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center">
+      <div
+        class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <svg
+          class="w-8 h-8 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          ></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">¿Eliminar Marca?</h3>
+      <p id="delete-brand-message" class="text-gray-600 mb-6">
+        ¿Estás seguro de que deseas eliminar esta marca? Esta acción no se
+        puede deshacer.
+      </p>
+      <div class="flex gap-4">
+        <button
+          type="button"
+          id="cancel-delete-brand-btn"
+          class="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all"
+          >Cancelar</button
+        >
+        <button
+          type="button"
+          id="confirm-delete-brand-btn"
+          class="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-all"
+          >Eliminar</button
+        >
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // Esperar a que el DOM esté completamente listo
+      async function init() {
+        let brandsData: any[] = [];
+        let isLoading = false;
+
+        const brandsTbody = document.getElementById("brands-tbody");
+        const newBrandBtn = document.getElementById("new-brand-btn");
+
+        // Función para renderizar la tabla
+        function renderBrands() {
+          if (!brandsTbody) return;
+
+          if (isLoading) {
+            brandsTbody.innerHTML = `
+            <tr>
+              <td colspan="3" class="py-8 px-6 text-center text-gray-500">
+                <div class="flex flex-col items-center justify-center">
+                  <svg class="animate-spin h-8 w-8 text-purple-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p class="text-gray-600">Cargando marcas...</p>
+                </div>
+              </td>
+            </tr>
+          `;
+            return;
+          }
+
+          if (brandsData.length === 0) {
+            brandsTbody.innerHTML = `
+            <tr>
+              <td colspan="3" class="py-8 px-6 text-center text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <p class="text-lg font-semibold mb-2">No hay marcas registradas</p>
+                <p class="text-sm">Crea tu primera marca usando el botón "Nueva Marca"</p>
+              </td>
+            </tr>
+          `;
+            return;
+          }
+
+          brandsTbody.innerHTML = brandsData
+            .map((brand) => {
+              return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+              <td class="py-4 px-6">
+                <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                  ${
+                    brand.image
+                      ? `<img src="${brand.image}" alt="${brand.name}" class="w-full h-full object-cover" />`
+                      : `<svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>`
+                  }
+                </div>
+              </td>
+              <td class="py-4 px-6">
+                <p class="font-semibold text-gray-900">${brand.name || "Sin nombre"}</p>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    data-brand-id="${brand.id}"
+                    class="edit-brand-btn p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Editar"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    data-brand-id="${brand.id}"
+                    data-brand-name="${brand.name}"
+                    class="delete-brand-btn p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Eliminar"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+            })
+            .join("");
+
+          // Re-asignar event listeners
+          attachEventListeners();
+        }
+
+        // Función para cargar marcas desde Firestore
+        async function loadBrands() {
+          try {
+            isLoading = true;
+            renderBrands();
+
+            const { getBrands } = await import("../../lib/db/brands");
+            const result = await getBrands();
+
+            if (result.error) {
+              throw result.error;
+            }
+
+            // Convertir Timestamps a formato compatible con la UI
+            brandsData = result.data.map((brand: any) => ({
+              ...brand,
+              createdAt: brand.createdAt,
+              updatedAt: brand.updatedAt,
+            }));
+
+            isLoading = false;
+            renderBrands();
+          } catch (error) {
+            console.error("Error cargando marcas:", error);
+            isLoading = false;
+            if (brandsTbody) {
+              brandsTbody.innerHTML = `
+              <tr>
+                <td colspan="3" class="py-8 px-6 text-center text-red-500">
+                  <p class="text-lg font-semibold mb-2">Error al cargar marcas</p>
+                  <p class="text-sm">${error instanceof Error ? error.message : "Error desconocido"}</p>
+                </td>
+              </tr>
+            `;
+            }
+          }
+        }
+
+        // Funciones de notificación tipo toast
+        function showSuccessToast(message: string) {
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg z-[60] flex items-center gap-3 animate-slide-in';
+          toast.innerHTML = `
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-semibold">${message}</span>
+          `;
+          document.body.appendChild(toast);
+          
+          setTimeout(() => {
+            toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+            setTimeout(() => toast.remove(), 300);
+          }, 3000);
+        }
+
+        function showErrorToast(message: string) {
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-lg z-[60] flex items-center gap-3 animate-slide-in';
+          toast.innerHTML = `
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span class="font-semibold">${message}</span>
+          `;
+          document.body.appendChild(toast);
+          
+          setTimeout(() => {
+            toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+            setTimeout(() => toast.remove(), 300);
+          }, 3000);
+        }
+
+        // Agregar estilos de animación para los toasts
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes slide-in {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+          .animate-slide-in {
+            animation: slide-in 0.3s ease-out;
+          }
+        `;
+        document.head.appendChild(style);
+
+        // Funciones para abrir/cerrar modal
+        function openModal(modal: HTMLElement | null) {
+          if (!modal) return;
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          modal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modal: HTMLElement | null) {
+          if (!modal) return;
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          modal.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+
+        // Función para asignar event listeners
+        function attachEventListeners() {
+          // Botones editar
+          document.querySelectorAll(".edit-brand-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const brandId = btn.getAttribute("data-brand-id");
+              const brand = brandsData.find((b: any) => b.id === brandId);
+              if (brand) {
+                document.dispatchEvent(
+                  new CustomEvent("open-edit-brand-modal", { detail: brand }),
+                );
+              }
+            });
+          });
+
+          // Botones eliminar
+          document.querySelectorAll(".delete-brand-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const brandId = btn.getAttribute("data-brand-id");
+              const brandName = btn.getAttribute("data-brand-name");
+              const brand = brandsData.find((b: any) => b.id === brandId);
+              
+              if (!brand || !brandId) return;
+
+              // Mostrar modal de confirmación
+              const deleteModal = document.getElementById('delete-brand-modal');
+              const messageEl = document.getElementById('delete-brand-message');
+              const confirmBtn = document.getElementById('confirm-delete-brand-btn') as HTMLButtonElement | null;
+              
+              if (deleteModal && messageEl && confirmBtn) {
+                messageEl.textContent = `¿Estás seguro de que deseas eliminar "${brandName}"? Esta acción no se puede deshacer.`;
+                confirmBtn.setAttribute('data-brand-id', brandId);
+                confirmBtn.setAttribute('data-brand-name', brandName || '');
+                
+                // Abrir modal
+                openModal(deleteModal);
+              }
+            });
+          });
+        }
+
+        // Escuchar evento del formulario del modal
+        document.addEventListener("brandFormSubmit", async (e: any) => {
+          const formData = e.detail;
+          console.log("Datos del formulario recibidos:", formData);
+
+          try {
+            const { createBrand, updateBrand } =
+              await import("../../lib/db/brands");
+            const { uploadBrandImage, deleteBrandImage, isFirebaseStorageUrl } =
+              await import("../../lib/utils/storage");
+
+            let imageUrl = formData.image || "";
+
+            // Si hay un archivo nuevo, subirlo a Firebase Storage
+            if (formData.imageFile) {
+              const uploadResult = await uploadBrandImage(
+                formData.imageFile,
+                formData.id || undefined,
+              );
+
+              if (uploadResult.error || !uploadResult.url) {
+                throw new Error(
+                  uploadResult.error?.message || "Error al subir la imagen",
+                );
+              }
+              imageUrl = uploadResult.url;
+
+              // Si estamos editando y había una imagen anterior, eliminarla si es de Firebase
+              if (
+                formData.id &&
+                formData.image &&
+                isFirebaseStorageUrl(formData.image)
+              ) {
+                try {
+                  await deleteBrandImage(formData.image);
+                } catch (imgError) {
+                  console.error("Error eliminando imagen anterior:", imgError);
+                  // Continuar aunque falle la eliminación
+                }
+              }
+            }
+
+            if (formData.id) {
+              // Actualizar marca existente
+              const updateResult = await updateBrand(formData.id, {
+                name: formData.name,
+                categoryId: formData.categoryId,
+                image: imageUrl,
+              });
+
+              if (updateResult.error) {
+                throw updateResult.error;
+              }
+            } else {
+              // Crear nueva marca
+              const createResult = await createBrand({
+                name: formData.name,
+                categoryId: formData.categoryId,
+                image: imageUrl,
+                status: "Activo",
+              });
+
+              if (createResult.error) {
+                throw createResult.error;
+              }
+            }
+
+            // Recargar marcas desde el backend
+            await loadBrands();
+
+            // Emitir evento de éxito para cerrar el modal
+            document.dispatchEvent(new CustomEvent("brandFormSaved"));
+          } catch (error) {
+            console.error("Error guardando marca:", error);
+            alert(
+              `Error al guardar marca: ${error instanceof Error ? error.message : "Error desconocido"}`,
+            );
+
+            // Emitir evento de error para resetear estado de carga en el modal
+            document.dispatchEvent(new CustomEvent("brandFormError"));
+          }
+        });
+
+        // Cargar marcas desde el backend
+        await loadBrands();
+
+        // Botón nueva marca - asignar listener directamente
+        if (newBrandBtn) {
+          newBrandBtn.addEventListener("click", () => {
+            document.dispatchEvent(new CustomEvent("open-new-brand-modal"));
+          });
+        }
+
+        // Configurar modal de eliminación
+        const deleteModal = document.getElementById('delete-brand-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-brand-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-brand-btn') as HTMLButtonElement | null;
+
+        // Cerrar modal con botón cancelar
+        if (cancelDeleteBtn) {
+          cancelDeleteBtn.addEventListener('click', () => {
+            closeModal(deleteModal);
+          });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        if (deleteModal) {
+          deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+              closeModal(deleteModal);
+            }
+          });
+        }
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            closeModal(deleteModal);
+          }
+        });
+
+        // Confirmar eliminación
+        if (confirmDeleteBtn) {
+          confirmDeleteBtn.addEventListener('click', async () => {
+            const brandId = confirmDeleteBtn.getAttribute('data-brand-id');
+            const brandName = confirmDeleteBtn.getAttribute('data-brand-name');
+            
+            if (!brandId) return;
+
+            // Deshabilitar botón mientras se procesa
+            const originalText = confirmDeleteBtn.textContent;
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.textContent = 'Eliminando...';
+
+            try {
+              const { deleteBrand } = await import("../../lib/db/brands");
+              const result = await deleteBrand(brandId);
+
+              if (result.error) {
+                throw result.error;
+              }
+
+              // Eliminar imagen del Storage si existe
+              const brand = brandsData.find((b: any) => b.id === brandId);
+              if (brand?.image) {
+                try {
+                  const { deleteBrandImage } = await import("../../lib/utils/storage");
+                  await deleteBrandImage(brand.image);
+                } catch (imgError) {
+                  console.error("Error eliminando imagen:", imgError);
+                  // Continuar aunque falle la eliminación de la imagen
+                }
+              }
+
+              // Mostrar toast de éxito
+              showSuccessToast('Marca eliminada exitosamente');
+              closeModal(deleteModal);
+
+              // Recargar marcas
+              await loadBrands();
+            } catch (error) {
+              console.error("Error eliminando marca:", error);
+              showErrorToast(error instanceof Error ? error.message : 'Error al eliminar la marca');
+              confirmDeleteBtn.disabled = false;
+              confirmDeleteBtn.textContent = originalText || 'Eliminar';
+            }
+          });
+        }
+      }
+
+      // Inicializar cuando el DOM esté listo
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+    })();
+  </script>
 </Layout>

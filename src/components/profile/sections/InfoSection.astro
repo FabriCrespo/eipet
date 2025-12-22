@@ -633,13 +633,28 @@ const headerStats = [
           }
 
           const { updateUser } = await import('../../../lib/db/users');
+          const { deleteUserAvatar, isFirebaseStorageUrl } = await import('../../../lib/utils/storage');
+          
+          // Si hay un avatar anterior de Firebase Storage y se está cambiando, eliminarlo
+          if (currentUser.avatar && 
+              isFirebaseStorageUrl(currentUser.avatar) && 
+              profileImage !== currentUser.avatar &&
+              profileImage !== defaultAvatar &&
+              isFirebaseStorageUrl(profileImage)) {
+            try {
+              await deleteUserAvatar(currentUser.avatar);
+            } catch (error) {
+              console.warn('No se pudo eliminar el avatar anterior:', error);
+              // Continuar de todas formas
+            }
+          }
           
           // Preparar datos para actualizar
           const updateData = {
             firstName: formData.firstName,
             lastName: formData.lastName,
             phone: formData.phone,
-            avatar: profileImage !== defaultAvatar ? profileImage : undefined,
+            avatar: profileImage && profileImage !== defaultAvatar && profileImage.trim() !== '' ? profileImage : undefined,
             // Nota: email no se puede cambiar aquí, se maneja en Firebase Auth
             // birthdate, newsletter, notifications se pueden agregar si están en el tipo UpdateUserData
           };
@@ -654,8 +669,11 @@ const headerStats = [
           currentUser = {
             ...currentUser,
             ...formData,
-            avatar: profileImage
+            avatar: profileImage && profileImage !== defaultAvatar ? profileImage : currentUser.avatar
           };
+          
+          // Actualizar localStorage
+          localStorage.setItem('user', JSON.stringify(currentUser));
         } catch (error) {
           console.error('Error saving user:', error);
           throw error;
@@ -763,28 +781,91 @@ const headerStats = [
         });
       });
 
-      avatarInput?.addEventListener('change', (event) => {
-        const file = event.target.files?.[0];
+      avatarInput?.addEventListener('change', async (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        const file = target.files?.[0];
         if (!file) return;
-        if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-          alert('Formato de imagen no válido. Usa JPG, PNG o GIF.');
+        
+        // Validar tipo de archivo
+        if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+          alert('Formato de imagen no válido. Usa JPG, PNG, GIF o WEBP.');
           return;
         }
+        
+        // Validar tamaño
         if (file.size > 5 * 1024 * 1024) {
           alert('La imagen es demasiado grande. Máximo 5 MB.');
           return;
         }
-        const reader = new FileReader();
-        reader.onload = () => {
-          profileImage = reader.result;
+
+        try {
+          // Obtener usuario actual
+          const { getCurrentUser } = await import('../../../lib/auth');
+          const firebaseUser = getCurrentUser();
+          
+          if (!firebaseUser) {
+            alert('Debes estar autenticado para subir una imagen');
+            return;
+          }
+
+          // Mostrar preview inmediato mientras se sube
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (typeof reader.result === 'string') {
+              profileImage = reader.result; // Preview temporal
+              syncHeader();
+            }
+          };
+          reader.readAsDataURL(file);
+
+          // Subir imagen a Firebase Storage
+          const { uploadUserAvatar } = await import('../../../lib/utils/storage');
+          const uploadResult = await uploadUserAvatar(file, firebaseUser.uid);
+
+          if (!uploadResult.success || !uploadResult.url) {
+            throw new Error(uploadResult.error?.message || 'Error al subir la imagen');
+          }
+
+          // Actualizar con la URL de Firebase Storage
+          profileImage = uploadResult.url;
+          
           if (isEditing) {
             tempData.avatar = profileImage;
           } else {
             formData.avatar = profileImage;
           }
+          
           syncHeader();
-        };
-        reader.readAsDataURL(file);
+
+          // Mostrar notificación de éxito
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg z-50 flex items-center gap-3 animate-fade-in';
+          notification.innerHTML = `
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-semibold">Imagen subida correctamente</span>
+          `;
+          document.body.appendChild(notification);
+          setTimeout(() => {
+            notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+            setTimeout(() => notification.remove(), 300);
+          }, 3000);
+
+        } catch (error) {
+          console.error('Error uploading avatar:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido al subir la imagen';
+          alert(`Error: ${errorMessage}`);
+          
+          // Restaurar imagen anterior si hay error
+          if (currentUser?.avatar) {
+            profileImage = currentUser.avatar;
+          } else {
+            profileImage = defaultAvatar;
+          }
+          syncHeader();
+        }
       });
 
       logoutButton?.addEventListener('click', async () => {

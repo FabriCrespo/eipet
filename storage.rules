@@ -17,13 +17,13 @@ service firebase.storage {
       allow write: if isAdmin();
     }
     
-    // Imágenes de categorías
-    match /categories/{categoryId}/{allPaths=**} {
-      // Cualquiera puede leer imágenes de categorías (públicas)
+    // Avatares de usuarios
+    match /users/{userId}/avatar/{allPaths=**} {
+      // Cualquiera puede leer avatares (públicos)
       allow read: if true;
       
-      // Solo admins pueden escribir (subir/eliminar)
-      allow write: if isAdmin();
+      // Solo el usuario propietario puede escribir su propio avatar
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

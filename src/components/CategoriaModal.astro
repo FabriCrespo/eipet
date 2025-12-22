@@ -44,16 +44,15 @@
       <!-- Imagen -->
       <div>
         <label for="category-image-file" class="block text-sm font-semibold text-gray-700 mb-1.5">
-          Imagen <span class="text-red-500">*</span>
+          Imagen <span class="text-red-500" id="image-required-indicator">*</span>
         </label>
         <input
           type="file"
           id="category-image-file"
           accept="image/*"
-          required
           class="w-full px-3 py-2 rounded-lg border-2 border-gray-200 bg-white text-gray-800 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all"
         />
-        <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP (máx. 5MB)</p>
+        <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, WEBP (máx. 5MB). Si estás editando, puedes dejar vacío para mantener la imagen actual.</p>
       </div>
 
       <!-- Vista previa de imagen -->
@@ -145,6 +144,25 @@
         document.body.style.overflow = '';
       }
 
+      // Función para mostrar/ocultar estado de carga
+      function setLoadingState(loading: boolean) {
+        const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+        if (submitBtn) {
+          submitBtn.disabled = loading;
+          if (loading) {
+            submitBtn.innerHTML = `
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Guardando...
+            `;
+          } else {
+            submitBtn.innerHTML = 'Guardar';
+          }
+        }
+      }
+
       // Función para resetear el formulario
       function resetForm() {
         if (!categoryForm) return;
@@ -156,6 +174,13 @@
         if (uploadProgress) uploadProgress.classList.add('hidden');
         if (uploadProgressBar) uploadProgressBar.style.width = '0%';
         if (modalTitle) modalTitle.textContent = 'Nueva Categoría';
+        setLoadingState(false);
+        
+        // Mostrar indicador de requerido de imagen
+        const imageRequiredIndicator = document.getElementById('image-required-indicator');
+        if (imageRequiredIndicator) {
+          imageRequiredIndicator.style.display = 'inline';
+        }
       }
 
       // Función para abrir modal en modo edición
@@ -169,10 +194,16 @@
         if (categoryIdInput) categoryIdInput.value = category.id || '';
         const nameInput = document.getElementById('category-name') as HTMLInputElement | null;
         const animalTypeInput = document.getElementById('category-animal-type') as HTMLSelectElement | null;
+        const imageRequiredIndicator = document.getElementById('image-required-indicator');
         
         if (nameInput) nameInput.value = category.name || '';
         if (animalTypeInput) animalTypeInput.value = category.animalType || '';
         currentImageUrl = category.image || null;
+
+        // Si hay imagen existente, ocultar el indicador de requerido
+        if (imageRequiredIndicator) {
+          imageRequiredIndicator.style.display = category.image ? 'none' : 'inline';
+        }
 
         if (category.image && imagePreview) {
           imagePreview.src = category.image;
@@ -220,7 +251,7 @@
 
       // Submit del formulario
       if (categoryForm) {
-        categoryForm.addEventListener('submit', (e) => {
+        categoryForm.addEventListener('submit', async (e) => {
           e.preventDefault();
 
           const nameInput = document.getElementById('category-name') as HTMLInputElement | null;
@@ -234,6 +265,14 @@
             alert('Por favor, completa todos los campos requeridos');
             return;
           }
+
+          // Validar que hay imagen (nueva o existente)
+          if (!imageFile && !currentImageUrl) {
+            alert('Por favor, selecciona una imagen para la categoría');
+            return;
+          }
+
+          setLoadingState(true);
 
           // Preparar datos del formulario
           const formData = {
@@ -250,12 +289,22 @@
           });
           document.dispatchEvent(event);
 
-          // Por ahora solo cerramos el modal
-          // La lógica de guardado se manejará en la página principal
-          resetForm();
-          closeModal();
+          // El modal se cerrará cuando se emita el evento 'categoryFormSaved'
+          // Este evento será emitido desde la página principal después de guardar
         });
       }
+
+      // Escuchar evento de confirmación de guardado para cerrar el modal
+      document.addEventListener('categoryFormSaved', () => {
+          resetForm();
+          closeModal();
+        setLoadingState(false);
+        });
+
+      // Escuchar evento de error para resetear estado de carga
+      document.addEventListener('categoryFormError', () => {
+        setLoadingState(false);
+      });
 
       // Cerrar modales
       const closeBtn = document.getElementById('close-modal-btn');

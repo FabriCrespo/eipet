@@ -1115,7 +1115,7 @@ import Layout from '../layouts/Layout.astro';
             e.preventDefault();
             const productId = btn.getAttribute('data-product-id');
             if (productId) {
-              openProductModal(parseInt(productId));
+              openProductModal(productId);
             }
           });
         });
@@ -1160,7 +1160,7 @@ import Layout from '../layouts/Layout.astro';
             if (productId) {
               const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`) as HTMLInputElement;
               const quantity = input ? parseInt(input.value) || 1 : 1;
-              const product = allProducts.find(p => p.id === parseInt(productId));
+              const product = allProducts.find(p => String(p.id) === String(productId));
               
               if (product) {
                 console.log('Agregar al carrito:', {
@@ -1333,12 +1333,76 @@ import Layout from '../layouts/Layout.astro';
         }
       }
 
-      // Cargar productos desde JSON
+      // Cargar productos desde Firebase
       async function loadProducts() {
         try {
-          const response = await fetch('/data/products.json');
-          const data = await response.json();
-          allProducts = data.products || [];
+          // Importar funciones de Firebase
+          // @ts-ignore
+          const { getProducts } = await import('../lib/db/products');
+          // @ts-ignore
+          const { getCategories } = await import('../lib/db/categories');
+          // @ts-ignore
+          const { getBrands } = await import('../lib/db/brands');
+
+          // Obtener todos los datos en paralelo
+          const [productsResult, categoriesResult, brandsResult] = await Promise.all([
+            getProducts({ status: 'active' }), // Solo productos activos
+            getCategories(),
+            getBrands()
+          ]);
+
+          // Crear mapas para búsqueda rápida
+          const categoryMap = new Map((categoriesResult.data || []).map((c: any) => [c.id, c]));
+          const brandMap = new Map((brandsResult.data || []).map((b: any) => [b.id, b]));
+
+          // Función para mapear animalType a slug
+          function getCategorySlug(categoryData: any): string {
+            if (!categoryData) return 'all';
+            // Si la categoría tiene slug, usarlo
+            if (categoryData.slug) return categoryData.slug;
+            // Mapear animalType a slug
+            if (categoryData.animalType === 'Perro') return 'dog';
+            if (categoryData.animalType === 'Gato') return 'cat';
+            return 'all';
+          }
+
+          // Mapear productos de Firebase al formato esperado
+          allProducts = (productsResult.data || []).map((p: any) => {
+            const categoryData = categoryMap.get(p.category);
+            const brandData = brandMap.get(p.brand);
+
+            // Calcular precio original si hay descuento
+            let originalPrice = p.originalPrice || null;
+            if (p.discount > 0 && !originalPrice) {
+              // Calcular precio original basado en el descuento
+              if (p.discountType === 'percentage') {
+                originalPrice = Math.round((p.price * 100) / (100 - p.discount) * 100) / 100;
+              }
+            }
+
+            return {
+              id: p.id, // Mantener ID como string (Firebase usa strings)
+              name: p.name || '',
+              brand: brandData?.name || p.brand || 'Sin marca',
+              category: getCategorySlug(categoryData), // Mapear a slug ('dog', 'cat', 'all')
+              categoryId: p.category, // Guardar ID original para referencia
+              type: p.type || 'food',
+              price: p.price || 0,
+              originalPrice: originalPrice,
+              discount: p.discount || 0,
+              discountType: p.discountType || 'percentage',
+              image: p.image || '',
+              lifeStage: p.lifeStage || '',
+              breedSize: p.breedSize || '',
+              weight: p.weight || null,
+              description: p.description || '',
+              stock: p.stock || 0,
+              minStock: p.minStock || 5,
+              status: p.status || 'active',
+              tags: p.tags || []
+            };
+          });
+
           filterProducts();
           
           // Ocultar loader y mostrar contenido
@@ -1877,8 +1941,8 @@ import Layout from '../layouts/Layout.astro';
       const productModalContent = document.getElementById('product-details-content');
       const closeProductModalBtn = document.getElementById('close-product-modal-btn');
 
-      function openProductModal(productId: number) {
-        const product = allProducts.find(p => p.id === productId);
+      function openProductModal(productId: string | number) {
+        const product = allProducts.find(p => String(p.id) === String(productId));
         if (!product || !productModal || !productModalContent) return;
 
         // Función auxiliar para formatear texto
