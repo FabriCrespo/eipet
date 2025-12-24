@@ -1,0 +1,463 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Carrito de Compras - Eipet" description="Revisa tu carrito de compras y completa tu pedido">
+  <section class="py-4 sm:py-6 lg:py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Header mejorado -->
+      <div class="mb-6 sm:mb-8 lg:mb-10">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#5d3fbb] to-[#6d4fcc] rounded-xl flex items-center justify-center shadow-lg">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">Carrito de Compras</h1>
+            <p class="text-gray-600 text-xs sm:text-sm mt-1">Revisa tus productos y completa tu compra</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenedor principal -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Lista de productos -->
+        <div class="lg:col-span-2">
+          <!-- Empty State -->
+          <div id="cart-empty" class="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center hidden">
+            <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Tu carrito está vacío</h2>
+            <p class="text-gray-500 mb-6">Agrega productos para comenzar tu compra</p>
+            <a href="/products?pet=dog" class="inline-block px-6 py-3 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors">
+              Ver Productos
+            </a>
+          </div>
+
+          <!-- Items del carrito -->
+          <div id="cart-items-container" class="space-y-4 hidden">
+            <!-- Los items se renderizarán aquí -->
+          </div>
+        </div>
+
+        <!-- Resumen del pedido -->
+        <div class="lg:col-span-1">
+          <div id="cart-summary" class="bg-white rounded-xl shadow-sm p-6 sticky top-4 hidden">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Resumen del Pedido</h2>
+            
+            <!-- Detalles -->
+            <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal:</span>
+                <span id="summary-subtotal" class="font-semibold text-gray-900">Bs. 0</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Envío:</span>
+                <span id="summary-shipping" class="font-semibold text-gray-900">Bs. 0</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Descuento:</span>
+                <span id="summary-discount" class="font-semibold text-green-600">Bs. 0</span>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="mb-6 pb-6 border-b border-gray-200">
+              <div class="flex justify-between items-center">
+                <span class="text-lg font-bold text-gray-900">Total:</span>
+                <span id="summary-total" class="text-2xl font-bold text-[#5d3fbb]">Bs. 0</span>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="space-y-3">
+              <button
+                id="checkout-btn"
+                class="w-full px-6 py-3 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors text-base"
+              >
+                Proceder al Pago
+              </button>
+              <a
+                href="/products?pet=dog"
+                class="block w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors text-center text-base"
+              >
+                Seguir Comprando
+              </a>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+              <div class="flex items-start gap-2 text-xs text-gray-500">
+                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <p>Tu información de pago está protegida y encriptada</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Estado del carrito
+  let cartState: {
+    items: Array<{
+      productId: string;
+      quantity: number;
+      product?: {
+        id: string;
+        name: string;
+        price: number;
+        image: string;
+        brandName?: string;
+        stock?: number;
+      };
+    }>;
+    lastUpdated: number;
+  } = {
+    items: [],
+    lastUpdated: Date.now()
+  };
+
+  // Cargar carrito desde localStorage
+  function loadCartFromStorage() {
+    try {
+      const cartData = localStorage.getItem('cart');
+      if (cartData) {
+        const parsed = JSON.parse(cartData);
+        cartState.items = parsed.items || [];
+        cartState.lastUpdated = parsed.lastUpdated || Date.now();
+      }
+    } catch (e) {
+      console.error('Error cargando carrito:', e);
+      cartState.items = [];
+    }
+  }
+
+  // Guardar carrito en localStorage
+  function saveCartToStorage() {
+    try {
+      cartState.lastUpdated = Date.now();
+      localStorage.setItem('cart', JSON.stringify(cartState));
+      // Disparar evento para actualizar el header
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+    } catch (e) {
+      console.error('Error guardando carrito:', e);
+    }
+  }
+
+  // Calcular subtotal
+  function getCartSubtotal(): number {
+    return cartState.items.reduce((sum, item) => {
+      const price = item.product?.price || 0;
+      return sum + (price * item.quantity);
+    }, 0);
+  }
+
+  // Calcular envío (gratis si el subtotal es mayor a 200)
+  function calculateShipping(): number {
+    const subtotal = getCartSubtotal();
+    return subtotal >= 200 ? 0 : 20;
+  }
+
+  // Calcular total
+  function getCartTotal(): number {
+    return getCartSubtotal() + calculateShipping();
+  }
+
+  // Cargar datos de productos para items del carrito
+  async function loadProductDataForCartItems() {
+    const itemsNeedingData = cartState.items.filter(item => !item.product);
+    if (itemsNeedingData.length === 0) return;
+
+    try {
+      const { getProductById } = await import('../lib/db/products');
+      const { getBrands } = await import('../lib/db/brands');
+      const brandsResult = await getBrands();
+      const brands = brandsResult.data || [];
+
+      for (const item of itemsNeedingData) {
+        const productResult = await getProductById(item.productId);
+        if (productResult.data) {
+          const product = productResult.data;
+          const brand = brands.find((b: any) => b.id === product.brand);
+
+          item.product = {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            brandName: brand?.name,
+            stock: product.stock
+          };
+        }
+      }
+
+      saveCartToStorage();
+      renderCart();
+    } catch (error) {
+      console.error('Error cargando datos de productos:', error);
+    }
+  }
+
+  // Renderizar items del carrito
+  function renderCartItems() {
+    const container = document.getElementById('cart-items-container');
+    if (!container) return;
+
+    if (cartState.items.length === 0) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = cartState.items.map((item, index) => {
+      const product = item.product;
+      if (!product) return '';
+
+      const subtotal = (product.price || 0) * item.quantity;
+
+      return `
+        <div class="cart-item-row bg-white rounded-xl shadow-sm p-4 sm:p-6" data-product-id="${item.productId}">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <!-- Imagen -->
+            <div class="w-full sm:w-32 h-32 sm:h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+              <img 
+                src="${product.image || ''}" 
+                alt="${product.name}"
+                class="w-full h-full object-cover"
+                onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'12\'%3EImagen%3C/text%3E%3C/svg%3E';"
+              />
+            </div>
+
+            <!-- Información -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div class="flex-1 min-w-0">
+                  ${product.brandName ? `<p class="text-xs text-gray-500 mb-1">${product.brandName}</p>` : ''}
+                  <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 line-clamp-2">${product.name}</h3>
+                  <p class="text-sm text-gray-600">Bs. ${(product.price || 0).toLocaleString()} c/u</p>
+                </div>
+                <button
+                  type="button"
+                  class="remove-item-btn p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                  data-product-id="${item.productId}"
+                  aria-label="Eliminar del carrito"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Controles de cantidad y precio -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button"
+                    class="decrease-qty-btn w-8 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 transition-colors flex items-center justify-center"
+                    data-product-id="${item.productId}"
+                    aria-label="Disminuir cantidad"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <input 
+                    type="number"
+                    min="1"
+                    value="${item.quantity}"
+                    class="quantity-input w-12 text-center text-sm font-semibold text-gray-900 border border-gray-300 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20"
+                    data-product-id="${item.productId}"
+                    readonly
+                  />
+                  <button 
+                    type="button"
+                    class="increase-qty-btn w-8 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 transition-colors flex items-center justify-center"
+                    data-product-id="${item.productId}"
+                    aria-label="Aumentar cantidad"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div class="text-right">
+                  <p class="text-lg sm:text-xl font-bold text-[#5d3fbb]">Bs. ${subtotal.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Agregar event listeners
+    attachCartItemListeners();
+  }
+
+  // Agregar event listeners a los items
+  function attachCartItemListeners() {
+    // Botones de aumentar cantidad
+    document.querySelectorAll('.increase-qty-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const productId = btn.getAttribute('data-product-id');
+        if (productId) {
+          updateCartItemQuantity(productId, 1);
+        }
+      });
+    });
+
+    // Botones de disminuir cantidad
+    document.querySelectorAll('.decrease-qty-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const productId = btn.getAttribute('data-product-id');
+        if (productId) {
+          updateCartItemQuantity(productId, -1);
+        }
+      });
+    });
+
+    // Botones de eliminar
+    document.querySelectorAll('.remove-item-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const productId = btn.getAttribute('data-product-id');
+        if (productId) {
+          removeFromCart(productId);
+        }
+      });
+    });
+  }
+
+  // Actualizar cantidad de un item
+  function updateCartItemQuantity(productId: string, change: number) {
+    const item = cartState.items.find(i => i.productId === productId);
+    if (!item) return;
+
+    const newQuantity = item.quantity + change;
+
+    if (newQuantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+
+    // Validar stock si está disponible
+    if (item.product?.stock !== undefined && newQuantity > item.product.stock) {
+      alert(`Stock insuficiente. Disponible: ${item.product.stock}`);
+      return;
+    }
+
+    item.quantity = newQuantity;
+    saveCartToStorage();
+    renderCart();
+  }
+
+  // Eliminar item del carrito
+  function removeFromCart(productId: string) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+      cartState.items = cartState.items.filter(item => item.productId !== productId);
+      saveCartToStorage();
+      renderCart();
+    }
+  }
+
+  // Actualizar resumen
+  function updateSummary() {
+    const summary = document.getElementById('cart-summary');
+    const subtotalEl = document.getElementById('summary-subtotal');
+    const shippingEl = document.getElementById('summary-shipping');
+    const totalEl = document.getElementById('summary-total');
+
+    if (!summary || !subtotalEl || !shippingEl || !totalEl) return;
+
+    if (cartState.items.length === 0) {
+      summary.classList.add('hidden');
+      return;
+    }
+
+    summary.classList.remove('hidden');
+
+    const subtotal = getCartSubtotal();
+    const shipping = calculateShipping();
+    const total = getCartTotal();
+
+    subtotalEl.textContent = `Bs. ${subtotal.toLocaleString()}`;
+    shippingEl.textContent = shipping === 0 ? 'Gratis' : `Bs. ${shipping.toLocaleString()}`;
+    totalEl.textContent = `Bs. ${total.toLocaleString()}`;
+  }
+
+  // Renderizar carrito completo
+  function renderCart() {
+    const empty = document.getElementById('cart-empty');
+    const itemsContainer = document.getElementById('cart-items-container');
+
+    if (cartState.items.length === 0) {
+      if (empty) empty.classList.remove('hidden');
+      if (itemsContainer) itemsContainer.classList.add('hidden');
+    } else {
+      if (empty) empty.classList.add('hidden');
+      renderCartItems();
+    }
+
+    updateSummary();
+  }
+
+  // Inicializar página
+  async function initCartPage() {
+    loadCartFromStorage();
+    await loadProductDataForCartItems();
+    renderCart();
+
+    // Botón de checkout
+    const checkoutBtn = document.getElementById('checkout-btn');
+    checkoutBtn?.addEventListener('click', () => {
+      if (cartState.items.length === 0) {
+        alert('Tu carrito está vacío');
+        return;
+      }
+      window.location.href = '/checkout';
+    });
+
+    // Escuchar actualizaciones del carrito desde otras pestañas
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'cart') {
+        loadCartFromStorage();
+        loadProductDataForCartItems();
+        renderCart();
+      }
+    });
+
+    // Escuchar eventos personalizados
+    window.addEventListener('cart-updated', () => {
+      loadCartFromStorage();
+      loadProductDataForCartItems();
+      renderCart();
+    });
+  }
+
+  // Inicializar cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCartPage);
+  } else {
+    initCartPage();
+  }
+</script>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
