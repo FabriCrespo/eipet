@@ -436,6 +436,48 @@ import Layout from '../layouts/Layout.astro';
             </div>
           </div>
 
+          <!-- Categorías -->
+          <div id="categories-section" class="mb-6 hidden">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Categorías</h2>
+            </div>
+            <div id="categories-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+              <!-- Las categorías se renderizarán aquí dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Marcas -->
+          <div id="brands-section" class="mb-6 hidden">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Marcas</h2>
+              <button
+                id="back-to-categories-btn"
+                class="text-sm text-[#5d3fbb] hover:text-[#6d4fcc] font-semibold flex items-center gap-1 transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Volver a categorías
+              </button>
+            </div>
+            <div id="brands-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+              <!-- Las marcas se renderizarán aquí dinámicamente -->
+            </div>
+          </div>
+
+          <!-- Botón para volver a marcas (se muestra cuando hay productos de una marca) -->
+          <div id="back-to-brands-section" class="mb-4 hidden">
+            <button
+              id="back-to-brands-btn"
+              class="text-sm text-[#5d3fbb] hover:text-[#6d4fcc] font-semibold flex items-center gap-1 transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Volver a marcas
+            </button>
+          </div>
+
           <!-- Contador de Resultados -->
           <div id="results-count" class="mb-4 hidden">
             <p class="text-sm text-gray-600">
@@ -907,6 +949,25 @@ import Layout from '../layouts/Layout.astro';
       let currentView: 'grid' | 'list' = 'grid';
       let searchQuery: string = '';
       let searchTimeout: NodeJS.Timeout | null = null;
+      let allCategoriesData: any[] = [];
+      let allBrandsData: any[] = [];
+      
+      // Caché para carga bajo demanda
+      const brandsCache = new Map<string, any[]>(); // categoryId -> brands[]
+      const productsCache = new Map<string, any[]>(); // brandId -> products[]
+      const loadedBrands = new Set<string>(); // categoryIds de marcas ya cargadas
+      const loadedProducts = new Set<string>(); // brandIds de productos ya cargados
+      
+      // Estructura de datos optimizada - Maps para búsquedas O(1)
+      const categoryMap = new Map<string, any>(); // categoryId -> category
+      const brandMap = new Map<string, any>(); // brandId -> brand
+      const productMap = new Map<string, any>(); // productId -> product
+      const brandsByCategoryMap = new Map<string, string[]>(); // categoryId -> brandIds[]
+      const productsByBrandMap = new Map<string, string[]>(); // brandId -> productIds[]
+      
+      // Contadores pre-calculados
+      const categoryBrandCounts = new Map<string, number>(); // categoryId -> count
+      const brandProductCounts = new Map<string, number>(); // brandId -> count
 
       // Obtener parámetros de la URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -937,6 +998,507 @@ import Layout from '../layouts/Layout.astro';
       const pageSubtitle = document.getElementById('page-subtitle');
       if (pageTitle) pageTitle.textContent = getTitle();
       if (pageSubtitle) pageSubtitle.textContent = getSubtitle();
+
+      // Función para renderizar categorías
+      function renderCategories(categories: any[]) {
+        const categoriesSection = document.getElementById('categories-section');
+        const categoriesGrid = document.getElementById('categories-grid');
+        
+        if (!categoriesSection || !categoriesGrid) return;
+        
+        if (categories.length === 0) {
+          categoriesSection.classList.add('hidden');
+          return;
+        }
+        
+        categoriesSection.classList.remove('hidden');
+        
+        categoriesGrid.innerHTML = categories.map((category: any) => `
+          <div
+            class="category-card bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer"
+            data-category-id="${category.id}"
+          >
+            <div class="relative aspect-square bg-gray-100 overflow-hidden">
+              ${category.image ? `
+                <img
+                  src="${category.image}"
+                  alt="${category.name}"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
+                />
+              ` : `
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
+                  <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              `}
+            </div>
+            <div class="p-2 sm:p-3 text-center">
+              <h3 class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 min-h-[2rem]">
+                ${category.name}
+              </h3>
+            </div>
+          </div>
+        `).join('');
+
+        // Agregar event listeners a los cards de categorías
+        categoriesGrid.querySelectorAll('.category-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const categoryId = card.getAttribute('data-category-id');
+            if (categoryId) {
+              showBrandsForCategory(categoryId);
+            }
+          });
+        });
+      }
+
+      // Variable para guardar la categoría actual
+      let currentCategoryId: string | null = null;
+
+      // Función para cargar marcas de una categoría (carga bajo demanda)
+      async function loadBrandsForCategory(categoryId: string): Promise<any[]> {
+        // Si ya están en caché, retornarlas
+        if (brandsCache.has(categoryId)) {
+          console.log(`✅ Marcas de categoría ${categoryId} obtenidas de caché`);
+          return brandsCache.get(categoryId) || [];
+        }
+
+        // Si ya se cargaron antes, retornar del caché
+        if (loadedBrands.has(categoryId)) {
+          return brandsCache.get(categoryId) || [];
+        }
+
+        console.log(`🏷️ Cargando marcas para categoría ${categoryId}...`);
+        
+        try {
+          // Importar función de marcas
+          const { getBrands } = await import('../lib/db/brands');
+          const brandsResult = await getBrands();
+          
+          // Filtrar marcas por categoría
+          const categoryBrands = (brandsResult.data || []).filter((brand: any) => 
+            brand.categoryId === categoryId && brand.status === 'Activo'
+          );
+
+          // Guardar en caché
+          brandsCache.set(categoryId, categoryBrands);
+          loadedBrands.add(categoryId);
+          
+          // Optimizar estructura de datos: actualizar Maps y contadores
+          const brandIds: string[] = [];
+          categoryBrands.forEach((brand: any) => {
+            // Actualizar brandMap para búsquedas O(1)
+            brandMap.set(brand.id, brand);
+            
+            // Actualizar allBrandsData (sin duplicados)
+            if (!allBrandsData.find((b: any) => b.id === brand.id)) {
+              allBrandsData.push(brand);
+            }
+            
+            brandIds.push(brand.id);
+          });
+          
+          // Pre-calcular relación: marcas por categoría
+          brandsByCategoryMap.set(categoryId, brandIds);
+          categoryBrandCounts.set(categoryId, categoryBrands.length);
+
+          console.log(`✅ Marcas cargadas para categoría ${categoryId}:`, categoryBrands.length);
+          console.log(`   Contador pre-calculado: ${categoryBrands.length} marcas`);
+          
+          // Cachear marcas en Service Worker para acceso offline
+          if (typeof window !== 'undefined' && (window as any).cacheData) {
+            (window as any).cacheData(`brands-${categoryId}`, categoryBrands);
+          }
+          
+          return categoryBrands;
+        } catch (error) {
+          console.error(`❌ Error cargando marcas para categoría ${categoryId}:`, error);
+          return [];
+        }
+      }
+
+      // Función para mostrar marcas de una categoría
+      async function showBrandsForCategory(categoryId: string) {
+        const categoriesSection = document.getElementById('categories-section');
+        const brandsSection = document.getElementById('brands-section');
+        const brandsGrid = document.getElementById('brands-grid');
+        const backToBrandsSection = document.getElementById('back-to-brands-section');
+        const productsGrid = document.getElementById('products-grid');
+        const loadingState = document.getElementById('loading-state');
+        
+        if (!brandsSection || !brandsGrid) return;
+
+        // Guardar categoría actual
+        currentCategoryId = categoryId;
+
+        // Mostrar loading state mientras se cargan las marcas
+        if (loadingState && !brandsCache.has(categoryId)) {
+          loadingState.classList.remove('hidden');
+        }
+
+        // Cargar marcas bajo demanda
+        const categoryBrands = await loadBrandsForCategory(categoryId);
+
+        // Ocultar loading state
+        if (loadingState) loadingState.classList.add('hidden');
+
+        if (categoryBrands.length === 0) {
+          console.log('No hay marcas para esta categoría');
+          if (loadingState) loadingState.classList.add('hidden');
+          return;
+        }
+
+        // Ocultar categorías, productos y botón de volver a marcas
+        if (categoriesSection) categoriesSection.classList.add('hidden');
+        if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
+        if (productsGrid) productsGrid.style.display = 'none';
+        brandsSection.classList.remove('hidden');
+
+        // Renderizar marcas - imagen grande sin texto (el logo es la imagen)
+        brandsGrid.innerHTML = categoryBrands.map((brand: any) => `
+          <div
+            class="brand-card bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer aspect-square"
+            data-brand-id="${brand.id}"
+            title="${brand.name}"
+          >
+            <div class="relative w-full h-full bg-gray-50 p-4 sm:p-6 flex items-center justify-center">
+              ${brand.image ? `
+                <img
+                  src="${brand.image}"
+                  alt="${brand.name}"
+                  class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
+                />
+              ` : `
+                <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg">
+                  <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  <span class="text-xs text-gray-500 text-center px-2 line-clamp-2">${brand.name}</span>
+                </div>
+              `}
+            </div>
+          </div>
+        `).join('');
+
+        // Agregar event listeners a los cards de marcas
+        brandsGrid.querySelectorAll('.brand-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const brandId = card.getAttribute('data-brand-id');
+            if (brandId) {
+              showProductsForBrand(brandId);
+            }
+          });
+        });
+
+        // Scroll suave a la sección de marcas
+        brandsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      // Función para cargar productos de una marca (carga bajo demanda)
+      async function loadProductsForBrand(brandId: string): Promise<any[]> {
+        // Si ya están en caché, retornarlos
+        if (productsCache.has(brandId)) {
+          console.log(`✅ Productos de marca ${brandId} obtenidos de caché`);
+          return productsCache.get(brandId) || [];
+        }
+
+        // Si ya se cargaron antes, retornar del caché
+        if (loadedProducts.has(brandId)) {
+          return productsCache.get(brandId) || [];
+        }
+
+        console.log(`📦 Cargando productos para marca ${brandId}...`);
+        
+        try {
+          // Importar función de productos
+          const { getProducts } = await import('../lib/db/products');
+          
+          // Crear mapas para búsqueda rápida
+          const categoryMap = new Map(allCategoriesData.map((c: any) => [c.id, c]));
+          const brandMap = new Map(allBrandsData.map((b: any) => [b.id, b]));
+
+          // Función para mapear animalType a slug
+          function getCategorySlug(categoryData: any): string {
+            if (!categoryData) return 'all';
+            if (categoryData.slug) return categoryData.slug;
+            if (categoryData.animalType === 'Perro') return 'dog';
+            if (categoryData.animalType === 'Gato') return 'cat';
+            return 'all';
+          }
+
+          // Obtener productos activos
+          let productsResult;
+          try {
+            productsResult = await getProducts({ status: 'active' });
+            
+            if (!productsResult.data || productsResult.data.length === 0 || productsResult.error) {
+              console.log('⚠️ No se obtuvieron productos con status="active", intentando sin filtro...');
+              const allProductsResult = await getProducts();
+              
+              if (allProductsResult.data && allProductsResult.data.length > 0) {
+                productsResult = {
+                  data: allProductsResult.data.filter((p: any) => p.status === 'active'),
+                  error: allProductsResult.error
+                };
+              } else {
+                productsResult = allProductsResult;
+              }
+            }
+          } catch (error) {
+            console.error('❌ Error al obtener productos:', error);
+            const allProductsResult = await getProducts();
+            if (allProductsResult.data && allProductsResult.data.length > 0) {
+              productsResult = {
+                data: allProductsResult.data.filter((p: any) => p.status === 'active'),
+                error: allProductsResult.error
+              };
+            } else {
+              productsResult = { data: [], error: error as Error };
+            }
+          }
+
+          // Filtrar productos por marca
+          const brandProducts = (productsResult.data || []).filter((p: any) => 
+            String(p.brand || '') === String(brandId)
+          );
+
+          // Mapear productos al formato esperado
+          const mappedProducts = brandProducts.map((p: any) => {
+            const categoryData = categoryMap.get(p.category);
+            const brandData = brandMap.get(p.brand);
+
+            let originalPrice = p.originalPrice || null;
+            if (p.discount > 0 && !originalPrice) {
+              if (p.discountType === 'percentage') {
+                originalPrice = Math.round((p.price * 100) / (100 - p.discount) * 100) / 100;
+              }
+            }
+
+            const mappedProduct = {
+              id: p.id,
+              name: p.name || '',
+              brand: p.brand || '',
+              brandId: p.brand || '',
+              brandName: brandData?.name || 'Sin marca',
+              category: getCategorySlug(categoryData),
+              categoryId: p.category,
+              type: p.type || 'food',
+              price: p.price || 0,
+              originalPrice: originalPrice,
+              discount: p.discount || 0,
+              discountType: p.discountType || 'percentage',
+              image: p.image || '',
+              lifeStage: p.lifeStage || '',
+              breedSize: p.breedSize || '',
+              weight: p.weight || null,
+              description: p.description || '',
+              stock: p.stock || 0,
+              minStock: p.minStock || 5,
+              status: p.status || 'active',
+              tags: p.tags || []
+            };
+            
+            return mappedProduct;
+          });
+
+          // Guardar en caché
+          productsCache.set(brandId, mappedProducts);
+          loadedProducts.add(brandId);
+          
+          // Optimizar estructura de datos: actualizar Maps y contadores
+          const productIds: string[] = [];
+          mappedProducts.forEach((product: any) => {
+            // Actualizar productMap para búsquedas O(1)
+            productMap.set(product.id, product);
+            
+            // Actualizar allProducts (sin duplicados)
+            if (!allProducts.find((p: any) => p.id === product.id)) {
+              allProducts.push(product);
+            }
+            
+            productIds.push(product.id);
+          });
+          
+          // Pre-calcular relación: productos por marca
+          productsByBrandMap.set(brandId, productIds);
+          brandProductCounts.set(brandId, mappedProducts.length);
+
+          console.log(`✅ Productos cargados para marca ${brandId}:`, mappedProducts.length);
+          console.log(`   Contador pre-calculado: ${mappedProducts.length} productos`);
+          
+          // Cachear productos en Service Worker para acceso offline
+          if (typeof window !== 'undefined' && (window as any).cacheData) {
+            (window as any).cacheData(`products-${brandId}`, mappedProducts);
+          }
+          
+          return mappedProducts;
+        } catch (error) {
+          console.error(`❌ Error cargando productos para marca ${brandId}:`, error);
+          return [];
+        }
+      }
+
+      // Función para filtrar productos por brand ID (ahora usa caché)
+      function filterProductsByBrand(brandId: string): any[] {
+        // Si están en caché, usarlos directamente
+        if (productsCache.has(brandId)) {
+          return productsCache.get(brandId) || [];
+        }
+        
+        // Si no están en caché, filtrar de allProducts (fallback)
+        console.log(`🔍 Filtrando productos por brand ID: "${brandId}"`);
+        console.log(`📊 Total de productos disponibles en allProducts: ${allProducts.length}`);
+        
+        if (allProducts.length === 0) {
+          console.error('❌ ERROR: allProducts está vacío. Los productos no se cargaron correctamente.');
+          return [];
+        }
+        
+        // Mostrar todos los productos y sus brand IDs para debug
+        console.log('🔍 Todos los productos y sus brand IDs:');
+        allProducts.forEach((p: any, index: number) => {
+          console.log(`  ${index + 1}. ID: ${p.id}, Nombre: "${p.name}", brand: "${p.brand}" (tipo: ${typeof p.brand}), brandId: "${p.brandId}" (tipo: ${typeof p.brandId}), status: "${p.status}"`);
+        });
+        
+        const filtered = allProducts.filter((product: any) => {
+          // Usar brandId si existe, sino usar brand
+          const productBrandId = String(product.brandId || product.brand || '').trim();
+          const targetBrandId = String(brandId).trim();
+          const statusMatch = product.status === 'active';
+          const brandMatch = productBrandId === targetBrandId;
+          const matches = brandMatch && statusMatch;
+          
+          // Log detallado para productos que no coinciden
+          if (!brandMatch && (product.brand || product.brandId)) {
+            console.log(`  ⚠️ Producto "${product.name}":`);
+            console.log(`     - brand del producto: "${productBrandId}" (tipo: ${typeof productBrandId})`);
+            console.log(`     - brand buscado: "${targetBrandId}" (tipo: ${typeof targetBrandId})`);
+            console.log(`     - ¿Coinciden?: ${brandMatch}`);
+            console.log(`     - status: "${product.status}" (¿activo?: ${statusMatch})`);
+          }
+          
+          return matches;
+        });
+        
+        console.log(`✅ Productos encontrados para brand "${brandId}":`, filtered.length);
+        if (filtered.length > 0) {
+          console.log('📋 Productos encontrados:');
+          filtered.forEach((p: any, index: number) => {
+            console.log(`  ${index + 1}. ID: ${p.id}, Nombre: "${p.name}", brand: "${p.brand}", brandId: "${p.brandId}"`);
+          });
+        } else {
+          console.log('⚠️ No se encontraron productos para esta marca');
+          console.log(`   Buscando brand ID: "${brandId}"`);
+          console.log(`   Productos disponibles: ${allProducts.length}`);
+          // Mostrar todos los brand IDs únicos disponibles
+          const uniqueBrands = [...new Set(allProducts.map((p: any) => p.brand || p.brandId).filter(Boolean))];
+          console.log(`   Brand IDs únicos en productos:`, uniqueBrands);
+        }
+        
+        return filtered;
+      }
+
+      // Función para mostrar productos de una marca
+      async function showProductsForBrand(brandId: string) {
+        const brandsSection = document.getElementById('brands-section');
+        const productsGrid = document.getElementById('products-grid');
+        const loadingState = document.getElementById('loading-state');
+        const emptyState = document.getElementById('empty-state');
+        const resultsCount = document.getElementById('results-count');
+        const backToBrandsSection = document.getElementById('back-to-brands-section');
+        
+        if (!productsGrid) return;
+
+        // Mostrar loading state mientras se cargan los productos
+        if (loadingState && !productsCache.has(brandId)) {
+          loadingState.classList.remove('hidden');
+        }
+
+        // Cargar productos bajo demanda
+        const brandProducts = await loadProductsForBrand(brandId);
+
+        // Ocultar loading state
+        if (loadingState) loadingState.classList.add('hidden');
+
+        console.log(`📦 Productos de la marca ${brandId}:`, brandProducts);
+        console.log(`📊 Total de productos: ${brandProducts.length}`);
+
+        // Ocultar marcas y mostrar productos
+        if (brandsSection) brandsSection.classList.add('hidden');
+        if (loadingState) loadingState.classList.add('hidden');
+        
+        // Mostrar botón para volver a marcas
+        if (backToBrandsSection) backToBrandsSection.classList.remove('hidden');
+
+        if (brandProducts.length === 0) {
+          // Mostrar empty state
+          productsGrid.style.display = 'none';
+          if (emptyState) emptyState.classList.remove('hidden');
+          if (resultsCount) resultsCount.classList.add('hidden');
+          return;
+        }
+
+        // Ocultar empty state
+        if (emptyState) emptyState.classList.add('hidden');
+
+        // Actualizar contador de resultados
+        if (resultsCount) {
+          const resultsNumber = document.getElementById('results-number');
+          const resultsText = document.getElementById('results-text');
+          if (resultsNumber && resultsText) {
+            resultsCount.classList.remove('hidden');
+            resultsNumber.textContent = brandProducts.length.toString();
+            resultsText.textContent = brandProducts.length === 1 ? ' producto encontrado' : ' productos encontrados';
+          }
+        }
+
+        // Renderizar productos
+        renderProducts(brandProducts);
+
+        // Scroll suave a los productos
+        productsGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      // Función para volver a categorías
+      function showCategories() {
+        const categoriesSection = document.getElementById('categories-section');
+        const brandsSection = document.getElementById('brands-section');
+        
+        if (categoriesSection) categoriesSection.classList.remove('hidden');
+        if (brandsSection) brandsSection.classList.add('hidden');
+        
+        // Scroll suave a la sección de categorías
+        categoriesSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      // Función para volver a marcas
+      function showBrands(categoryId?: string) {
+        const categoriesSection = document.getElementById('categories-section');
+        const brandsSection = document.getElementById('brands-section');
+        const productsGrid = document.getElementById('products-grid');
+        const resultsCount = document.getElementById('results-count');
+        const backToBrandsSection = document.getElementById('back-to-brands-section');
+        const emptyState = document.getElementById('empty-state');
+        
+        if (categoriesSection) categoriesSection.classList.add('hidden');
+        if (brandsSection) brandsSection.classList.remove('hidden');
+        if (productsGrid) productsGrid.style.display = 'none';
+        if (resultsCount) resultsCount.classList.add('hidden');
+        if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
+        if (emptyState) emptyState.classList.add('hidden');
+
+        // Si se proporciona categoryId, mostrar marcas de esa categoría
+        if (categoryId) {
+          showBrandsForCategory(categoryId);
+        }
+        
+        // Scroll suave a la sección de marcas
+        brandsSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
 
       // Función para renderizar un producto
       function renderProduct(product: any): string {
@@ -976,10 +1538,11 @@ import Layout from '../layouts/Layout.astro';
                 alt="${product.name}"
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 loading="lazy"
+                onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
               />
             </div>
             <div class="p-2.5 sm:p-3 lg:p-4 bg-linear-to-b from-white to-purple-50/30 flex flex-col grow min-h-0">
-              <p class="text-xs font-semibold text-gray-500 mb-0.5 sm:mb-1 uppercase tracking-wide line-clamp-1">${product.brand}</p>
+              <p class="text-xs font-semibold text-gray-500 mb-0.5 sm:mb-1 uppercase tracking-wide line-clamp-1">${product.brandName || product.brand}</p>
               <h3 class="font-bold text-xs sm:text-sm lg:text-base text-gray-800 mb-1.5 sm:mb-2 line-clamp-2 min-h-8 sm:min-h-10">${product.name}</h3>
               <div class="mb-2 sm:mb-3 min-h-6 sm:min-h-8 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <p class="text-base sm:text-lg lg:text-xl font-bold text-[#5d3fbb]">Bs. ${product.price.toLocaleString()}</p>
@@ -1153,7 +1716,7 @@ import Layout from '../layouts/Layout.astro';
 
         // Agregar event listeners a los botones "Agregar al Carrito" de las tarjetas
         document.querySelectorAll('.add-to-cart-card-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+          btn.addEventListener('click', async (e) => {
             e.preventDefault();
             const button = btn as HTMLButtonElement;
             const productId = button.getAttribute('data-product-id');
@@ -1163,16 +1726,12 @@ import Layout from '../layouts/Layout.astro';
               const product = allProducts.find(p => String(p.id) === String(productId));
               
               if (product) {
-                console.log('Agregar al carrito:', {
-                  id: product.id,
-                  name: product.name,
-                  quantity: quantity,
-                  price: product.price,
-                  total: product.price * quantity
-                });
-                
-                // Aquí puedes agregar la lógica para agregar al carrito
-                // Por ejemplo, guardar en localStorage o enviar a una API
+                // Obtener nombre de la marca
+                let brandName: string | undefined;
+                if (product.brand) {
+                  const brand = allBrandsData.find((b: any) => String(b.id) === String(product.brand));
+                  brandName = brand?.name;
+                }
                 
                 // Feedback visual
                 const originalText = button.innerHTML;
@@ -1184,23 +1743,45 @@ import Layout from '../layouts/Layout.astro';
                 `;
                 button.disabled = true;
                 
-                setTimeout(() => {
-                  button.innerHTML = `
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Agregado</span>
-                  `;
-                  button.classList.remove('bg-[#5d3fbb]', 'hover:bg-[#6d4fcc]');
-                  button.classList.add('bg-green-500', 'hover:bg-green-600');
+                // Usar la función addToCart del Header
+                const addToCartFn = (window as any).addToCart;
+                if (addToCartFn && typeof addToCartFn === 'function') {
+                  const success = addToCartFn({
+                    id: String(product.id),
+                    name: product.name,
+                    price: product.price,
+                    image: product.image || '',
+                    brandName: brandName,
+                    stock: product.stock
+                  }, quantity);
                   
-                  setTimeout(() => {
+                  if (success) {
+                    button.innerHTML = `
+                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Agregado</span>
+                    `;
+                    button.classList.remove('bg-[#5d3fbb]', 'hover:bg-[#6d4fcc]');
+                    button.classList.add('bg-green-500', 'hover:bg-green-600');
+                    
+                    setTimeout(() => {
+                      button.innerHTML = originalText;
+                      button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                      button.classList.add('bg-[#5d3fbb]', 'hover:bg-[#6d4fcc]');
+                      button.disabled = false;
+                    }, 1500);
+                  } else {
+                    // Error (stock insuficiente, etc.)
                     button.innerHTML = originalText;
-                    button.classList.remove('bg-green-500', 'hover:bg-green-600');
-                    button.classList.add('bg-[#5d3fbb]', 'hover:bg-[#6d4fcc]');
                     button.disabled = false;
-                  }, 1500);
-                }, 500);
+                  }
+                } else {
+                  // Fallback si no está disponible la función
+                  console.warn('Función addToCart no disponible');
+                  button.innerHTML = originalText;
+                  button.disabled = false;
+                }
               }
             }
           });
@@ -1333,82 +1914,121 @@ import Layout from '../layouts/Layout.astro';
         }
       }
 
-      // Cargar productos desde Firebase
+      // Cargar productos desde Firebase (TODO se ejecuta en el CLIENTE)
       async function loadProducts() {
         try {
-          // Importar funciones de Firebase
+          // Importar funciones de Firebase (client-side)
+          // Todas estas funciones se ejecutan en el navegador y se conectan directamente a Firestore
           // @ts-ignore
           const { getProducts } = await import('../lib/db/products');
           // @ts-ignore
-          const { getCategories } = await import('../lib/db/categories');
+          const { getCategoriesByAnimalType } = await import('../lib/db/categories');
           // @ts-ignore
           const { getBrands } = await import('../lib/db/brands');
 
-          // Obtener todos los datos en paralelo
-          const [productsResult, categoriesResult, brandsResult] = await Promise.all([
-            getProducts({ status: 'active' }), // Solo productos activos
-            getCategories(),
-            getBrands()
-          ]);
-
-          // Crear mapas para búsqueda rápida
-          const categoryMap = new Map((categoriesResult.data || []).map((c: any) => [c.id, c]));
-          const brandMap = new Map((brandsResult.data || []).map((b: any) => [b.id, b]));
-
-          // Función para mapear animalType a slug
-          function getCategorySlug(categoryData: any): string {
-            if (!categoryData) return 'all';
-            // Si la categoría tiene slug, usarlo
-            if (categoryData.slug) return categoryData.slug;
-            // Mapear animalType a slug
-            if (categoryData.animalType === 'Perro') return 'dog';
-            if (categoryData.animalType === 'Gato') return 'cat';
-            return 'all';
+          // Mapear parámetro de URL a animalType
+          let animalType: 'Perro' | 'Gato' | null = null;
+          if (petFilter === 'dog') {
+            animalType = 'Perro';
+          } else if (petFilter === 'cat') {
+            animalType = 'Gato';
           }
 
-          // Mapear productos de Firebase al formato esperado
-          allProducts = (productsResult.data || []).map((p: any) => {
-            const categoryData = categoryMap.get(p.category);
-            const brandData = brandMap.get(p.brand);
+          console.log('🔍 Parámetro de URL (petFilter):', petFilter);
+          console.log('🐾 Tipo de animal a filtrar:', animalType || 'Todos');
 
-            // Calcular precio original si hay descuento
-            let originalPrice = p.originalPrice || null;
-            if (p.discount > 0 && !originalPrice) {
-              // Calcular precio original basado en el descuento
-              if (p.discountType === 'percentage') {
-                originalPrice = Math.round((p.price * 100) / (100 - p.discount) * 100) / 100;
-              }
+          // Obtener todas las categorías y filtrar en el cliente (evita problemas de índices)
+          console.log('📂 Obteniendo todas las categorías...');
+          const { getCategories } = await import('../lib/db/categories');
+          const allCategoriesResult = await getCategories();
+          
+          console.log('📋 Todas las categorías sin filtrar:', allCategoriesResult.data || []);
+          console.log('📊 Total de categorías sin filtrar:', allCategoriesResult.data?.length || 0);
+          
+          // Mostrar detalles de cada categoría para debug
+          if (allCategoriesResult.data && allCategoriesResult.data.length > 0) {
+            console.log('🔍 Detalles de categorías:');
+            allCategoriesResult.data.forEach((c: any, index: number) => {
+              console.log(`  ${index + 1}. ID: ${c.id}, Nombre: ${c.name}, animalType: "${c.animalType}", status: "${c.status}"`);
+            });
+          }
+          
+          // Filtrar categorías en el cliente según el tipo de animal
+          let categoriesResult;
+          if (animalType) {
+            console.log(`🔍 Filtrando categorías para: "${animalType}" (tipo exacto)`);
+            if (allCategoriesResult.data) {
+              const filtered = allCategoriesResult.data.filter((c: any) => {
+                const matches = c.animalType === animalType && c.status === 'Activo';
+                if (!matches && c.animalType === animalType) {
+                  console.log(`  ⚠️ Categoría "${c.name}" tiene animalType="${c.animalType}" pero status="${c.status}"`);
+                }
+                return matches;
+              });
+              categoriesResult = { data: filtered };
+              console.log(`✅ Categorías filtradas encontradas: ${filtered.length}`);
+            } else {
+              categoriesResult = { data: [] };
             }
+          } else {
+            // Si no hay filtro, solo filtrar por activas
+            if (allCategoriesResult.data) {
+              categoriesResult = {
+                data: allCategoriesResult.data.filter((c: any) => c.status === 'Activo')
+              };
+            } else {
+              categoriesResult = { data: [] };
+            }
+          }
 
-            return {
-              id: p.id, // Mantener ID como string (Firebase usa strings)
-              name: p.name || '',
-              brand: brandData?.name || p.brand || 'Sin marca',
-              category: getCategorySlug(categoryData), // Mapear a slug ('dog', 'cat', 'all')
-              categoryId: p.category, // Guardar ID original para referencia
-              type: p.type || 'food',
-              price: p.price || 0,
-              originalPrice: originalPrice,
-              discount: p.discount || 0,
-              discountType: p.discountType || 'percentage',
-              image: p.image || '',
-              lifeStage: p.lifeStage || '',
-              breedSize: p.breedSize || '',
-              weight: p.weight || null,
-              description: p.description || '',
-              stock: p.stock || 0,
-              minStock: p.minStock || 5,
-              status: p.status || 'active',
-              tags: p.tags || []
-            };
+          console.log('✅ Categorías obtenidas (después de filtrar):', categoriesResult.data || []);
+          console.log('📊 Total de categorías filtradas:', categoriesResult.data?.length || 0);
+
+          // Guardar todas las categorías para referencia
+          allCategoriesData = categoriesResult.data || [];
+          
+          // Optimizar estructura de datos: crear Maps para búsquedas O(1)
+          categoryMap.clear();
+          allCategoriesData.forEach((category: any) => {
+            categoryMap.set(category.id, category);
+            // Inicializar contadores
+            categoryBrandCounts.set(category.id, 0);
           });
+          
+          console.log('✅ Estructura de datos optimizada: Maps creados para búsquedas O(1)');
+          
+          // Cachear categorías en Service Worker para acceso offline
+          if (typeof window !== 'undefined' && (window as any).cacheData) {
+            (window as any).cacheData('categories', allCategoriesData);
+          }
 
-          filterProducts();
+          // Renderizar categorías y ocultar loading state
+          const loadingState = document.getElementById('loading-state');
+          const productsGrid = document.getElementById('products-grid');
+          
+          if (categoriesResult.data && categoriesResult.data.length > 0) {
+            renderCategories(categoriesResult.data);
+            // Ocultar loading state cuando se muestren las categorías
+            if (loadingState) loadingState.classList.add('hidden');
+          } else {
+            // Si no hay categorías, mostrar empty state
+            if (loadingState) loadingState.classList.add('hidden');
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.classList.remove('hidden');
+          }
+          
+          // Asegurar que el grid de productos esté oculto al inicio
+          if (productsGrid) {
+            productsGrid.style.display = 'none';
+          }
+
+          // NO cargar marcas ni productos al inicio - se cargarán bajo demanda
+          console.log('✅ Carga bajo demanda activada: marcas y productos se cargarán cuando se necesiten');
           
           // Ocultar loader y mostrar contenido
           hidePageLoader();
         } catch (error) {
-          console.error('Error cargando productos:', error);
+          console.error('❌ Error cargando productos:', error);
           const loadingState = document.getElementById('loading-state');
           if (loadingState) {
             loadingState.innerHTML = `
@@ -1991,6 +2611,7 @@ import Layout from '../layouts/Layout.astro';
                   src="${product.image}" 
                   alt="${product.name}"
                   class="w-full h-full object-cover"
+                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
                 />
               </div>
             </div>
@@ -1998,7 +2619,7 @@ import Layout from '../layouts/Layout.astro';
             <!-- Información del Producto -->
             <div class="sm:w-3/5 lg:w-3/5 flex flex-col min-w-0">
               <div class="mb-2 sm:mb-4">
-                <p class="text-xs font-semibold text-gray-500 mb-0.5 sm:mb-1.5 uppercase tracking-wide">${product.brand}</p>
+                <p class="text-xs font-semibold text-gray-500 mb-0.5 sm:mb-1.5 uppercase tracking-wide">${product.brandName || product.brand}</p>
                 <h3 class="text-base sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-3 leading-tight line-clamp-2">${product.name}</h3>
                 
                 <!-- Precio -->
@@ -2133,6 +2754,20 @@ import Layout from '../layouts/Layout.astro';
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && productModal && !productModal.classList.contains('hidden')) {
           closeProductModal();
+        }
+      });
+
+      // Event listener para botón "Volver a categorías"
+      const backToCategoriesBtn = document.getElementById('back-to-categories-btn');
+      backToCategoriesBtn?.addEventListener('click', () => {
+        showCategories();
+      });
+
+      // Event listener para botón "Volver a marcas"
+      const backToBrandsBtn = document.getElementById('back-to-brands-btn');
+      backToBrandsBtn?.addEventListener('click', () => {
+        if (currentCategoryId) {
+          showBrands(currentCategoryId);
         }
       });
 

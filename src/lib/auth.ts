@@ -10,8 +10,14 @@ import {
   onAuthStateChanged,
   updatePassword,
   sendPasswordResetEmail,
+  signInWithPopup,
+  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  signInWithCredential,
+  RecaptchaVerifier,
   type User as FirebaseUser,
 } from 'firebase/auth';
+import { GoogleAuthProvider, FacebookAuthProvider } from 'firebase/auth';
 import { auth } from './firebase';
 import { createUserWithId, getUser } from './db/users';
 import type { CreateUserData } from './db/types';
@@ -252,6 +258,200 @@ export async function getCurrentUserData(): Promise<{
     return {
       success: false,
       error: 'Error al obtener los datos del usuario.',
+    };
+  }
+}
+
+/**
+ * Iniciar sesión con Google
+ */
+export async function loginWithGoogle(): Promise<{
+  success: boolean;
+  user?: FirebaseUser;
+  error?: string;
+}> {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const firebaseUser = result.user;
+
+    // Verificar si el usuario ya existe en Firestore
+    const userResult = await getUser(firebaseUser.uid);
+    
+    // Si no existe, crear el perfil en Firestore
+    if (!userResult.data) {
+      const displayName = firebaseUser.displayName || '';
+      const nameParts = displayName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      await createUserWithId(firebaseUser.uid, {
+        email: firebaseUser.email || '',
+        firstName,
+        lastName,
+        phone: firebaseUser.phoneNumber || '',
+        role: 'user',
+      });
+    }
+
+    return {
+      success: true,
+      user: firebaseUser,
+    };
+  } catch (error: any) {
+    let errorMessage = 'Error al iniciar sesión con Google. Por favor, intenta de nuevo.';
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'La ventana de autenticación fue cerrada.';
+    } else if (error.code === 'auth/cancelled-popup-request') {
+      errorMessage = 'Solo se puede abrir una ventana de autenticación a la vez.';
+    } else if (error.code === 'auth/popup-blocked') {
+      errorMessage = 'La ventana emergente fue bloqueada. Por favor, permite ventanas emergentes.';
+    }
+    
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Iniciar sesión con Facebook
+ */
+export async function loginWithFacebook(): Promise<{
+  success: boolean;
+  user?: FirebaseUser;
+  error?: string;
+}> {
+  try {
+    const provider = new FacebookAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const firebaseUser = result.user;
+
+    // Verificar si el usuario ya existe en Firestore
+    const userResult = await getUser(firebaseUser.uid);
+    
+    // Si no existe, crear el perfil en Firestore
+    if (!userResult.data) {
+      const displayName = firebaseUser.displayName || '';
+      const nameParts = displayName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      await createUserWithId(firebaseUser.uid, {
+        email: firebaseUser.email || '',
+        firstName,
+        lastName,
+        phone: firebaseUser.phoneNumber || '',
+        role: 'user',
+      });
+    }
+
+    return {
+      success: true,
+      user: firebaseUser,
+    };
+  } catch (error: any) {
+    let errorMessage = 'Error al iniciar sesión con Facebook. Por favor, intenta de nuevo.';
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'La ventana de autenticación fue cerrada.';
+    } else if (error.code === 'auth/cancelled-popup-request') {
+      errorMessage = 'Solo se puede abrir una ventana de autenticación a la vez.';
+    } else if (error.code === 'auth/popup-blocked') {
+      errorMessage = 'La ventana emergente fue bloqueada. Por favor, permite ventanas emergentes.';
+    } else if (error.code === 'auth/account-exists-with-different-credential') {
+      errorMessage = 'Ya existe una cuenta con este correo electrónico usando otro método de autenticación.';
+    }
+    
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Iniciar sesión con SMS (teléfono)
+ */
+export async function sendSMSVerificationCode(
+  phoneNumber: string,
+  recaptchaVerifier: RecaptchaVerifier
+): Promise<{
+  success: boolean;
+  confirmationResult?: any;
+  error?: string;
+}> {
+  try {
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+    return {
+      success: true,
+      confirmationResult,
+    };
+  } catch (error: any) {
+    let errorMessage = 'Error al enviar el código de verificación. Por favor, intenta de nuevo.';
+    
+    if (error.code === 'auth/invalid-phone-number') {
+      errorMessage = 'El número de teléfono no es válido.';
+    } else if (error.code === 'auth/too-many-requests') {
+      errorMessage = 'Demasiados intentos. Por favor, intenta más tarde.';
+    } else if (error.code === 'auth/captcha-check-failed') {
+      errorMessage = 'Error en la verificación reCAPTCHA. Por favor, intenta de nuevo.';
+    }
+    
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Verificar código SMS y completar autenticación
+ */
+export async function verifySMSCode(
+  confirmationResult: any,
+  code: string
+): Promise<{
+  success: boolean;
+  user?: FirebaseUser;
+  error?: string;
+}> {
+  try {
+    const result = await confirmationResult.confirm(code);
+    const firebaseUser = result.user;
+
+    // Verificar si el usuario ya existe en Firestore
+    const userResult = await getUser(firebaseUser.uid);
+    
+    // Si no existe, crear el perfil en Firestore
+    if (!userResult.data) {
+      await createUserWithId(firebaseUser.uid, {
+        email: firebaseUser.email || '',
+        firstName: '',
+        lastName: '',
+        phone: firebaseUser.phoneNumber || '',
+        role: 'user',
+      });
+    }
+
+    return {
+      success: true,
+      user: firebaseUser,
+    };
+  } catch (error: any) {
+    let errorMessage = 'Código de verificación incorrecto. Por favor, intenta de nuevo.';
+    
+    if (error.code === 'auth/invalid-verification-code') {
+      errorMessage = 'El código de verificación es incorrecto.';
+    } else if (error.code === 'auth/code-expired') {
+      errorMessage = 'El código de verificación ha expirado. Por favor, solicita uno nuevo.';
+    }
+    
+    return {
+      success: false,
+      error: errorMessage,
     };
   }
 }
