@@ -76,9 +76,13 @@ service cloud.firestore {
     // ============================================================================
     
     match /products/{productId} {
-      // Cualquiera puede leer productos activos
+      // Consultas de lista: cualquier usuario puede listar (se filtrarán activos en el cliente)
+      // Usuarios autenticados pueden ver todas (incluyendo inactivas)
+      allow list: if true;
+      
+      // Lectura de documentos individuales: cualquiera puede leer productos activos
       // Solo usuarios autenticados pueden leer productos inactivos (para admin)
-      allow read: if resource.data.status == 'active' || 
+      allow get: if resource.data.status == 'active' || 
                      (isAuthenticated() && userExists());
       
       // Solo admin puede crear/actualizar/eliminar productos
@@ -111,8 +115,9 @@ service cloud.firestore {
     // ============================================================================
     
     match /categories/{categoryId} {
-      // Consultas de lista: solo usuarios autenticados (para admin)
-      allow list: if isAuthenticated() && userExists();
+      // Consultas de lista: cualquier usuario puede listar (se filtrarán activas en el cliente)
+      // Usuarios autenticados pueden ver todas (incluyendo inactivas)
+      allow list: if true;
       
       // Lectura de documentos individuales: usuarios autenticados o categorías activas públicas
       allow get: if (isAuthenticated() && userExists()) ||
@@ -127,8 +132,9 @@ service cloud.firestore {
     // ============================================================================
     
     match /brands/{brandId} {
-      // Consultas de lista: solo usuarios autenticados (para admin)
-      allow list: if isAuthenticated() && userExists();
+      // Consultas de lista: cualquier usuario puede listar (se filtrarán activas en el cliente)
+      // Usuarios autenticados pueden ver todas (incluyendo inactivas)
+      allow list: if true;
       
       // Lectura de documentos individuales: usuarios autenticados o marcas activas públicas
       allow get: if (isAuthenticated() && userExists()) ||

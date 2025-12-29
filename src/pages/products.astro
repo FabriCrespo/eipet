@@ -441,7 +441,7 @@ import Layout from '../layouts/Layout.astro';
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg sm:text-xl font-bold text-gray-900">Categorías</h2>
             </div>
-            <div id="categories-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div id="categories-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <!-- Las categorías se renderizarán aquí dinámicamente -->
             </div>
           </div>
@@ -578,13 +578,17 @@ import Layout from '../layouts/Layout.astro';
     #products-grid.list-view .product-card > div:first-child {
       width: 180px;
       min-width: 180px;
-      height: 180px;
+      height: 200px;
       flex-shrink: 0;
+      padding: 1rem;
     }
 
     #products-grid.list-view .product-card > div:first-child img {
-      height: 100%;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
     }
 
     #products-grid.list-view .product-card > div:last-child {
@@ -608,11 +612,12 @@ import Layout from '../layouts/Layout.astro';
       #products-grid.list-view .product-card > div:first-child {
         width: 120px;
         min-width: 120px;
-        height: 120px;
+        height: 150px;
+        padding: 0.75rem;
       }
       
       #products-grid.list-view .product-card {
-        min-height: 120px;
+        min-height: 150px;
       }
     }
 
@@ -923,6 +928,19 @@ import Layout from '../layouts/Layout.astro';
       transform: translateY(-4px);
       box-shadow: 0 12px 24px rgba(93, 63, 187, 0.15);
     }
+
+    /* Estilos para imágenes de productos verticales */
+    .product-card > div:first-child {
+      background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    .product-card > div:first-child img {
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+    }
+
+    .product-card:hover > div:first-child img {
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    }
   </style>
 
   <script>
@@ -1015,30 +1033,29 @@ import Layout from '../layouts/Layout.astro';
         
         categoriesGrid.innerHTML = categories.map((category: any) => `
           <div
-            class="category-card bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer"
+            class="category-card bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer flex flex-col"
             data-category-id="${category.id}"
+            title="${category.name}"
           >
-            <div class="relative aspect-square bg-gray-100 overflow-hidden">
+            <div class="relative w-full bg-gray-50 p-2 sm:p-3 flex items-center justify-center" style="aspect-ratio: 16/9; min-height: 120px;">
               ${category.image ? `
                 <img
                   src="${category.image}"
                   alt="${category.name}"
-                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  class="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                   onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
                 />
               ` : `
-                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100">
-                  <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg">
+                  <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
               `}
             </div>
-            <div class="p-2 sm:p-3 text-center">
-              <h3 class="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 min-h-[2rem]">
-                ${category.name}
-              </h3>
+            <div class="px-3 py-2 sm:px-4 sm:py-3 border-t border-gray-100">
+              <h3 class="text-sm sm:text-base font-medium text-gray-900 text-center line-clamp-2">${category.name}</h3>
             </div>
           </div>
         `).join('');
@@ -1163,7 +1180,7 @@ import Layout from '../layouts/Layout.astro';
             data-brand-id="${brand.id}"
             title="${brand.name}"
           >
-            <div class="relative w-full h-full bg-gray-50 p-4 sm:p-6 flex items-center justify-center">
+            <div class="relative w-full h-full bg-gray-50 p-2 sm:p-3 flex items-center justify-center">
               ${brand.image ? `
                 <img
                   src="${brand.image}"
@@ -1513,7 +1530,7 @@ import Layout from '../layouts/Layout.astro';
             data-discount="${product.discount || 0}"
             data-id="${product.id}"
           >
-            <div class="relative h-32 sm:h-40 lg:h-48 bg-gray-100 overflow-hidden shrink-0">
+            <div class="relative h-48 sm:h-56 lg:h-64 bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-3 sm:p-4">
               ${product.discount > 0 ? `
                 <div class="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-red-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm font-bold z-10 shadow-md">
                   -${product.discount}%
@@ -1536,7 +1553,7 @@ import Layout from '../layouts/Layout.astro';
               <img 
                 src="${product.image}" 
                 alt="${product.name}"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                class="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
               />

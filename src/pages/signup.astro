@@ -649,25 +649,56 @@ import Layout from '../layouts/Layout.astro';
         
         // Inicializar reCAPTCHA
         try {
+          // Limpiar cualquier instancia anterior
+          if (recaptchaVerifier) {
+            try {
+              recaptchaVerifier.clear();
+            } catch (e) {
+              // Ignorar errores al limpiar
+            }
+            recaptchaVerifier = null;
+          }
+
           const { RecaptchaVerifier } = await import('firebase/auth');
           const { auth } = await import('../lib/firebase');
           
           if (recaptchaContainer) {
             recaptchaContainer.innerHTML = '';
+            
+            // Usar invisible reCAPTCHA para mejor compatibilidad
             recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
-              size: 'normal',
+              size: 'invisible',
               callback: () => {
-                // reCAPTCHA resuelto
+                // reCAPTCHA resuelto automáticamente
               },
               'expired-callback': () => {
-                showSMSError('El reCAPTCHA ha expirado. Por favor, recarga la página.');
+                showSMSError('El reCAPTCHA ha expirado. Por favor, intenta de nuevo.');
+                // Limpiar y reinicializar
+                if (recaptchaVerifier) {
+                  try {
+                    recaptchaVerifier.clear();
+                  } catch (e) {
+                    // Ignorar errores
+                  }
+                  recaptchaVerifier = null;
+                }
               }
             });
+            
             await recaptchaVerifier.render();
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error initializing reCAPTCHA:', error);
-          showSMSError('Error al inicializar la verificación. Por favor, recarga la página.');
+          showSMSError('Error al inicializar la verificación. Por favor, recarga la página e intenta de nuevo.');
+          // Limpiar en caso de error
+          if (recaptchaVerifier) {
+            try {
+              recaptchaVerifier.clear();
+            } catch (e) {
+              // Ignorar errores
+            }
+            recaptchaVerifier = null;
+          }
         }
       }
     });
@@ -697,15 +728,51 @@ import Layout from '../layouts/Layout.astro';
         return;
       }
 
+      // Validar formato de teléfono básico (E.164)
+      // Permitir espacios pero validar el formato correcto
+      const cleanedPhone = phoneNumber.trim().replace(/\s/g, '');
+      const e164Pattern = /^\+[1-9]\d{1,14}$/;
+      if (!e164Pattern.test(cleanedPhone)) {
+        showSMSError('Por favor, ingresa un número de teléfono válido con código de país (ej: +591 70000000).');
+        return;
+      }
+
+      // Verificar que reCAPTCHA esté inicializado
+      if (!recaptchaVerifier) {
+        showSMSError('La verificación no está lista. Por favor, cierra y vuelve a abrir el modal.');
+        return;
+      }
+
       try {
         sendSmsCodeBtn.disabled = true;
         sendSmsCodeBtn.textContent = 'Enviando...';
 
+        // Firebase maneja automáticamente el verify() para reCAPTCHA invisible
+        // cuando se llama a signInWithPhoneNumber
         const { sendSMSVerificationCode } = await import('../lib/auth');
         const result = await sendSMSVerificationCode(phoneNumber, recaptchaVerifier);
 
         if (!result.success) {
-          showSMSError(result.error || 'Error al enviar el código.');
+          let errorMsg = result.error || 'Error al enviar el código.';
+          
+          // Mensaje más específico para errores de reCAPTCHA
+          if (errorMsg.includes('captcha') || errorMsg.includes('reCAPTCHA')) {
+            errorMsg = 'Error en la verificación. Por favor, recarga la página e intenta de nuevo.';
+            // Limpiar reCAPTCHA para reinicializar
+            if (recaptchaVerifier) {
+              try {
+                recaptchaVerifier.clear();
+              } catch (e) {
+                // Ignorar errores
+              }
+              recaptchaVerifier = null;
+            }
+          } else if (errorMsg.includes('Demasiados intentos') || errorMsg.includes('too-many-requests') || errorMsg.includes('Demasiadas solicitudes')) {
+            // Para errores de demasiadas solicitudes, mostrar mensaje claro y visible
+            errorMsg = '⚠️ Has realizado demasiados intentos de verificación. Por favor, espera 5-10 minutos antes de intentar de nuevo. Esto es por seguridad para prevenir abusos.';
+          }
+          
+          showSMSError(errorMsg);
           sendSmsCodeBtn.disabled = false;
           sendSmsCodeBtn.textContent = 'Enviar código';
           return;
@@ -719,7 +786,27 @@ import Layout from '../layouts/Layout.astro';
         sendSmsCodeBtn.textContent = 'Enviar código';
       } catch (error: any) {
         console.error('SMS send error:', error);
-        showSMSError(error.message || 'Error al enviar el código.');
+        let errorMsg = error.message || 'Error al enviar el código.';
+        
+        // Manejar errores específicos de Firebase
+        if (error.code === 'auth/captcha-check-failed') {
+          errorMsg = 'Error en la verificación. Por favor, recarga la página e intenta de nuevo.';
+          // Limpiar reCAPTCHA
+          if (recaptchaVerifier) {
+            try {
+              recaptchaVerifier.clear();
+            } catch (e) {
+              // Ignorar errores
+            }
+            recaptchaVerifier = null;
+          }
+        } else if (error.code === 'auth/invalid-phone-number') {
+          errorMsg = 'El número de teléfono no es válido. Por favor, verifica el formato.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMsg = '⚠️ Has realizado demasiados intentos de verificación. Por favor, espera 5-10 minutos antes de intentar de nuevo. Esto es por seguridad para prevenir abusos.';
+        }
+        
+        showSMSError(errorMsg);
         sendSmsCodeBtn.disabled = false;
         sendSmsCodeBtn.textContent = 'Enviar código';
       }
@@ -788,7 +875,12 @@ import Layout from '../layouts/Layout.astro';
 
         // Limpiar reCAPTCHA anterior y crear uno nuevo
         if (recaptchaVerifier) {
+          try {
           recaptchaVerifier.clear();
+          } catch (e) {
+            // Ignorar errores al limpiar
+          }
+          recaptchaVerifier = null;
         }
 
         if (recaptchaContainer) {
@@ -797,13 +889,16 @@ import Layout from '../layouts/Layout.astro';
           const { auth } = await import('../lib/firebase');
           
           recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
-            size: 'normal',
-            callback: () => {},
+            size: 'invisible',
+            callback: () => {
+              // Callback cuando reCAPTCHA se resuelve (manejado por Firebase)
+            },
             'expired-callback': () => {
-              showSMSError('El reCAPTCHA ha expirado. Por favor, recarga la página.');
+              showSMSError('El reCAPTCHA ha expirado. Por favor, intenta de nuevo.');
             }
           });
           await recaptchaVerifier.render();
+          // Firebase maneja verify() automáticamente cuando se pasa a signInWithPhoneNumber
         }
 
         const { sendSMSVerificationCode } = await import('../lib/auth');
@@ -833,7 +928,18 @@ import Layout from '../layouts/Layout.astro';
 
     function showSMSError(message: string) {
       if (smsErrorText) smsErrorText.textContent = message;
-      if (smsError) smsError.classList.remove('hidden');
+      if (smsError) {
+        smsError.classList.remove('hidden');
+        // Si el mensaje es sobre demasiadas solicitudes, hacer el error más visible con estilo naranja
+        if (message.includes('Demasiados intentos') || message.includes('too-many-requests') || message.includes('Demasiadas solicitudes')) {
+          smsError.className = 'mt-4 bg-orange-50 border-2 border-orange-300 text-orange-800 px-4 py-3 rounded-xl text-sm font-medium';
+          // Scroll al error para que sea visible
+          smsError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          // Estilo normal para otros errores
+          smsError.className = 'mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm';
+        }
+      }
     }
 
     // Check if already logged in

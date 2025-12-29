@@ -118,6 +118,7 @@ export async function register(
 export async function logout(): Promise<void> {
   try {
     await signOut(auth);
+    // Limpiar localStorage (el token ya no se usa, pero lo limpiamos por compatibilidad)
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   } catch (error) {
@@ -384,20 +385,48 @@ export async function sendSMSVerificationCode(
   error?: string;
 }> {
   try {
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+    // Limpiar espacios y caracteres no numéricos excepto el +
+    let cleanedPhone = phoneNumber.trim().replace(/\s/g, '');
+    
+    // Asegurarse de que el número de teléfono tenga el formato correcto (E.164)
+    // Debe comenzar con + seguido del código de país
+    if (!cleanedPhone.startsWith('+')) {
+      // Si no tiene +, intentar agregarlo asumiendo que el primer número es parte del código de país
+      cleanedPhone = `+${cleanedPhone}`;
+    }
+    
+    // Validación básica del formato E.164 (máximo 15 dígitos después del +)
+    const e164Pattern = /^\+[1-9]\d{1,14}$/;
+    if (!e164Pattern.test(cleanedPhone)) {
+      return {
+        success: false,
+        error: 'El número de teléfono no tiene un formato válido. Debe incluir el código de país (ej: +591 70000000).',
+      };
+    }
+    
+    const confirmationResult = await signInWithPhoneNumber(auth, cleanedPhone, recaptchaVerifier);
     return {
       success: true,
       confirmationResult,
     };
   } catch (error: any) {
+    console.error('sendSMSVerificationCode error:', error);
     let errorMessage = 'Error al enviar el código de verificación. Por favor, intenta de nuevo.';
     
     if (error.code === 'auth/invalid-phone-number') {
-      errorMessage = 'El número de teléfono no es válido.';
+      errorMessage = 'El número de teléfono no es válido. Asegúrate de incluir el código de país (ej: +591 70000000).';
     } else if (error.code === 'auth/too-many-requests') {
-      errorMessage = 'Demasiados intentos. Por favor, intenta más tarde.';
+      errorMessage = 'Demasiados intentos de verificación. Por favor, espera unos minutos antes de intentar de nuevo.';
     } else if (error.code === 'auth/captcha-check-failed') {
-      errorMessage = 'Error en la verificación reCAPTCHA. Por favor, intenta de nuevo.';
+      errorMessage = 'Error en la verificación reCAPTCHA. Por favor, recarga la página e intenta de nuevo.';
+    } else if (error.code === 'auth/quota-exceeded') {
+      errorMessage = 'Se ha excedido la cuota de SMS. Por favor, intenta más tarde.';
+    } else if (error.code === 'auth/session-expired') {
+      errorMessage = 'La sesión de verificación ha expirado. Por favor, intenta de nuevo.';
+    } else if (error.code === 'auth/app-not-authorized') {
+      errorMessage = 'La aplicación no está autorizada. Por favor, contacta al soporte.';
+    } else if (error.message) {
+      errorMessage = error.message;
     }
     
     return {
