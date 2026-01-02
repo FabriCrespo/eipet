@@ -1,0 +1,827 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Checkout - Eipet">
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 flex items-center gap-2 text-sm text-gray-600">
+        <a href="/" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Inicio</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="/products" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Productos</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-800 font-medium">Checkout</span>
+      </nav>
+
+      <!-- Título -->
+      <div class="mb-8">
+        <h1 class="text-3xl lg:text-4xl font-bold bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent mb-2">
+          Finalizar Compra
+        </h1>
+        <p class="text-gray-600">Completa tu información para procesar tu pedido</p>
+      </div>
+
+      <!-- Loading State -->
+      <div id="checkout-loading" class="text-center py-20">
+        <div class="relative w-16 h-16 mx-auto mb-4">
+          <div class="absolute inset-0 border-4 border-[#5d3fbb]/20 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-transparent border-t-[#5d3fbb] rounded-full animate-spin"></div>
+        </div>
+        <p class="text-[#5d3fbb] font-semibold text-lg">Cargando carrito...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="checkout-error" class="hidden bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 class="font-bold text-red-800 mb-1">Error</h3>
+            <p id="error-message" class="text-red-600 text-sm"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Cart State -->
+      <div id="empty-cart" class="hidden text-center py-20">
+        <div class="max-w-md mx-auto">
+          <div class="relative mb-6">
+            <div class="absolute inset-0 bg-linear-to-br from-purple-100 to-pink-100 rounded-full blur-2xl opacity-50"></div>
+            <svg class="relative w-24 h-24 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-800 mb-2">Tu carrito está vacío</h3>
+          <p class="text-gray-500 mb-6">Agrega productos a tu carrito antes de continuar.</p>
+          <a
+            href="/products"
+            class="inline-flex items-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+            data-astro-prefetch
+          >
+            <span>Ir a Productos</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Checkout Content -->
+      <div id="checkout-content" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <!-- Formulario de Checkout -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Información de Envío -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+              <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Información de Envío
+              </h2>
+              
+              <form id="shipping-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Nombre Completo <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      required
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                      placeholder="Juan Pérez"
+                    />
+                  </div>
+                  <div>
+                    <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Teléfono <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      required
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                      placeholder="+591 70000000"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Dirección <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                    placeholder="Calle, número, zona"
+                  />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label for="city" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Ciudad <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      required
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                      placeholder="La Paz"
+                    />
+                  </div>
+                  <div>
+                    <label for="district" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Zona/Distrito <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="district"
+                      name="district"
+                      required
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                      placeholder="Zona Sur"
+                    />
+                  </div>
+                  <div>
+                    <label for="zipCode" class="block text-sm font-semibold text-gray-700 mb-2">
+                      Código Postal
+                    </label>
+                    <input
+                      type="text"
+                      id="zipCode"
+                      name="zipCode"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                      placeholder="0000"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="instructions" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Instrucciones de Entrega (Opcional)
+                  </label>
+                  <textarea
+                    id="instructions"
+                    name="instructions"
+                    rows="3"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all resize-none"
+                    placeholder="Ej: Llamar antes de llegar, dejar en recepción, etc."
+                  ></textarea>
+                </div>
+              </form>
+            </div>
+
+            <!-- Método de Pago -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+              <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Método de Pago
+              </h2>
+              
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all payment-method-option" data-method="cash">
+                  <input type="radio" name="paymentMethod" value="cash" class="w-5 h-5 text-[#5d3fbb] focus:ring-[#5d3fbb]" checked />
+                  <div class="flex-1">
+                    <div class="font-semibold text-gray-900">Pago Contra Entrega</div>
+                    <div class="text-sm text-gray-600">Paga cuando recibas tu pedido</div>
+                  </div>
+                  <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </label>
+                
+                <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all payment-method-option" data-method="card">
+                  <input type="radio" name="paymentMethod" value="card" class="w-5 h-5 text-[#5d3fbb] focus:ring-[#5d3fbb]" disabled />
+                  <div class="flex-1">
+                    <div class="font-semibold text-gray-900">Tarjeta de Crédito/Débito</div>
+                    <div class="text-sm text-gray-600">Próximamente disponible</div>
+                  </div>
+                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen del Pedido -->
+          <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+              <h2 class="text-xl font-bold text-gray-900 mb-4">Resumen del Pedido</h2>
+              
+              <!-- Items del Carrito -->
+              <div id="order-items" class="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                <!-- Se cargarán dinámicamente -->
+              </div>
+
+              <!-- Resumen de Precios -->
+              <div class="border-t border-gray-200 pt-4 space-y-3">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">Subtotal</span>
+                  <span id="subtotal" class="font-semibold text-gray-900">Bs. 0.00</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">Envío</span>
+                  <span id="shipping-cost" class="font-semibold text-gray-900">Bs. 0.00</span>
+                </div>
+                <div class="flex justify-between text-sm" id="discount-row" style="display: none;">
+                  <span class="text-gray-600">Descuento</span>
+                  <span id="discount" class="font-semibold text-green-600">-Bs. 0.00</span>
+                </div>
+                <div class="border-t border-gray-200 pt-3 flex justify-between">
+                  <span class="text-lg font-bold text-gray-900">Total</span>
+                  <span id="total" class="text-lg font-bold text-[#5d3fbb]">Bs. 0.00</span>
+                </div>
+              </div>
+
+              <!-- Botón de Confirmar Pedido -->
+              <button
+                id="confirm-order-btn"
+                class="w-full mt-6 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                disabled
+              >
+                <span id="confirm-btn-text">Confirmar Pedido</span>
+                <span id="confirm-btn-loading" class="hidden items-center justify-center gap-2">
+                  <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Procesando...
+                </span>
+              </button>
+
+              <p class="text-xs text-gray-500 text-center mt-4">
+                Al confirmar, aceptas nuestros términos y condiciones
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .payment-method-option input:checked + div {
+      color: #5d3fbb;
+    }
+    
+    .payment-method-option:has(input:checked) {
+      border-color: #5d3fbb;
+      background-color: #f3f4f6;
+    }
+  </style>
+
+  <script>
+    (async () => {
+      // Verificar autenticación (solo requerida al confirmar, no para ver el checkout)
+      const { getCurrentUser, onAuthStateChange } = await import('../lib/auth');
+      
+      let currentUser: any = null;
+      let currentUserId: string | null = null;
+      let cartItems: any[] = [];
+      let productsData: Map<string, any> = new Map();
+      let shippingCost = 0; // Costo de envío fijo por ahora
+
+      // Obtener usuario actual si está autenticado (no bloquear si no lo está)
+      const firebaseUser = getCurrentUser();
+      if (firebaseUser) {
+        currentUserId = firebaseUser.uid;
+      }
+
+      // Elementos del DOM
+      const loadingDiv = document.getElementById('checkout-loading');
+      const errorDiv = document.getElementById('checkout-error');
+      const errorMessage = document.getElementById('error-message');
+      const emptyCartDiv = document.getElementById('empty-cart');
+      const checkoutContent = document.getElementById('checkout-content');
+      const orderItemsDiv = document.getElementById('order-items');
+      const subtotalSpan = document.getElementById('subtotal');
+      const shippingCostSpan = document.getElementById('shipping-cost');
+      const discountSpan = document.getElementById('discount');
+      const discountRow = document.getElementById('discount-row');
+      const totalSpan = document.getElementById('total');
+      const confirmBtn = document.getElementById('confirm-order-btn');
+      const confirmBtnText = document.getElementById('confirm-btn-text');
+      const confirmBtnLoading = document.getElementById('confirm-btn-loading');
+      const shippingForm = document.getElementById('shipping-form') as HTMLFormElement;
+
+      // Función para mostrar error
+      function showError(message: string) {
+        if (errorDiv && errorMessage) {
+          errorMessage.textContent = message;
+          errorDiv.classList.remove('hidden');
+        }
+      }
+
+      // Función para ocultar error
+      function hideError() {
+        if (errorDiv) {
+          errorDiv.classList.add('hidden');
+        }
+      }
+
+      // Función para formatear precio
+      function formatPrice(price: number): string {
+        return price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      // Cargar carrito y productos
+      async function loadCheckout() {
+        try {
+          hideError();
+          
+          // Obtener carrito desde localStorage (igual que en Header.astro)
+          let cartData: any = null;
+          try {
+            const cartStorage = localStorage.getItem('cart');
+            console.log('📦 Carrito desde localStorage:', cartStorage);
+            if (cartStorage) {
+              cartData = JSON.parse(cartStorage);
+              console.log('📦 Carrito parseado:', cartData);
+            }
+          } catch (e) {
+            console.error('Error cargando carrito desde localStorage:', e);
+          }
+          
+          if (!cartData || !cartData.items || cartData.items.length === 0) {
+            console.log('⚠️ Carrito vacío o no encontrado');
+            if (loadingDiv) loadingDiv.classList.add('hidden');
+            if (emptyCartDiv) emptyCartDiv.classList.remove('hidden');
+            return;
+          }
+
+          console.log('✅ Items en el carrito:', cartData.items.length);
+
+          // Convertir items del localStorage al formato esperado
+          cartItems = cartData.items.map((item: any) => {
+            const productId = item.productId || item.id || item.product?.id;
+            const quantity = item.quantity || 1;
+            console.log(`📦 Item: productId=${productId}, quantity=${quantity}`);
+            return {
+              productId: productId,
+              quantity: quantity
+            };
+          }).filter((item: any) => item.productId); // Filtrar items sin productId
+          
+          console.log('✅ Items procesados:', cartItems.length);
+
+          // Obtener información de productos
+          const { getProductById } = await import('../lib/db/products');
+          const { getBrands } = await import('../lib/db/brands');
+          
+          const brandsResult = await getBrands();
+          const brandsMap = new Map();
+          if (brandsResult.data) {
+            brandsResult.data.forEach((b: any) => brandsMap.set(b.id, b));
+          }
+
+          // Obtener detalles de cada producto
+          // Primero intentar usar los datos que ya están en el carrito (localStorage)
+          for (const item of cartData.items) {
+            const productId = item.productId || item.id;
+            
+            // Si el item ya tiene datos del producto, usarlos
+            if (item.product) {
+              productsData.set(productId, {
+                ...item.product,
+                brandName: item.product.brandName || 'Sin marca',
+                quantity: item.quantity
+              });
+            } else {
+              // Si no, obtener desde Firestore
+              const productResult = await getProductById(productId);
+              if (productResult.data) {
+                const product = productResult.data;
+                const brandName = product.brand && brandsMap.has(product.brand) 
+                  ? brandsMap.get(product.brand).name 
+                  : 'Sin marca';
+                
+                productsData.set(productId, {
+                  ...product,
+                  brandName,
+                  quantity: item.quantity
+                });
+              }
+            }
+          }
+
+          // Renderizar items
+          renderOrderItems();
+          updateTotals();
+
+          // Ocultar loading y mostrar contenido
+          if (loadingDiv) loadingDiv.classList.add('hidden');
+          if (checkoutContent) checkoutContent.classList.remove('hidden');
+          if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = false;
+
+          // Cargar datos del usuario si existen
+          await loadUserData();
+        } catch (error: any) {
+          console.error('Error loading checkout:', error);
+          showError(error.message || 'Error al cargar el carrito');
+          if (loadingDiv) loadingDiv.classList.add('hidden');
+        }
+      }
+
+      // Cargar datos del usuario
+      async function loadUserData() {
+        try {
+          const { getCurrentUserData } = await import('../lib/auth');
+          const userDataResult = await getCurrentUserData();
+          
+          if (userDataResult.success && userDataResult.user) {
+            const user = userDataResult.user;
+            const fullNameInput = document.getElementById('fullName') as HTMLInputElement;
+            const phoneInput = document.getElementById('phone') as HTMLInputElement;
+            
+            if (fullNameInput) {
+              fullNameInput.value = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            }
+            if (phoneInput) {
+              phoneInput.value = user.phone || '';
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      }
+
+      // Renderizar items del pedido
+      function renderOrderItems() {
+        if (!orderItemsDiv) return;
+
+        if (cartItems.length === 0) {
+          orderItemsDiv.innerHTML = '<p class="text-gray-500 text-center py-4">No hay productos</p>';
+          return;
+        }
+
+        orderItemsDiv.innerHTML = cartItems.map((item) => {
+          const product = productsData.get(item.productId);
+          if (!product) return '';
+
+          const quantity = item.quantity || 1;
+          const price = product.price || 0;
+          const subtotal = price * quantity;
+
+          return `
+            <div class="flex gap-3">
+              <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+                <img 
+                  src="${product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'}" 
+                  alt="${product.name}"
+                  class="w-full h-full object-contain"
+                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-gray-900 text-sm line-clamp-1">${product.name || 'Producto'}</h4>
+                <p class="text-xs text-gray-500">${product.brandName || 'Sin marca'}</p>
+                <div class="flex items-center justify-between mt-1">
+                  <span class="text-xs text-gray-600">Cantidad: ${quantity}</span>
+                  <span class="font-bold text-[#5d3fbb]">Bs. ${formatPrice(subtotal)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Actualizar totales
+      function updateTotals() {
+        let subtotal = 0;
+
+        cartItems.forEach((item) => {
+          const product = productsData.get(item.productId);
+          if (product) {
+            const quantity = item.quantity || 1;
+            subtotal += (product.price || 0) * quantity;
+          }
+        });
+
+        const discount = 0; // Por ahora sin descuentos
+        const total = subtotal - discount + shippingCost;
+
+        if (subtotalSpan) subtotalSpan.textContent = `Bs. ${formatPrice(subtotal)}`;
+        if (shippingCostSpan) shippingCostSpan.textContent = `Bs. ${formatPrice(shippingCost)}`;
+        if (totalSpan) totalSpan.textContent = `Bs. ${formatPrice(total)}`;
+
+        if (discount > 0) {
+          if (discountSpan) discountSpan.textContent = `-Bs. ${formatPrice(discount)}`;
+          if (discountRow) discountRow.style.display = 'flex';
+        } else {
+          if (discountRow) discountRow.style.display = 'none';
+        }
+      }
+
+      // Confirmar pedido
+      async function confirmOrder() {
+        console.log('🛒 [CHECKOUT] Iniciando confirmación de pedido...');
+        
+        if (!confirmBtn || !shippingForm) {
+          console.error('❌ [CHECKOUT] Elementos del DOM no encontrados');
+          return;
+        }
+
+        // Verificar autenticación antes de confirmar
+        console.log('🔐 [CHECKOUT] Verificando autenticación...');
+        console.log('🔐 [CHECKOUT] currentUserId:', currentUserId);
+        
+        if (!currentUserId) {
+          const firebaseUser = getCurrentUser();
+          console.log('🔐 [CHECKOUT] firebaseUser:', firebaseUser);
+          if (!firebaseUser) {
+            console.warn('⚠️ [CHECKOUT] Usuario no autenticado, redirigiendo a login');
+            window.location.href = '/login?redirect=' + encodeURIComponent('/checkout');
+            return;
+          }
+          currentUserId = firebaseUser.uid;
+          console.log('✅ [CHECKOUT] Usuario autenticado, userId:', currentUserId);
+        }
+
+        // Verificar que el usuario existe en la colección de usuarios (requerido por Firestore rules)
+        console.log('👤 [CHECKOUT] Verificando existencia del usuario en Firestore...');
+        try {
+          const { getCurrentUserData } = await import('../lib/auth');
+          const userDataResult = await getCurrentUserData();
+          console.log('👤 [CHECKOUT] Resultado de getCurrentUserData:', userDataResult);
+          
+          if (!userDataResult.success || !userDataResult.user) {
+            console.error('❌ [CHECKOUT] Usuario no existe en la colección de usuarios');
+            showError('Tu cuenta no está configurada correctamente. Por favor, inicia sesión nuevamente.');
+            (confirmBtn as HTMLButtonElement).disabled = false;
+            if (confirmBtnText) confirmBtnText.classList.remove('hidden');
+            if (confirmBtnLoading) {
+              confirmBtnLoading.classList.add('hidden');
+              confirmBtnLoading.classList.remove('flex');
+            }
+            return;
+          }
+          console.log('✅ [CHECKOUT] Usuario verificado en Firestore:', userDataResult.user);
+        } catch (error: any) {
+          console.error('❌ [CHECKOUT] Error verificando usuario:', error);
+          showError('Error al verificar tu cuenta. Por favor, intenta nuevamente.');
+          (confirmBtn as HTMLButtonElement).disabled = false;
+          if (confirmBtnText) confirmBtnText.classList.remove('hidden');
+          if (confirmBtnLoading) confirmBtnLoading.classList.add('hidden');
+          return;
+        }
+
+        // Validar formulario
+        console.log('📝 [CHECKOUT] Validando formulario...');
+        if (!shippingForm.checkValidity()) {
+          console.warn('⚠️ [CHECKOUT] Formulario inválido');
+          shippingForm.reportValidity();
+          return;
+        }
+        console.log('✅ [CHECKOUT] Formulario válido');
+
+        // Obtener método de pago seleccionado
+        console.log('💳 [CHECKOUT] Obteniendo método de pago...');
+        const paymentMethodInput = document.querySelector('input[name="paymentMethod"]:checked') as HTMLInputElement;
+        if (!paymentMethodInput) {
+          console.error('❌ [CHECKOUT] Método de pago no seleccionado');
+          showError('Por favor selecciona un método de pago');
+          return;
+        }
+        console.log('✅ [CHECKOUT] Método de pago seleccionado:', paymentMethodInput.value);
+
+        try {
+          // Deshabilitar botón y mostrar loading
+          console.log('⏳ [CHECKOUT] Deshabilitando botón y mostrando loading...');
+          (confirmBtn as HTMLButtonElement).disabled = true;
+          if (confirmBtnText) confirmBtnText.classList.add('hidden');
+          if (confirmBtnLoading) {
+            confirmBtnLoading.classList.remove('hidden');
+            confirmBtnLoading.classList.add('flex');
+          }
+
+          hideError();
+
+          // Validar stock antes de crear la orden (solo validación, sin actualizar)
+          console.log('📦 [CHECKOUT] Validando stock de productos...');
+          console.log('📦 [CHECKOUT] Items del carrito:', cartItems);
+          
+          const { validateStockMultiple } = await import('../lib/db/products');
+          const stockItems = cartItems.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity || 1
+          }));
+          console.log('📦 [CHECKOUT] Items para validar stock:', stockItems);
+
+          const stockValidation = await validateStockMultiple(stockItems);
+          console.log('📦 [CHECKOUT] Resultado de validación de stock:', stockValidation);
+          
+          if (!stockValidation.success) {
+            console.error('❌ [CHECKOUT] Error en validación de stock:', stockValidation.errors);
+            showError(stockValidation.errors.join(', ') || 'Error al validar el stock');
+            (confirmBtn as HTMLButtonElement).disabled = false;
+            if (confirmBtnText) confirmBtnText.classList.remove('hidden');
+            if (confirmBtnLoading) {
+              confirmBtnLoading.classList.add('hidden');
+              confirmBtnLoading.classList.remove('flex');
+            }
+            return;
+          }
+          console.log('✅ [CHECKOUT] Stock validado correctamente');
+
+          // Obtener datos del formulario
+          console.log('📋 [CHECKOUT] Obteniendo datos del formulario...');
+          const formData = new FormData(shippingForm);
+          const fullName = formData.get('fullName') as string;
+          const phone = formData.get('phone') as string;
+          const address = formData.get('address') as string;
+          const city = formData.get('city') as string;
+          const district = formData.get('district') as string;
+          const zipCode = formData.get('zipCode') as string || '';
+          const instructions = formData.get('instructions') as string || '';
+          
+          console.log('📋 [CHECKOUT] Datos del formulario:', {
+            fullName,
+            phone,
+            address,
+            city,
+            district,
+            zipCode,
+            instructions
+          });
+
+          // Calcular totales
+          console.log('💰 [CHECKOUT] Calculando totales...');
+          let subtotal = 0;
+          const orderItems: any[] = [];
+
+          cartItems.forEach((item) => {
+            const product = productsData.get(item.productId);
+            if (product) {
+              const price = product.price || 0;
+              const quantity = item.quantity || 1;
+              const itemSubtotal = price * quantity;
+              subtotal += itemSubtotal;
+
+              orderItems.push({
+                id: `${item.productId}-${Date.now()}-${Math.random()}`,
+                productId: item.productId,
+                productName: product.name || 'Producto',
+                productImage: product.image || '',
+                quantity: quantity,
+                price: price,
+                subtotal: itemSubtotal
+              });
+            }
+          });
+
+          console.log('💰 [CHECKOUT] Items de la orden:', orderItems);
+          console.log('💰 [CHECKOUT] Subtotal calculado:', subtotal);
+
+          const discount = 0;
+          const total = subtotal - discount + shippingCost;
+          console.log('💰 [CHECKOUT] Total calculado:', total);
+
+          // Importar Timestamp de Firestore
+          console.log('⏰ [CHECKOUT] Creando timestamps...');
+          const { Timestamp } = await import('firebase/firestore');
+          const now = Timestamp.now();
+          console.log('⏰ [CHECKOUT] Timestamp creado:', now);
+
+          // Crear dirección de envío
+          console.log('📍 [CHECKOUT] Creando dirección de envío...');
+          const shippingAddress = {
+            id: `temp-${Date.now()}`,
+            name: 'Dirección de Envío',
+            fullName: fullName,
+            phone: phone,
+            address: address,
+            city: city,
+            district: district,
+            zipCode: zipCode,
+            instructions: instructions,
+            isDefault: false,
+            createdAt: now,
+            updatedAt: now
+          };
+          console.log('📍 [CHECKOUT] Dirección de envío creada:', shippingAddress);
+
+          // Crear método de pago
+          console.log('💳 [CHECKOUT] Creando método de pago...');
+          const paymentMethod = {
+            id: `temp-${Date.now()}`,
+            type: paymentMethodInput.value as 'card' | 'cash',
+            isDefault: false,
+            createdAt: now,
+            updatedAt: now
+          };
+          console.log('💳 [CHECKOUT] Método de pago creado:', paymentMethod);
+
+          // Crear orden
+          console.log('🛒 [CHECKOUT] Preparando datos para crear orden...');
+          const orderData = {
+            userId: currentUserId!,
+            items: orderItems,
+            subtotal: subtotal,
+            discount: discount,
+            shippingAddress: shippingAddress,
+            paymentMethod: paymentMethod,
+            shippingCost: shippingCost
+          };
+          console.log('🛒 [CHECKOUT] Datos de la orden:', {
+            ...orderData,
+            items: orderData.items.map(item => ({ ...item, productImage: item.productImage ? '...' : '' }))
+          });
+          console.log('🛒 [CHECKOUT] userId:', currentUserId);
+          console.log('🛒 [CHECKOUT] items count:', orderItems.length);
+          console.log('🛒 [CHECKOUT] subtotal:', subtotal);
+          console.log('🛒 [CHECKOUT] shippingCost:', shippingCost);
+          
+          const { createOrder } = await import('../lib/db/orders');
+          console.log('🛒 [CHECKOUT] Llamando a createOrder...');
+          
+          const orderResult = await createOrder(orderData);
+          console.log('🛒 [CHECKOUT] Resultado de createOrder:', orderResult);
+
+          if (!orderResult.success) {
+            console.error('❌ [CHECKOUT] Error al crear la orden:', orderResult.error);
+            throw new Error(orderResult.error?.message || 'Error al crear la orden');
+          }
+          
+          console.log('✅ [CHECKOUT] Orden creada exitosamente con ID:', orderResult.id);
+
+          // Limpiar carrito desde localStorage
+          console.log('🧹 [CHECKOUT] Limpiando carrito...');
+          localStorage.setItem('cart', JSON.stringify({ items: [], lastUpdated: Date.now() }));
+          console.log('✅ [CHECKOUT] Carrito limpiado');
+
+          // Actualizar contador del carrito en el header si existe
+          if ((window as any).updateCartCount) {
+            console.log('🔄 [CHECKOUT] Actualizando contador del carrito en header...');
+            (window as any).updateCartCount();
+          }
+          
+          // Disparar evento de actualización del carrito
+          console.log('📢 [CHECKOUT] Disparando evento cart-updated...');
+          window.dispatchEvent(new CustomEvent('cart-updated'));
+
+          // Redirigir a página de confirmación
+          console.log('🚀 [CHECKOUT] Redirigiendo a página de confirmación...');
+          console.log('🚀 [CHECKOUT] URL:', `/order-confirmation?id=${orderResult.id}`);
+          window.location.href = `/order-confirmation?id=${orderResult.id}`;
+        } catch (error: any) {
+          console.error('❌ [CHECKOUT] Error en confirmOrder:', error);
+          console.error('❌ [CHECKOUT] Error message:', error.message);
+          console.error('❌ [CHECKOUT] Error stack:', error.stack);
+          console.error('❌ [CHECKOUT] Error code:', error.code);
+          console.error('❌ [CHECKOUT] Error details:', {
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            stack: error.stack
+          });
+          
+          showError(error.message || 'Error al procesar el pedido. Por favor, intenta nuevamente.');
+          (confirmBtn as HTMLButtonElement).disabled = false;
+          if (confirmBtnText) confirmBtnText.classList.remove('hidden');
+          if (confirmBtnLoading) confirmBtnLoading.classList.add('hidden');
+        }
+      }
+
+      // Event listeners
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmOrder);
+      }
+
+      // Actualizar estilos de método de pago
+      document.querySelectorAll('.payment-method-option').forEach((option) => {
+        option.addEventListener('click', () => {
+          const input = option.querySelector('input[type="radio"]') as HTMLInputElement;
+          if (input && !input.disabled) {
+            input.checked = true;
+            document.querySelectorAll('.payment-method-option').forEach((opt) => {
+              opt.classList.remove('border-[#5d3fbb]', 'bg-purple-50');
+            });
+            option.classList.add('border-[#5d3fbb]', 'bg-purple-50');
+          }
+        });
+      });
+
+      // Inicializar
+      await loadCheckout();
+    })();
+  </script>
+</Layout>
+

@@ -35,7 +35,7 @@ const sectionIds = sectionConfig.map((section) => section.id);
   </div>
 
   <!-- Error State -->
-  <div id="profile-error" class="hidden flex items-center justify-center min-h-[400px]">
+  <div id="profile-error" class="hidden items-center justify-center min-h-[400px]">
     <div class="text-center">
       <p class="text-red-500 mb-4">Error al cargar tu perfil</p>
       <a href="/login" class="text-purple-600 hover:underline">Volver al login</a>
@@ -62,6 +62,10 @@ const sectionIds = sectionConfig.map((section) => section.id);
   </section>
 
   <script>
+    import { onAuthStateChanged } from 'firebase/auth';
+    import { auth } from '../../lib/firebase';
+    import { getUser } from '../../lib/db/users';
+    
     (async function() {
       type ProfileWindow = Window &
         typeof globalThis & {
@@ -78,11 +82,9 @@ const sectionIds = sectionConfig.map((section) => section.id);
       // Verificar autenticación y cargar datos del usuario
       async function checkAuthAndLoad() {
         try {
-          const { getCurrentUser, getCurrentUserData, onAuthStateChange } = await import('../../lib/auth');
-          
           // Esperar a que Firebase Auth esté listo
           return new Promise<void>((resolve) => {
-            const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+            const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
               unsubscribe();
               
               if (!firebaseUser) {
@@ -93,20 +95,23 @@ const sectionIds = sectionConfig.map((section) => section.id);
               }
 
               try {
-                // Obtener datos completos del usuario
-                const userDataResult = await getCurrentUserData();
+                // Obtener datos completos del usuario desde Firestore
+                const userResult = await getUser(firebaseUser.uid);
                 
-                if (!userDataResult.success || !userDataResult.user) {
-                  console.error('Error loading user data:', userDataResult.error);
+                if (!userResult.data) {
+                  console.error('Error loading user data: No se encontraron datos del usuario');
                   // Mostrar error
                   if (loadingDiv) loadingDiv.classList.add('hidden');
-                  if (errorDiv) errorDiv.classList.remove('hidden');
+                  if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.classList.add('flex');
+                  }
                   resolve();
                   return;
                 }
 
                 // Guardar datos del usuario en localStorage para uso en componentes
-                localStorage.setItem('user', JSON.stringify(userDataResult.user));
+                localStorage.setItem('user', JSON.stringify(userResult.data));
                 
                 // Ocultar loading y mostrar contenido
                 if (loadingDiv) loadingDiv.classList.add('hidden');
@@ -128,7 +133,10 @@ const sectionIds = sectionConfig.map((section) => section.id);
         } catch (error) {
           console.error('Error checking auth:', error);
           if (loadingDiv) loadingDiv.classList.add('hidden');
-          if (errorDiv) errorDiv.classList.remove('hidden');
+          if (errorDiv) {
+            errorDiv.classList.remove('hidden');
+            errorDiv.classList.add('flex');
+          }
         }
       }
 

@@ -1078,7 +1078,6 @@ import Layout from '../layouts/Layout.astro';
       async function loadBrandsForCategory(categoryId: string): Promise<any[]> {
         // Si ya están en caché, retornarlas
         if (brandsCache.has(categoryId)) {
-          console.log(`✅ Marcas de categoría ${categoryId} obtenidas de caché`);
           return brandsCache.get(categoryId) || [];
         }
 
@@ -1219,7 +1218,6 @@ import Layout from '../layouts/Layout.astro';
       async function loadProductsForBrand(brandId: string): Promise<any[]> {
         // Si ya están en caché, retornarlos
         if (productsCache.has(brandId)) {
-          console.log(`✅ Productos de marca ${brandId} obtenidos de caché`);
           return productsCache.get(brandId) || [];
         }
 

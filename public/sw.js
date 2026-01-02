@@ -21,10 +21,8 @@ const CACHE_STRATEGIES = {
 
 // Instalación del Service Worker
 self.addEventListener('install', (event) => {
-  console.log('[SW] Instalando Service Worker...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Cacheando recursos estáticos');
       return cache.addAll(STATIC_CACHE_URLS);
     }).then(() => {
       // Forzar activación inmediata
@@ -35,13 +33,11 @@ self.addEventListener('install', (event) => {
 
 // Activación del Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activando Service Worker...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Eliminando cache antiguo:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -99,7 +95,6 @@ async function cacheFirstStrategy(request) {
     const cachedResponse = await cache.match(request);
     
     if (cachedResponse) {
-      console.log('[SW] Cache hit:', request.url);
       // Actualizar caché en segundo plano si hay conexión
       fetch(request).then((response) => {
         if (response.ok) {
@@ -112,7 +107,6 @@ async function cacheFirstStrategy(request) {
     }
     
     // Si no está en caché, obtener de la red
-    console.log('[SW] Cache miss, obteniendo de red:', request.url);
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
@@ -121,7 +115,6 @@ async function cacheFirstStrategy(request) {
     
     return networkResponse;
   } catch (error) {
-    console.error('[SW] Error en cacheFirstStrategy:', error);
     // Si falla todo, intentar devolver respuesta básica
     return new Response('Offline', { status: 503 });
   }
@@ -137,26 +130,23 @@ async function networkFirstStrategy(request) {
       const networkResponse = await fetch(request);
       
       if (networkResponse.ok) {
-        console.log('[SW] Network response OK:', request.url);
         // Actualizar caché con la respuesta fresca
         cache.put(request, networkResponse.clone());
         return networkResponse;
       }
     } catch (networkError) {
-      console.log('[SW] Network falló, buscando en caché:', request.url);
+      // Network falló, buscar en caché
     }
     
     // Si la red falla, buscar en caché
     const cachedResponse = await cache.match(request);
     if (cachedResponse) {
-      console.log('[SW] Usando respuesta de caché:', request.url);
       return cachedResponse;
     }
     
     // Si no hay nada en caché, devolver error
     return new Response('Offline y sin caché', { status: 503 });
   } catch (error) {
-    console.error('[SW] Error en networkFirstStrategy:', error);
     return new Response('Error', { status: 500 });
   }
 }
@@ -166,7 +156,6 @@ async function networkOnlyStrategy(request) {
   try {
     return await fetch(request);
   } catch (error) {
-    console.error('[SW] Error en networkOnlyStrategy:', error);
     return new Response('Offline', { status: 503 });
   }
 }
@@ -174,7 +163,6 @@ async function networkOnlyStrategy(request) {
 // Mensajes del cliente para invalidar caché
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CLEAR_CACHE') {
-    console.log('[SW] Limpiando caché...');
     caches.delete(CACHE_NAME).then(() => {
       event.ports[0].postMessage({ success: true });
     });

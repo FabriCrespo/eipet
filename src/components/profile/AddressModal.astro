@@ -1,0 +1,478 @@
+---
+// Componente modal para crear/editar direcciones
+---
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+  #address-map {
+    height: 200px;
+    width: 100%;
+    border-radius: 0.5rem;
+    z-index: 0;
+  }
+  @media (min-width: 640px) {
+    #address-map {
+      height: 250px;
+    }
+  }
+  @media (min-width: 1024px) {
+    #address-map {
+      height: 280px;
+    }
+  }
+  .leaflet-container {
+    border-radius: 0.5rem;
+  }
+  
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  #address-modal > div {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE y Edge */
+  }
+  
+  #address-modal > div::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+</style>
+
+<!-- Modal para añadir/editar dirección -->
+<div id="address-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-2 sm:p-4" style="display: none;">
+  <div class="bg-white rounded-lg sm:rounded-xl shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+    <!-- Header del modal -->
+    <div class="flex items-center justify-between mb-5 sm:mb-6 pb-4 border-b border-gray-200">
+      <h2 class="text-xl sm:text-2xl font-semibold text-gray-900" id="modal-title">Añadir Nueva Dirección</h2>
+      <button
+        type="button"
+        id="close-modal-btn"
+        class="p-2 hover:bg-gray-100 rounded-md transition-colors shrink-0"
+        aria-label="Cerrar modal"
+      >
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <form id="address-form" class="space-y-4 sm:space-y-5">
+      <!-- Nombre de la dirección -->
+      <div>
+        <label for="address-name" class="block text-sm font-medium text-gray-700 mb-2">
+          Nombre de la dirección <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="address-name"
+          name="name"
+          placeholder="Ej: Casa, Oficina, Departamento"
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
+        />
+      </div>
+
+      <!-- Nombre completo -->
+      <div>
+        <label for="address-fullname" class="block text-sm font-medium text-gray-700 mb-2">
+          Nombre completo <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="address-fullname"
+          name="fullName"
+          placeholder="Nombre y apellido"
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
+        />
+      </div>
+
+      <!-- Teléfono -->
+      <div>
+        <label for="address-phone" class="block text-sm font-medium text-gray-700 mb-2">
+          Teléfono <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="tel"
+          id="address-phone"
+          name="phone"
+          placeholder="+591 70012345"
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
+        />
+      </div>
+
+      <!-- Dirección -->
+      <div>
+        <label for="address-street" class="block text-sm font-medium text-gray-700 mb-2">
+          Dirección <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="address-street"
+          name="address"
+          placeholder="Calle, número, edificio, etc."
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
+        />
+      </div>
+
+      <!-- Mapa interactivo -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Selecciona la ubicación en el mapa <span class="text-red-500">*</span>
+        </label>
+        <div id="address-map" class="border border-gray-300 rounded-lg overflow-hidden"></div>
+        <p class="text-xs text-gray-500 mt-2">Haz clic en el mapa para marcar la ubicación exacta</p>
+        <input type="hidden" id="address-latitude" name="latitude" />
+        <input type="hidden" id="address-longitude" name="longitude" />
+      </div>
+
+      <!-- Grid: Distrito y Ciudad -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <div>
+          <label for="address-district" class="block text-sm font-medium text-gray-700 mb-2">
+            Distrito/Zona <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="address-district"
+            name="district"
+            placeholder="Ej: Equipetrol, Centro"
+            required
+            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
+          />
+        </div>
+        <div>
+          <label for="address-city" class="block text-sm font-medium text-gray-700 mb-2">
+            Ciudad <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="address-city"
+            name="city"
+            required
+            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200"
+          >
+            <option value="">Selecciona una ciudad</option>
+            <option value="Santa Cruz">Santa Cruz</option>
+            <option value="La Paz">La Paz</option>
+            <option value="Cochabamba">Cochabamba</option>
+            <option value="Sucre">Sucre</option>
+            <option value="Oruro">Oruro</option>
+            <option value="Potosí">Potosí</option>
+            <option value="Tarija">Tarija</option>
+            <option value="Beni">Beni</option>
+            <option value="Pando">Pando</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Instrucciones de entrega -->
+      <div>
+        <label for="address-instructions" class="block text-sm font-medium text-gray-700 mb-2">
+          Instrucciones de entrega (opcional)
+        </label>
+        <textarea
+          id="address-instructions"
+          name="instructions"
+          rows="3"
+          placeholder="Ej: Llamar antes de llegar, Tocar timbre, etc."
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all duration-200 resize-none"
+        ></textarea>
+      </div>
+
+      <!-- Checkbox dirección por defecto -->
+      <div class="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id="address-default"
+          name="isDefault"
+          class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
+        />
+        <label for="address-default" class="text-sm font-medium text-gray-700">
+          Establecer como dirección predeterminada
+        </label>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-6">
+        <button
+          type="button"
+          id="cancel-form-btn"
+          class="w-full sm:flex-1 px-4 py-2.5 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          id="save-address-btn"
+          class="w-full sm:flex-1 px-4 py-2.5 text-sm bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <span id="save-btn-text">Guardar Dirección</span>
+          <span id="save-btn-loading" class="hidden items-center gap-2">
+            <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Guardando...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // API pública del modal de direcciones
+  (function() {
+    let map: any = null;
+    let marker: any = null;
+    let onSaveCallback: ((formData: FormData) => Promise<void>) | null = null;
+    let onCloseCallback: (() => void) | null = null;
+
+    // Coordenadas por defecto (centro de Bolivia - Santa Cruz)
+    const defaultLat = -17.8146;
+    const defaultLng = -63.1561;
+    const defaultZoom = 5;
+
+    // Elementos del DOM
+    const addressModal = document.getElementById('address-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const cancelFormBtn = document.getElementById('cancel-form-btn');
+    const addressForm = document.getElementById('address-form') as HTMLFormElement;
+    const modalTitle = document.getElementById('modal-title');
+    const mapContainer = document.getElementById('address-map');
+    const latitudeInput = document.getElementById('address-latitude') as HTMLInputElement;
+    const longitudeInput = document.getElementById('address-longitude') as HTMLInputElement;
+
+    // Función para inicializar el mapa
+    function initMap(lat?: number, lng?: number) {
+      if (!mapContainer) return;
+
+      // Destruir mapa existente si existe
+      if (map) {
+        map.remove();
+        map = null;
+        marker = null;
+      }
+
+      // Coordenadas iniciales
+      const initialLat = lat || defaultLat;
+      const initialLng = lng || defaultLng;
+      const initialZoom = lat && lng ? 15 : defaultZoom;
+
+      // Crear mapa
+      // @ts-ignore
+      map = L.map('address-map').setView([initialLat, initialLng], initialZoom);
+
+      // Agregar capa de OpenStreetMap
+      // @ts-ignore
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(map);
+
+      // Si hay coordenadas, agregar marcador
+      if (lat && lng) {
+        // @ts-ignore
+        marker = L.marker([lat, lng], {
+          draggable: true
+        }).addTo(map);
+
+        // Actualizar coordenadas cuando se arrastra el marcador
+        marker.on('dragend', function() {
+          const position = marker.getLatLng();
+          if (latitudeInput) latitudeInput.value = position.lat.toString();
+          if (longitudeInput) longitudeInput.value = position.lng.toString();
+        });
+      }
+
+      // Agregar marcador al hacer clic en el mapa
+      map.on('click', function(e: any) {
+        const clickedLat = e.latlng.lat;
+        const clickedLng = e.latlng.lng;
+
+        // Actualizar inputs
+        if (latitudeInput) latitudeInput.value = clickedLat.toString();
+        if (longitudeInput) longitudeInput.value = clickedLng.toString();
+
+        // Eliminar marcador anterior si existe
+        if (marker) {
+          map.removeLayer(marker);
+        }
+
+        // Agregar nuevo marcador
+        // @ts-ignore
+        marker = L.marker([clickedLat, clickedLng], {
+          draggable: true
+        }).addTo(map);
+
+        // Actualizar coordenadas cuando se arrastra el marcador
+        marker.on('dragend', function() {
+          const position = marker.getLatLng();
+          if (latitudeInput) latitudeInput.value = position.lat.toString();
+          if (longitudeInput) longitudeInput.value = position.lng.toString();
+        });
+      });
+
+      // Invalidar tamaño del mapa después de un pequeño delay para asegurar que se renderice correctamente
+      setTimeout(() => {
+        if (map) {
+          map.invalidateSize();
+          // Ajustar zoom para móviles
+          if (window.innerWidth < 640) {
+            map.setZoom(map.getZoom() - 1);
+          }
+        }
+      }, 150);
+    }
+
+    // Función para abrir modal
+    function openModal(addressData?: any) {
+      if (!addressModal || !modalTitle) return;
+
+      // Primero hacer visible el modal
+      addressModal.classList.remove('hidden');
+      addressModal.classList.add('flex');
+      addressModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      // Esperar un momento para que el DOM se actualice antes de acceder a los elementos
+      setTimeout(() => {
+        if (addressData && addressForm) {
+          const nameInput = document.getElementById('address-name') as HTMLInputElement;
+          const fullNameInput = document.getElementById('address-fullname') as HTMLInputElement;
+          const phoneInput = document.getElementById('address-phone') as HTMLInputElement;
+          const streetInput = document.getElementById('address-street') as HTMLInputElement;
+          const districtInput = document.getElementById('address-district') as HTMLInputElement;
+          const citySelect = document.getElementById('address-city') as HTMLSelectElement;
+          const instructionsTextarea = document.getElementById('address-instructions') as HTMLTextAreaElement;
+          const defaultCheckbox = document.getElementById('address-default') as HTMLInputElement;
+
+          if (nameInput) nameInput.value = addressData.name || '';
+          if (fullNameInput) fullNameInput.value = addressData.fullName || '';
+          if (phoneInput) phoneInput.value = addressData.phone || '';
+          if (streetInput) streetInput.value = addressData.address || '';
+          if (districtInput) districtInput.value = addressData.district || '';
+          if (citySelect) citySelect.value = addressData.city || '';
+          if (instructionsTextarea) instructionsTextarea.value = addressData.instructions || '';
+          if (defaultCheckbox) defaultCheckbox.checked = addressData.isDefault || false;
+          
+          // Inicializar mapa con coordenadas de la dirección si existen
+          const lat = addressData.latitude ? parseFloat(addressData.latitude.toString()) : undefined;
+          const lng = addressData.longitude ? parseFloat(addressData.longitude.toString()) : undefined;
+          if (latitudeInput) latitudeInput.value = lat ? lat.toString() : '';
+          if (longitudeInput) longitudeInput.value = lng ? lng.toString() : '';
+          
+          if (modalTitle) modalTitle.textContent = 'Editar Dirección';
+        } else {
+          if (addressForm) {
+            addressForm.reset();
+          }
+          if (latitudeInput) latitudeInput.value = '';
+          if (longitudeInput) longitudeInput.value = '';
+          if (modalTitle) modalTitle.textContent = 'Añadir Nueva Dirección';
+        }
+
+        // Inicializar mapa después de que el modal sea visible
+        const lat = latitudeInput?.value ? parseFloat(latitudeInput.value) : undefined;
+        const lng = longitudeInput?.value ? parseFloat(longitudeInput.value) : undefined;
+        initMap(lat, lng);
+      }, 100);
+    }
+
+    // Función para cerrar modal
+    function closeModal() {
+      if (!addressModal) return;
+      
+      // Destruir mapa
+      if (map) {
+        map.remove();
+        map = null;
+        marker = null;
+      }
+      
+      addressModal.classList.add('hidden');
+      addressModal.classList.remove('flex');
+      addressModal.style.display = 'none';
+      document.body.style.overflow = '';
+      if (addressForm) {
+        addressForm.reset();
+      }
+      if (latitudeInput) latitudeInput.value = '';
+      if (longitudeInput) longitudeInput.value = '';
+
+      // Llamar callback de cierre si existe
+      if (onCloseCallback) {
+        onCloseCallback();
+      }
+    }
+
+    // Event listeners
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', closeModal);
+    }
+
+    if (cancelFormBtn) {
+      cancelFormBtn.addEventListener('click', closeModal);
+    }
+
+    if (addressForm) {
+      addressForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const lat = latitudeInput?.value || '';
+        const lng = longitudeInput?.value || '';
+        
+        if (!lat || !lng) {
+          alert('Por favor, selecciona una ubicación en el mapa haciendo clic en él');
+          return;
+        }
+
+        const formData = new FormData(addressForm);
+        
+        // Llamar callback de guardado si existe
+        if (onSaveCallback) {
+          await onSaveCallback(formData);
+        }
+      });
+    }
+
+    // Cerrar modal al hacer clic fuera
+    if (addressModal) {
+      addressModal.addEventListener('click', (e) => {
+        if (e.target === addressModal) {
+          closeModal();
+        }
+      });
+    }
+
+    // Cerrar modal con ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (addressModal && !addressModal.classList.contains('hidden')) {
+          closeModal();
+        }
+      }
+    });
+
+    // API pública del modal
+    // @ts-ignore
+    window.addressModalAPI = {
+      open: openModal,
+      close: closeModal,
+      setOnSave: (callback: (formData: FormData) => Promise<void>) => {
+        onSaveCallback = callback;
+      },
+      setOnClose: (callback: () => void) => {
+        onCloseCallback = callback;
+      },
+      getLatitudeInput: () => latitudeInput,
+      getLongitudeInput: () => longitudeInput,
+      getSaveButton: () => document.getElementById('save-address-btn') as HTMLButtonElement,
+      getSaveButtonText: () => document.getElementById('save-btn-text'),
+      getSaveButtonLoading: () => document.getElementById('save-btn-loading'),
+    };
+  })();
+</script>

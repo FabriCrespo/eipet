@@ -36,8 +36,6 @@ const { title = 'Eipet', description = 'Tu tienda de mascotas favorita' } = Astr
 			window.addEventListener('load', () => {
 			  navigator.serviceWorker.register('/sw.js')
 				.then((registration) => {
-				  console.log('✅ Service Worker registrado:', registration.scope);
-				  
 				  // Verificar actualizaciones periódicamente
 				  setInterval(() => {
 					registration.update();
@@ -59,7 +57,6 @@ const { title = 'Eipet', description = 'Tu tienda de mascotas favorita' } = Astr
 				const messageChannel = new MessageChannel();
 				messageChannel.port1.onmessage = (event) => {
 				  if (event.data.success) {
-					console.log('✅ Caché limpiado');
 					window.location.reload();
 				  }
 				};

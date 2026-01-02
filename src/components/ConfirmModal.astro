@@ -6,7 +6,7 @@ interface Props {
 const modalId = Astro.props.id || 'confirm-modal';
 ---
 
-<div id={modalId} class="hidden fixed inset-0 z-[9999]">
+<div id={modalId} class="hidden fixed inset-0 z-9999">
   <!-- Overlay con backdrop blur -->
   <div 
     class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
@@ -18,9 +18,9 @@ const modalId = Astro.props.id || 'confirm-modal';
     <!-- Modal Content -->
     <div class="relative bg-white rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-lg pointer-events-auto">
       <!-- Header con gradiente -->
-      <div class="bg-gradient-to-r from-purple-500 to-pink-500 px-6 pt-6 pb-4">
+      <div class="bg-linear-to-r from-purple-500 to-pink-500 px-6 pt-6 pb-4">
         <div class="flex items-center gap-4">
-          <div id={`${modalId}-icon`} class="flex-shrink-0 w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
+          <div id={`${modalId}-icon`} class="shrink-0 w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-lg">
             <!-- Icono se llenará dinámicamente -->
           </div>
           <div class="flex-1">
@@ -28,7 +28,7 @@ const modalId = Astro.props.id || 'confirm-modal';
           </div>
           <button
             onclick={`closeModal('${modalId}')`}
-            class="flex-shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors flex items-center justify-center"
+            class="shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors flex items-center justify-center"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -47,7 +47,7 @@ const modalId = Astro.props.id || 'confirm-modal';
         <button
           id={`${modalId}-confirm-btn`}
           onclick={`confirmAction('${modalId}')`}
-          class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
+          class="w-full sm:w-auto px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
         >
           Confirmar
         </button>
