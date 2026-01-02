@@ -150,19 +150,33 @@ service cloud.firestore {
     
     match /orders/{orderId} {
       // Solo el dueño del pedido o admin puede leer
-      allow read: if isOwner(resource.data.userId) || isAdmin();
+      // Para órdenes de invitados, permitir lectura si se conoce el ID y datos de contacto
+      allow read: if isOwner(resource.data.userId) || 
+                     isAdmin() ||
+                     (resource.data.isGuest == true && 
+                      resource.data.guestPhone != null);
       
-      // Solo usuarios autenticados pueden crear pedidos (y solo para sí mismos)
-      allow create: if isAuthenticated() && 
+      // Permitir crear pedidos:
+      // 1. Usuarios autenticados (solo para sí mismos)
+      // 2. Invitados (con isGuest: true y userId que empiece con 'guest_')
+      allow create: if (isAuthenticated() && 
                        userExists() && 
-                       request.resource.data.userId == request.auth.uid;
+                       request.resource.data.userId == request.auth.uid) ||
+                     (request.resource.data.isGuest == true && 
+                      request.resource.data.userId.matches('guest_.*') &&
+                      request.resource.data.guestPhone != null &&
+                      request.resource.data.guestName != null);
       
       // Solo admin puede actualizar pedidos (cambiar estado, etc.)
       // El usuario puede actualizar su pedido solo si está en estado 'pending'
+      // Permitir actualizar id e invoiceNumber inmediatamente después de crear (solo estos campos)
       allow update: if isAdmin() || 
                        (isOwner(resource.data.userId) && 
                         resource.data.status == 'pending' && 
-                        request.resource.data.status == 'cancelled');
+                        request.resource.data.status == 'cancelled') ||
+                       (isOwner(resource.data.userId) && 
+                        resource.data.id == '' && 
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['id', 'invoiceNumber']));
       
       // Solo admin puede eliminar pedidos
       allow delete: if isAdmin();

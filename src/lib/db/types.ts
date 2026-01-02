@@ -340,7 +340,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  userId: string;
+  userId: string; // ID del usuario o 'guest_xxx' para invitados
   status: OrderStatus;
   items: OrderItem[];
   subtotal: number; // Suma de todos los items
@@ -351,18 +351,28 @@ export interface Order {
   invoiceNumber?: string; // Número de factura único
   trackingNumber?: string; // Número de seguimiento del envío
   shippingCost?: number; // Costo de envío
+  // Campos para órdenes de invitados
+  isGuest?: boolean; // true si es una orden de invitado
+  guestEmail?: string; // Email del invitado (para contacto)
+  guestPhone?: string; // Teléfono del invitado
+  guestName?: string; // Nombre completo del invitado
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }
 
 export interface CreateOrderData {
-  userId: string;
+  userId: string; // ID del usuario o 'guest_xxx' para invitados
   items: OrderItem[];
   subtotal: number;
   discount?: number;
   shippingAddress: UserAddress;
   paymentMethod: PaymentMethod;
   shippingCost?: number; // Costo de envío
+  // Campos opcionales para órdenes de invitados
+  isGuest?: boolean; // true si es una orden de invitado
+  guestEmail?: string; // Email del invitado (para contacto)
+  guestPhone?: string; // Teléfono del invitado
+  guestName?: string; // Nombre completo del invitado
 }
 
 export interface UpdateOrderData {

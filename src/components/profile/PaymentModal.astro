@@ -1,0 +1,445 @@
+---
+interface Props {
+  id?: string;
+}
+
+const modalId = Astro.props.id || 'payment-modal';
+---
+
+<style>
+  /* Ocultar scrollbar pero mantener funcionalidad */
+  [id^="payment-modal"] > div {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE y Edge */
+  }
+  
+  [id^="payment-modal"] > div::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Estilos para inputs con color personalizado */
+  [id^="payment-modal"] input:focus,
+  [id^="payment-modal"] select:focus {
+    border-color: #f4b933 !important;
+    --tw-ring-color: #f4b933;
+  }
+
+  [id^="payment-modal"] input[type="checkbox"] {
+    accent-color: #f4b933;
+  }
+
+  [id^="payment-modal"] .payment-submit-btn {
+    background-color: #f4b933;
+  }
+
+  [id^="payment-modal"] .payment-submit-btn:hover {
+    background-color: #e6a82e;
+  }
+</style>
+
+<!-- Modal para añadir/editar método de pago -->
+<div id={modalId} class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-2 sm:p-4" style="display: none;">
+  <div class="bg-white rounded-lg sm:rounded-xl shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+    <!-- Header del modal -->
+    <div class="flex items-center justify-between mb-5 sm:mb-6 pb-4 border-b border-gray-200">
+      <h2 class="text-xl sm:text-2xl font-semibold text-gray-900" id={`${modalId}-title`}>Añadir Método de Pago</h2>
+      <button
+        type="button"
+        id={`${modalId}-close-btn`}
+        class="p-2 hover:bg-gray-100 rounded-md transition-colors shrink-0"
+        aria-label="Cerrar modal"
+      >
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Formulario -->
+    <form id={`${modalId}-form`} class="space-y-4 sm:space-y-5">
+      <!-- Tipo de tarjeta -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Tipo de tarjeta <span class="text-red-500">*</span>
+        </label>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            class="card-type-btn flex-1 p-4 rounded-lg border transition-all"
+            style="border-color: #f4b933; background-color: #fef3e2;"
+            onmouseover="this.style.backgroundColor='#fde9c8'"
+            onmouseout="this.style.backgroundColor='#fef3e2'"
+            data-type="credit"
+          >
+            <svg class="mx-auto mb-2 w-5 h-5" style="color: #f4b933;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <p class="text-sm font-medium text-gray-900">Crédito</p>
+          </button>
+          <button
+            type="button"
+            class="card-type-btn flex-1 p-4 rounded-lg border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50 transition-all"
+            data-type="debit"
+          >
+            <svg class="mx-auto mb-2 w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <p class="text-sm font-medium text-gray-700">Débito</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Número de tarjeta -->
+      <div>
+        <label for={`${modalId}-card-number`} class="block text-sm font-medium text-gray-700 mb-2">
+          Número de tarjeta <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id={`${modalId}-card-number`}
+          name="cardNumber"
+          maxlength="19"
+          placeholder="1234 5678 9012 3456"
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 transition-all duration-200"
+          style="--tw-ring-color: #f4b933;"
+        />
+      </div>
+
+      <!-- Titular -->
+      <div>
+        <label for={`${modalId}-card-holder`} class="block text-sm font-medium text-gray-700 mb-2">
+          Titular de la tarjeta <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id={`${modalId}-card-holder`}
+          name="cardHolder"
+          placeholder="MARÍA GARCÍA"
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 transition-all duration-200"
+          style="--tw-ring-color: #f4b933;"
+        />
+      </div>
+
+      <!-- Fecha y CVV -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <div>
+          <label for={`${modalId}-expiry-month`} class="block text-sm font-medium text-gray-700 mb-2">
+            Fecha de vencimiento <span class="text-red-500">*</span>
+          </label>
+          <div class="flex gap-2 items-center">
+            <input
+              type="text"
+              id={`${modalId}-expiry-month`}
+              name="expiryMonth"
+              maxlength="2"
+              placeholder="MM"
+              required
+              class="w-20 px-3 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 transition-all duration-200 text-center"
+            />
+            <span class="text-gray-400 text-lg">/</span>
+            <input
+              type="text"
+              id={`${modalId}-expiry-year`}
+              name="expiryYear"
+              maxlength="2"
+              placeholder="YY"
+              required
+              class="w-20 px-3 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 transition-all duration-200 text-center"
+            />
+          </div>
+        </div>
+        <div>
+          <label for={`${modalId}-cvv`} class="block text-sm font-medium text-gray-700 mb-2">
+            CVV <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id={`${modalId}-cvv`}
+            name="cvv"
+            maxlength="4"
+            placeholder="123"
+            required
+            class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 transition-all duration-200"
+          style="--tw-ring-color: #f4b933;"
+          />
+        </div>
+      </div>
+
+      <!-- Banco -->
+      <div>
+        <label for={`${modalId}-bank`} class="block text-sm font-medium text-gray-700 mb-2">
+          Banco emisor <span class="text-red-500">*</span>
+        </label>
+        <select
+          id={`${modalId}-bank`}
+          name="bank"
+          required
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 transition-all duration-200"
+        >
+          <option value="">Selecciona tu banco</option>
+          <option value="Banco Nacional de Bolivia">Banco Nacional de Bolivia</option>
+          <option value="Banco Mercantil Santa Cruz">Banco Mercantil Santa Cruz</option>
+          <option value="Banco Unión">Banco Unión</option>
+          <option value="Banco Bisa">Banco Bisa</option>
+          <option value="Banco de Crédito">Banco de Crédito</option>
+        </select>
+      </div>
+
+      <!-- Checkbox predeterminada -->
+      <div class="flex items-center gap-3">
+        <input
+          type="checkbox"
+          id={`${modalId}-is-default`}
+          name="isDefault"
+          class="w-4 h-4 border-gray-300 rounded focus:ring-2"
+        />
+        <label for={`${modalId}-is-default`} class="text-sm font-medium text-gray-700">
+          Establecer como método de pago predeterminado
+        </label>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 mt-6">
+        <button
+          type="button"
+          id={`${modalId}-cancel-btn`}
+          class="w-full sm:flex-1 px-4 py-2.5 text-sm bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="w-full sm:flex-1 px-4 py-2.5 text-sm text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          style="background-color: #f4b933;"
+        >
+          Guardar Método
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script define:vars={{ modalId }} is:inline>
+  (function() {
+    let currentCardType = 'credit';
+    let onSave = null;
+    let modal, form, titleEl, closeBtn, cancelBtn;
+
+    // Función para inicializar elementos del DOM
+    function initElements() {
+      modal = document.getElementById(modalId);
+      form = document.getElementById(modalId + '-form');
+      titleEl = document.getElementById(modalId + '-title');
+      closeBtn = document.getElementById(modalId + '-close-btn');
+      cancelBtn = document.getElementById(modalId + '-cancel-btn');
+      return modal && form && titleEl;
+    }
+
+    // Inicializar elementos cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        if (!initElements()) {
+          console.error('No se pudieron encontrar los elementos del modal de pago');
+        }
+        setupEventListeners();
+      });
+    } else {
+      // DOM ya está listo
+      if (!initElements()) {
+        console.error('No se pudieron encontrar los elementos del modal de pago');
+      }
+      setupEventListeners();
+    }
+
+    // Formatear número de tarjeta
+    function formatCardNumber(value) {
+      const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+      const matches = v.match(/\d{4,16}/g);
+      const match = (matches && matches[0]) || '';
+      const parts = [];
+      for (let i = 0, len = match.length; i < len; i += 4) {
+        parts.push(match.substring(i, i + 4));
+      }
+      return parts.length ? parts.join(' ') : value;
+    }
+
+    // Actualizar botones de tipo de tarjeta
+    function updateCardTypeButtons() {
+      if (!modal) return;
+      modal.querySelectorAll('.card-type-btn').forEach(function(btn) {
+        const type = btn.getAttribute('data-type');
+        if (type === currentCardType) {
+          btn.style.borderColor = '#f4b933';
+          btn.style.backgroundColor = '#fef3e2';
+          const svg = btn.querySelector('svg');
+          const p = btn.querySelector('p');
+          if (svg) {
+            svg.style.color = '#f4b933';
+          }
+          if (p) {
+            p.classList.remove('text-gray-700');
+            p.classList.add('text-gray-900');
+          }
+        } else {
+          btn.style.borderColor = '';
+          btn.style.backgroundColor = '';
+          const svg = btn.querySelector('svg');
+          const p = btn.querySelector('p');
+          if (svg) {
+            svg.style.color = '';
+          }
+          if (p) {
+            p.classList.remove('text-gray-900');
+            p.classList.add('text-gray-700');
+          }
+        }
+      });
+    }
+
+    // Abrir modal
+    function openModal(methodData, onSaveCallback) {
+      // Asegurar que los elementos estén inicializados
+      if (!modal || !form || !titleEl) {
+        if (!initElements()) {
+          console.error('No se pudieron inicializar los elementos del modal');
+          return;
+        }
+      }
+      
+      if (!modal || !titleEl || !form) return;
+
+      onSave = onSaveCallback || null;
+      currentCardType = (methodData && methodData.type) || 'credit';
+
+      if (methodData) {
+        // Modo edición
+        document.getElementById(modalId + '-card-number').value = methodData.cardNumber || '';
+        document.getElementById(modalId + '-card-holder').value = methodData.cardHolder || '';
+        const expiryParts = (methodData.expiryDate || '').split('/');
+        document.getElementById(modalId + '-expiry-month').value = expiryParts[0] || '';
+        document.getElementById(modalId + '-expiry-year').value = expiryParts[1] || '';
+        document.getElementById(modalId + '-cvv').value = '';
+        document.getElementById(modalId + '-bank').value = methodData.bank || '';
+        document.getElementById(modalId + '-is-default').checked = methodData.isDefault || false;
+        titleEl.textContent = 'Editar Método de Pago';
+      } else {
+        // Modo añadir
+        form.reset();
+        titleEl.textContent = 'Añadir Método de Pago';
+      }
+
+      updateCardTypeButtons();
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Cerrar modal
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      if (form) form.reset();
+      onSave = null;
+    }
+
+    // Detectar marca de tarjeta
+    function detectBrand(cardNumber) {
+      const num = cardNumber.replace(/\s/g, '');
+      if (/^4/.test(num)) return 'Visa';
+      if (/^5[1-5]/.test(num) || /^2[2-7]/.test(num)) return 'Mastercard';
+      return 'Visa';
+    }
+
+    // Configurar event listeners
+    function setupEventListeners() {
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+      }
+
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeModal);
+      }
+
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const cardNumber = document.getElementById(modalId + '-card-number').value;
+          const brand = detectBrand(cardNumber);
+
+          const methodData = {
+            type: currentCardType,
+            cardNumber: cardNumber,
+            cardHolder: document.getElementById(modalId + '-card-holder').value.toUpperCase(),
+            expiryDate: document.getElementById(modalId + '-expiry-month').value + '/' + 
+                        document.getElementById(modalId + '-expiry-year').value,
+            brand: brand,
+            bank: document.getElementById(modalId + '-bank').value,
+            isDefault: document.getElementById(modalId + '-is-default').checked
+          };
+
+          if (onSave) {
+            onSave(methodData);
+          }
+          
+          closeModal();
+        });
+      }
+
+      // Tipo de tarjeta
+      if (modal) {
+        modal.querySelectorAll('.card-type-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            const type = btn.getAttribute('data-type');
+            if (type) {
+              currentCardType = type;
+              updateCardTypeButtons();
+            }
+          });
+        });
+      }
+
+      // Formatear número de tarjeta
+      const cardNumberInput = document.getElementById(modalId + '-card-number');
+      if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function(e) {
+          cardNumberInput.value = formatCardNumber(cardNumberInput.value);
+        });
+      }
+
+      // Cerrar modal al hacer clic fuera
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            closeModal();
+          }
+        });
+      }
+
+      // Cerrar con ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          if (modal && !modal.classList.contains('hidden')) {
+            closeModal();
+          }
+        }
+      });
+    }
+
+    // Exponer funciones globalmente - asegurar que estén disponibles inmediatamente
+    const functionName = 'openPaymentModal_' + modalId;
+    const closeFunctionName = 'closePaymentModal_' + modalId;
+    
+    // Exponer funciones inmediatamente
+    window[functionName] = openModal;
+    window[closeFunctionName] = closeModal;
+    
+    // NO exponer window.openPaymentModal para evitar conflictos con otras funciones
+  })();
+</script>

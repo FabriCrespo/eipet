@@ -31,6 +31,14 @@ const { title = 'Eipet', description = 'Tu tienda de mascotas favorita' } = Astr
 		</div>
 		
 		<script>
+		  // Declarar tipos para propiedades personalizadas de window
+		  declare global {
+			interface Window {
+			  clearCache?: () => Promise<void>;
+			  cacheData?: (key: string, data: any) => Promise<void>;
+			}
+		  }
+		  
 		  // Registrar Service Worker para caché offline
 		  if ('serviceWorker' in navigator) {
 			window.addEventListener('load', () => {
@@ -68,7 +76,7 @@ const { title = 'Eipet', description = 'Tu tienda de mascotas favorita' } = Astr
 			};
 			
 			// Función para cachear datos desde el cliente
-			window.cacheData = async (key, data) => {
+			window.cacheData = async (key: string, data: any) => {
 			  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 				navigator.serviceWorker.controller.postMessage({
 				  type: 'CACHE_DATA',

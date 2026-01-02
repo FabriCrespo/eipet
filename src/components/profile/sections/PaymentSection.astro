@@ -1,4 +1,7 @@
 ---
+import PaymentModal from '../../profile/PaymentModal.astro';
+import ConfirmModal from '../../ConfirmModal.astro';
+
 const title = 'Métodos de Pago';
 ---
 
@@ -33,7 +36,7 @@ const title = 'Métodos de Pago';
     <button
       type="button"
       class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-all duration-200 hover:shadow-md"
-      onclick="openPaymentModal()"
+      onclick="openPaymentModalFromSection()"
     >
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -41,196 +44,122 @@ const title = 'Métodos de Pago';
       Añadir Primer Método
     </button>
   </div>
-
-  <!-- Modal para añadir/editar método de pago -->
-  <div id="payment-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8">
-      <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900" id="modal-title">Añadir Método de Pago</h2>
-        <button
-          type="button"
-          id="close-modal-btn"
-          class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          aria-label="Cerrar"
-        >
-          <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Formulario -->
-      <form id="payment-form" class="space-y-4">
-        <!-- Tipo de tarjeta -->
-        <div class="flex gap-4">
-          <button
-            type="button"
-            class="card-type-btn flex-1 p-4 rounded-xl border-2 border-orange-600 bg-orange-50 transition-all"
-            data-type="credit"
-          >
-            <svg class="mx-auto mb-2 w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            <p class="font-medium text-gray-900">Crédito</p>
-          </button>
-          <button
-            type="button"
-            class="card-type-btn flex-1 p-4 rounded-xl border-2 border-gray-300 hover:border-gray-400 transition-all"
-            data-type="debit"
-          >
-            <svg class="mx-auto mb-2 w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            <p class="font-medium text-gray-700">Débito</p>
-          </button>
-        </div>
-
-        <!-- Número de tarjeta -->
-        <div>
-          <label for="card-number" class="block text-sm font-medium text-gray-700 mb-2">
-            Número de tarjeta <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="card-number"
-            name="cardNumber"
-            maxlength="19"
-            placeholder="1234 5678 9012 3456"
-            required
-            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-300"
-          />
-        </div>
-
-        <!-- Titular -->
-        <div>
-          <label for="card-holder" class="block text-sm font-medium text-gray-700 mb-2">
-            Titular de la tarjeta <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="card-holder"
-            name="cardHolder"
-            placeholder="MARÍA GARCÍA"
-            required
-            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-300"
-          />
-        </div>
-
-        <!-- Fecha y CVV -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="expiry-month" class="block text-sm font-medium text-gray-700 mb-2">
-              Fecha de vencimiento <span class="text-red-500">*</span>
-            </label>
-            <div class="flex gap-2">
-              <input
-                type="text"
-                id="expiry-month"
-                name="expiryMonth"
-                maxlength="2"
-                placeholder="MM"
-                required
-                class="w-20 px-3 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-300 text-center"
-              />
-              <span class="self-center text-gray-400">/</span>
-              <input
-                type="text"
-                id="expiry-year"
-                name="expiryYear"
-                maxlength="2"
-                placeholder="YY"
-                required
-                class="w-20 px-3 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-300 text-center"
-              />
-            </div>
-          </div>
-          <div>
-            <label for="cvv" class="block text-sm font-medium text-gray-700 mb-2">
-              CVV <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="cvv"
-              name="cvv"
-              maxlength="4"
-              placeholder="123"
-              required
-              class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-300"
-            />
-          </div>
-        </div>
-
-        <!-- Banco -->
-        <div>
-          <label for="bank" class="block text-sm font-medium text-gray-700 mb-2">
-            Banco emisor <span class="text-red-500">*</span>
-          </label>
-          <select
-            id="bank"
-            name="bank"
-            required
-            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 focus:border-orange-400 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-300"
-          >
-            <option value="">Selecciona tu banco</option>
-            <option value="Banco Nacional de Bolivia">Banco Nacional de Bolivia</option>
-            <option value="Banco Mercantil Santa Cruz">Banco Mercantil Santa Cruz</option>
-            <option value="Banco Unión">Banco Unión</option>
-            <option value="Banco Bisa">Banco Bisa</option>
-            <option value="Banco de Crédito">Banco de Crédito</option>
-          </select>
-        </div>
-
-        <!-- Checkbox predeterminada -->
-        <div class="flex items-center gap-3">
-          <input
-            type="checkbox"
-            id="is-default"
-            name="isDefault"
-            class="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
-          />
-          <label for="is-default" class="text-sm font-medium text-gray-700">
-            Establecer como método de pago predeterminado
-          </label>
-        </div>
-
-        <!-- Botones -->
-        <div class="flex gap-3 pt-4">
-          <button
-            type="button"
-            id="cancel-btn"
-            class="flex-1 px-4 py-3 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            class="flex-1 px-4 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-all duration-200 hover:shadow-md active:scale-95"
-          >
-            Guardar Método
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 </section>
 
+<PaymentModal id="payment-modal" />
+<ConfirmModal id="delete-payment-modal" />
+
 <script>
-  (function() {
-    // @ts-ignore
-    let paymentMethods = (window.paymentMethodsData || []) as any[];
+  (async function() {
+    const modalId = 'payment-modal';
+    const confirmModalId = 'delete-payment-modal';
+    
+    // Variables globales
+    let paymentMethods: any[] = [];
     let editingMethodId: string | null = null;
-    let currentCardType = 'credit';
+    let currentUserId: string | null = null;
 
     // Elementos del DOM
     const container = document.getElementById('payment-methods-container');
     const noPaymentMessage = document.getElementById('no-payment-message');
     const addBtn = document.getElementById('add-payment-btn');
-    const modal = document.getElementById('payment-modal');
-    const closeBtn = document.getElementById('close-modal-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
-    const form = document.getElementById('payment-form') as HTMLFormElement;
-    const modalTitle = document.getElementById('modal-title');
+
+    // Obtener userId del usuario autenticado
+    async function getCurrentUserId(): Promise<string | null> {
+      try {
+        // Primero intentar obtener desde localStorage
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            if (user?.id) {
+              return user.id;
+            }
+          } catch (e) {
+            console.error('Error parsing user from localStorage:', e);
+          }
+        }
+
+        // Si no está en localStorage, esperar a que Firebase Auth esté listo
+        const { onAuthStateChange, getCurrentUser } = await import('../../../lib/auth.js');
+        
+        // Verificar si ya hay un usuario autenticado
+        const currentUser = getCurrentUser();
+        if (currentUser?.uid) {
+          return currentUser.uid;
+        }
+        
+        // Si no hay usuario, esperar a que Firebase Auth se inicialice
+        return new Promise<string | null>((resolve) => {
+          let resolved = false;
+          
+          const unsubscribe = onAuthStateChange((firebaseUser) => {
+            if (resolved) return;
+            resolved = true;
+            unsubscribe();
+            
+            if (firebaseUser?.uid) {
+              resolve(firebaseUser.uid);
+            } else {
+              resolve(null);
+            }
+          });
+          
+          // Timeout de seguridad
+          setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              unsubscribe();
+              resolve(null);
+            }
+          }, 2000);
+        });
+      } catch (error) {
+        console.error('Error obteniendo usuario:', error);
+        return null;
+      }
+    }
+
+    // Cargar métodos de pago desde Firebase
+    async function loadPaymentMethods() {
+      try {
+        if (!currentUserId) {
+          console.error('No hay usuario autenticado');
+          paymentMethods = [];
+          renderMethods();
+          return;
+        }
+
+        const { getPaymentMethods } = await import('../../../lib/db/payment.js');
+        const result = await getPaymentMethods(currentUserId);
+
+        if (result.error) {
+          console.error('Error cargando métodos de pago:', result.error);
+          paymentMethods = [];
+        } else {
+          // Mapear los datos de Firebase al formato que usa el componente
+          paymentMethods = result.data.map((method: any) => {
+            const cardNumber = method.cardNumber || '';
+            return {
+              id: method.id,
+              type: method.cardType || (method.type === 'card' ? 'credit' : method.type) || 'credit',
+              cardNumber: cardNumber,
+              cardHolder: method.cardholderName || method.cardHolder || '',
+              expiryDate: method.expiryDate || '',
+              brand: method.brand || detectBrand(cardNumber),
+              bank: method.bank || '',
+              isDefault: method.isDefault || false
+            };
+          });
+        }
+
+        renderMethods();
+      } catch (error) {
+        console.error('Error en loadPaymentMethods:', error);
+        paymentMethods = [];
+        renderMethods();
+      }
+    }
 
     // Detectar marca de tarjeta
     function detectBrand(cardNumber: string) {
@@ -240,16 +169,119 @@ const title = 'Métodos de Pago';
       return 'Visa';
     }
 
-    // Formatear número de tarjeta
-    function formatCardNumber(value: string) {
-      const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-      const matches = v.match(/\d{4,16}/g);
-      const match = (matches && matches[0]) || '';
-      const parts = [];
-      for (let i = 0, len = match.length; i < len; i += 4) {
-        parts.push(match.substring(i, i + 4));
-      }
-      return parts.length ? parts.join(' ') : value;
+    // Función helper para renderizar una tarjeta de método de pago
+    // Esta función replica exactamente la estructura del componente PaymentCard.astro
+    // para mantener la consistencia entre el componente Astro y el renderizado dinámico
+    function renderPaymentCard(method: any): string {
+      // Colores profesionales y elegantes según la marca
+      const brandConfig = method.brand === 'Visa' 
+        ? {
+            gradient: 'from-slate-800 via-slate-900 to-slate-950',
+            accent: 'from-blue-600 to-blue-700',
+            chip: 'bg-gradient-to-br from-amber-400 to-amber-500',
+            logoBg: 'bg-blue-600'
+          }
+        : {
+            gradient: 'from-gray-900 via-gray-950 to-black',
+            accent: 'from-red-600 to-orange-600',
+            chip: 'bg-gradient-to-br from-red-400 to-orange-500',
+            logoBg: 'bg-red-600'
+          };
+
+      // Función helper para escapar HTML y prevenir XSS
+      const escapeHtml = (text: any) => {
+        if (text === null || text === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+      };
+
+      // Esta estructura debe coincidir exactamente con PaymentCard.astro
+      return `
+        <div class="group relative bg-linear-to-br ${brandConfig.gradient} rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50 hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] hover:border-gray-700/70" data-method-id="${escapeHtml(method.id)}">
+          <!-- Patrón de fondo sutil -->
+          <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 40px 40px;"></div>
+          </div>
+          
+          <!-- Efecto de brillo sutil -->
+          <div class="absolute top-0 left-0 w-full h-1/2 bg-linear-to-b from-white/5 to-transparent"></div>
+          
+          <!-- Contenido principal -->
+          <div class="relative z-10 p-5">
+            <!-- Header con chip, logo y badge -->
+            <div class="flex items-start justify-between mb-5">
+              <!-- Chip de tarjeta -->
+              <div class="relative">
+                <div class="${brandConfig.chip} w-11 h-9 rounded-md shadow-lg flex items-center justify-center border border-white/20">
+                  <div class="w-7 h-5 bg-linear-to-br from-white/30 to-transparent rounded-sm"></div>
+                </div>
+              </div>
+              
+              <!-- Logo de la marca y Badge Predeterminada (lado derecho) -->
+              <div class="flex flex-col items-end gap-2">
+                <!-- Badge Predeterminada (arriba del logo) -->
+                ${method.isDefault ? `
+                  <span class="inline-flex items-center gap-1 bg-linear-to-r from-amber-500 to-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md border border-amber-400/40 uppercase tracking-wider">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Predeterminada
+                  </span>
+                ` : ''}
+                
+                <!-- Logo de la marca -->
+                <div class="flex flex-col items-end gap-0.5">
+                  <div class="${brandConfig.logoBg} px-3 py-1.5 rounded-lg shadow-md">
+                    <p class="text-white font-bold text-sm tracking-wide">${escapeHtml(method.brand)}</p>
+                  </div>
+                  ${method.bank ? `<p class="text-gray-400 text-[10px] font-medium leading-tight">${escapeHtml(method.bank)}</p>` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Número de tarjeta -->
+            <div class="mb-5">
+              <p class="text-gray-400 text-[10px] font-medium mb-1.5 tracking-wider uppercase">Número de Tarjeta</p>
+              <p class="text-white text-xl font-mono tracking-[0.15em] font-semibold">${escapeHtml(method.cardNumber)}</p>
+            </div>
+            
+            <!-- Información inferior -->
+            <div class="flex items-end justify-between mb-4">
+              <div class="flex-1">
+                <p class="text-gray-400 text-[10px] font-medium mb-1 tracking-wider uppercase">Titular</p>
+                <p class="text-white text-sm font-semibold tracking-wide truncate">${escapeHtml(method.cardHolder)}</p>
+              </div>
+              <div class="text-right ml-3">
+                <p class="text-gray-400 text-[10px] font-medium mb-1 tracking-wider uppercase">Válida Hasta</p>
+                <p class="text-white text-sm font-semibold tracking-wide">${escapeHtml(method.expiryDate)}</p>
+              </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex items-center gap-2 pt-3.5 border-t border-gray-700/50">
+              ${!method.isDefault ? `
+                <button type="button" class="set-default-btn flex-1 px-3 py-2 bg-linear-to-r ${brandConfig.accent} text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 text-xs font-semibold border border-white/20" data-id="${escapeHtml(method.id)}">
+                  Establecer Predeterminada
+                </button>
+              ` : ''}
+              <button type="button" class="edit-btn px-3 py-2 bg-gray-800/80 hover:bg-gray-700 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 border border-gray-700/50 shadow-md" data-id="${escapeHtml(method.id)}" title="Editar">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button type="button" class="delete-btn px-3 py-2 bg-red-900/80 hover:bg-red-800 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 border border-red-800/50 shadow-md" data-id="${escapeHtml(method.id)}" title="Eliminar">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Borde decorativo inferior -->
+          <div class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r ${brandConfig.accent}"></div>
+        </div>
+      `;
     }
 
     // Renderizar métodos de pago
@@ -265,46 +297,7 @@ const title = 'Métodos de Pago';
       container.classList.remove('hidden');
       noPaymentMessage.classList.add('hidden');
 
-      container.innerHTML = paymentMethods.map((method: any) => {
-        const brandColor = method.brand === 'Visa' 
-          ? 'from-blue-500 to-blue-600' 
-          : 'from-red-500 to-orange-600';
-
-        return '<div class="bg-gradient-to-br ' + brandColor + ' rounded-2xl p-6 text-white shadow-xl relative" data-method-id="' + method.id + '">' +
-          (method.isDefault ? '<span class="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium">Predeterminada</span>' : '') +
-          '<div class="mb-6">' +
-          '<div class="flex items-start justify-between mb-4">' +
-          '<div class="text-3xl">💳</div>' +
-          '<div class="text-right">' +
-          '<p class="text-white/80 text-sm">' + (method.bank || '') + '</p>' +
-          '<p class="text-white font-bold">' + method.brand + '</p>' +
-          '</div>' +
-          '</div>' +
-          '<div class="space-y-3">' +
-          '<div>' +
-          '<p class="text-white/70 text-sm">Número de tarjeta</p>' +
-          '<p class="text-xl font-mono tracking-wider">' + method.cardNumber + '</p>' +
-          '</div>' +
-          '<div class="flex justify-between">' +
-          '<div>' +
-          '<p class="text-white/70 text-sm">Titular</p>' +
-          '<p class="font-medium">' + method.cardHolder + '</p>' +
-          '</div>' +
-          '<div class="text-right">' +
-          '<p class="text-white/70 text-sm">Válida hasta</p>' +
-          '<p class="font-medium">' + method.expiryDate + '</p>' +
-          '</div>' +
-          '</div>' +
-          '</div>' +
-          '</div>' +
-          '<div class="flex items-center gap-2">' +
-          (!method.isDefault ? '<button type="button" class="set-default-btn flex-1 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-white/30 transition-colors text-sm" data-id="' + method.id + '">Predeterminar</button>' : '') +
-          '<button type="button" class="delete-btn px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg hover:bg-red-500 transition-colors" data-id="' + method.id + '">' +
-          '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
-          '</button>' +
-          '</div>' +
-          '</div>';
-      }).join('');
+      container.innerHTML = paymentMethods.map((method: any) => renderPaymentCard(method)).join('');
 
       attachEventListeners();
     }
@@ -321,215 +314,267 @@ const title = 'Métodos de Pago';
         });
       });
 
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const target = e.currentTarget;
+          if (target && target instanceof HTMLButtonElement) {
+            const id = target.getAttribute('data-id');
+            if (id) openEditModal(id);
+          }
+        });
+      });
+
       document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const target = e.currentTarget;
           if (target && target instanceof HTMLButtonElement) {
             const id = target.getAttribute('data-id');
-            if (id && confirm('¿Estás seguro de eliminar este método de pago?')) {
-              deleteMethod(id);
-            }
+            if (id) showDeleteConfirm(id);
           }
         });
       });
     }
 
     // Establecer como predeterminada
-    function setDefault(id: string) {
-      paymentMethods = paymentMethods.map((m: any) => ({
-        ...m,
-        isDefault: m.id === id
-      }));
-      renderMethods();
-    }
-
-    // Eliminar método
-    function deleteMethod(id: string) {
-      paymentMethods = paymentMethods.filter((m: any) => m.id !== id);
-      renderMethods();
-    }
-
-    // Abrir modal
-    function openModal(methodId?: string) {
-      if (!modal || !modalTitle || !form) return;
-
-      editingMethodId = methodId || null;
-      currentCardType = 'credit';
-
-      if (editingMethodId) {
-        const method = paymentMethods.find((m: any) => m.id === editingMethodId);
-        if (method) {
-          (document.getElementById('card-number') as HTMLInputElement).value = method.cardNumber;
-          (document.getElementById('card-holder') as HTMLInputElement).value = method.cardHolder;
-          const [month, year] = method.expiryDate.split('/');
-          (document.getElementById('expiry-month') as HTMLInputElement).value = month;
-          (document.getElementById('expiry-year') as HTMLInputElement).value = year;
-          (document.getElementById('cvv') as HTMLInputElement).value = '';
-          (document.getElementById('bank') as HTMLSelectElement).value = method.bank;
-          (document.getElementById('is-default') as HTMLInputElement).checked = method.isDefault;
-          currentCardType = method.type;
-          modalTitle.textContent = 'Editar Método de Pago';
-        }
-      } else {
-        form.reset();
-        modalTitle.textContent = 'Añadir Método de Pago';
+    async function setDefault(id: string) {
+      if (!currentUserId) {
+        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        return;
       }
 
-      updateCardTypeButtons();
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      modal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
+      try {
+        // Optimistic update
+        paymentMethods = paymentMethods.map((m: any) => ({
+          ...m,
+          isDefault: m.id === id
+        }));
+        renderMethods();
+
+        const { setDefaultPaymentMethod } = await import('../../../lib/db/payment.js');
+        const result = await setDefaultPaymentMethod(currentUserId, id);
+
+        if (!result.success) {
+          // Revertir optimistic update
+          await loadPaymentMethods();
+          alert('Error al establecer método predeterminado: ' + (result.error?.message || 'Error desconocido'));
+        }
+      } catch (error: any) {
+        console.error('Error estableciendo método predeterminado:', error);
+        await loadPaymentMethods();
+        alert('Error al establecer método predeterminado: ' + (error.message || 'Error desconocido'));
+      }
     }
 
-    // Cerrar modal
-    function closeModal() {
-      if (!modal) return;
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      modal.style.display = 'none';
-      document.body.style.overflow = '';
-      editingMethodId = null;
-      if (form) form.reset();
-    }
+    // Mostrar confirmación de eliminación
+    function showDeleteConfirm(id: string) {
+      const method = paymentMethods.find((m: any) => m.id === id);
+      if (!method) return;
 
-    // Actualizar botones de tipo de tarjeta
-    function updateCardTypeButtons() {
-      document.querySelectorAll('.card-type-btn').forEach(btn => {
-        const target = btn as HTMLButtonElement;
-        const type = target.getAttribute('data-type');
-        if (type === currentCardType) {
-          target.classList.add('border-orange-600', 'bg-orange-50');
-          target.classList.remove('border-gray-300');
-        } else {
-          target.classList.add('border-gray-300');
-          target.classList.remove('border-orange-600', 'bg-orange-50');
+      (window as any).showConfirmModal(confirmModalId, {
+        icon: `
+          <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        `,
+        iconBg: 'bg-red-100',
+        iconColor: 'text-red-600',
+        title: 'Eliminar Método de Pago',
+        message: `¿Estás seguro de eliminar el método de pago terminado en ${method.cardNumber.slice(-4)}? Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        confirmClass: 'bg-gradient-to-r from-red-500 to-red-600',
+        onConfirm: () => {
+          deleteMethod(id);
         }
       });
     }
 
-    // Guardar método
-    function saveMethod(formData: FormData) {
-      const cardNumber = (document.getElementById('card-number') as HTMLInputElement).value;
-      const brand = detectBrand(cardNumber);
+    // Eliminar método
+    async function deleteMethod(id: string) {
+      if (!currentUserId) {
+        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        return;
+      }
 
-      const methodData: any = {
-        id: editingMethodId || String(Date.now()),
-        type: currentCardType,
-        cardNumber: cardNumber,
-        cardHolder: (document.getElementById('card-holder') as HTMLInputElement).value.toUpperCase(),
-        expiryDate: (document.getElementById('expiry-month') as HTMLInputElement).value + '/' + (document.getElementById('expiry-year') as HTMLInputElement).value,
-        brand: brand,
-        bank: (document.getElementById('bank') as HTMLSelectElement).value,
-        isDefault: (document.getElementById('is-default') as HTMLInputElement).checked || paymentMethods.length === 0
-      };
+      try {
+        // Optimistic update: eliminar de la UI inmediatamente
+        const methodToDelete = paymentMethods.find((m: any) => m.id === id);
+        paymentMethods = paymentMethods.filter((m: any) => m.id !== id);
+        renderMethods();
 
-      if (editingMethodId) {
-        const index = paymentMethods.findIndex((m: any) => m.id === editingMethodId);
-        if (index !== -1) {
-          paymentMethods[index] = methodData;
+        const { deletePaymentMethod } = await import('../../../lib/db/payment.js');
+        const result = await deletePaymentMethod(currentUserId, id);
+
+        if (!result.success) {
+          // Revertir optimistic update
+          await loadPaymentMethods();
+          alert('Error al eliminar método de pago: ' + (result.error?.message || 'Error desconocido'));
         }
+      } catch (error: any) {
+        console.error('Error eliminando método de pago:', error);
+        // Revertir optimistic update
+        await loadPaymentMethods();
+        alert('Error al eliminar método de pago: ' + (error.message || 'Error desconocido'));
+      }
+    }
+
+    // Abrir modal para añadir
+    function openAddModal() {
+      editingMethodId = null;
+      
+      // Guardar referencia a la función del modal ANTES de cualquier asignación
+      const modalOpenFn = (window as any)['openPaymentModal_payment-modal'];
+      
+      if (modalOpenFn && typeof modalOpenFn === 'function') {
+        // Llamar directamente a la función del modal, NO a window.openPaymentModal
+        modalOpenFn(null, function(methodData: any) {
+          saveMethod(methodData);
+        });
       } else {
-        paymentMethods.push(methodData);
+        // Fallback: intentar acceder directamente al modal
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          modal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        } else {
+          console.error('No se pudo encontrar la función del modal ni el elemento modal');
+        }
+      }
+    }
+
+    // Abrir modal para editar
+    function openEditModal(methodId: string) {
+      const method = paymentMethods.find((m: any) => m.id === methodId);
+      if (!method) return;
+
+      editingMethodId = methodId;
+      
+      // Guardar referencia a la función del modal ANTES de cualquier asignación
+      const modalOpenFn = (window as any)['openPaymentModal_payment-modal'];
+      
+      if (modalOpenFn && typeof modalOpenFn === 'function') {
+        // Llamar directamente a la función del modal, NO a window.openPaymentModal
+        modalOpenFn(method, function(methodData: any) {
+          saveMethod(methodData);
+        });
+      } else {
+        console.error('No se pudo encontrar la función del modal');
+      }
+    }
+
+    // Guardar método
+    async function saveMethod(methodData: any) {
+      if (!currentUserId) {
+        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        return;
       }
 
-      // Si es predeterminada, desmarcar las demás
-      if (methodData.isDefault) {
-        paymentMethods = paymentMethods.map((m: any) => ({
-          ...m,
-          isDefault: m.id === methodData.id
-        }));
-      }
+      try {
+        const brand = detectBrand(methodData.cardNumber);
+        const isDefault = methodData.isDefault || paymentMethods.length === 0;
 
-      renderMethods();
-      closeModal();
+        // Preparar datos para Firebase
+        const paymentData: any = {
+          type: 'card', // El tipo en Firebase es 'card' o 'cash'
+          cardNumber: methodData.cardNumber,
+          cardholderName: methodData.cardHolder,
+          expiryDate: methodData.expiryDate,
+          isDefault: isDefault,
+          // Campos adicionales que no están en el tipo pero los usamos en el componente
+          cardType: methodData.type, // 'credit' o 'debit'
+          brand: brand,
+          bank: methodData.bank
+        };
+
+        // Optimistic update
+        const finalMethodData: any = {
+          id: editingMethodId || 'temp-' + Date.now(),
+          ...methodData,
+          brand: brand,
+          isDefault: isDefault
+        };
+
+        if (editingMethodId) {
+          const index = paymentMethods.findIndex((m: any) => m.id === editingMethodId);
+          if (index !== -1) {
+            paymentMethods[index] = finalMethodData;
+          }
+        } else {
+          paymentMethods.push(finalMethodData);
+        }
+
+        // Si es predeterminada, desmarcar las demás
+        if (finalMethodData.isDefault) {
+          paymentMethods = paymentMethods.map((m: any) => ({
+            ...m,
+            isDefault: m.id === finalMethodData.id
+          }));
+        }
+
+        renderMethods();
+
+        // Guardar en Firebase
+        const { addPaymentMethod, updatePaymentMethod } = await import('../../../lib/db/payment.js');
+
+        if (editingMethodId) {
+          const result = await updatePaymentMethod(currentUserId, editingMethodId, paymentData);
+          if (!result.success) {
+            // Revertir optimistic update
+            await loadPaymentMethods();
+            alert('Error al actualizar método de pago: ' + (result.error?.message || 'Error desconocido'));
+            return;
+          }
+        } else {
+          const result = await addPaymentMethod(currentUserId, paymentData);
+          if (!result.success) {
+            // Revertir optimistic update
+            await loadPaymentMethods();
+            alert('Error al guardar método de pago: ' + (result.error?.message || 'Error desconocido'));
+            return;
+          }
+        }
+
+        // Recargar desde Firebase para sincronizar
+        await loadPaymentMethods();
+      } catch (error: any) {
+        console.error('Error guardando método de pago:', error);
+        // Revertir optimistic update
+        await loadPaymentMethods();
+        alert('Error al guardar método de pago: ' + (error.message || 'Error desconocido'));
+      }
     }
 
     // Event listeners
     if (addBtn) {
-      addBtn.addEventListener('click', () => openModal());
+      addBtn.addEventListener('click', openAddModal);
     }
 
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeModal);
-    }
-
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', closeModal);
-    }
-
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        saveMethod(formData);
-      });
-    }
-
-    // Tipo de tarjeta
-    document.querySelectorAll('.card-type-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const target = e.currentTarget;
-        if (target && target instanceof HTMLButtonElement) {
-          currentCardType = target.getAttribute('data-type') || 'credit';
-          updateCardTypeButtons();
-        }
-      });
-    });
-
-    // Formatear número de tarjeta
-    const cardNumberInput = document.getElementById('card-number');
-    if (cardNumberInput) {
-      cardNumberInput.addEventListener('input', (e) => {
-        const target = e.target;
-        if (target && target instanceof HTMLInputElement) {
-          target.value = formatCardNumber(target.value);
-        }
-      });
-    }
-
-    // Cerrar modal al hacer clic fuera
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal();
-        }
-      });
-    }
-
-    // Cerrar con ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (modal && !modal.classList.contains('hidden')) {
-          closeModal();
-        }
+    // Función global para el botón del mensaje vacío (usar un nombre completamente diferente)
+    // @ts-ignore
+    window.openPaymentModalFromSection = function() {
+      openAddModal();
+    };
+    
+    // Inicializar: obtener userId y cargar métodos de pago
+    async function init() {
+      currentUserId = await getCurrentUserId();
+      
+      if (!currentUserId) {
+        console.warn('No se pudo obtener el usuario autenticado');
+        paymentMethods = [];
+        renderMethods();
+        return;
       }
-    });
 
-    // Función global
-    // @ts-ignore
-    window.openPaymentModal = openModal;
-
-    // Datos iniciales (mock)
-    if (paymentMethods.length === 0) {
-      paymentMethods = [
-        {
-          id: '1',
-          type: 'credit',
-          cardNumber: '4532 1234 5678 9010',
-          cardHolder: 'MARÍA GARCÍA',
-          expiryDate: '12/25',
-          brand: 'Visa',
-          isDefault: true,
-          bank: 'Banco Nacional de Bolivia'
-        }
-      ];
+      await loadPaymentMethods();
     }
 
-    // @ts-ignore
-    window.paymentMethodsData = paymentMethods;
-
-    // Renderizar
-    renderMethods();
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   })();
 </script>

@@ -13,9 +13,18 @@ export function generateInvoiceNumber(orderId: string, createdAt: Date): string 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  const random = orderId.substring(0, 4).toUpperCase();
   
-  return `FACT-${year}${month}${day}-${random}`;
+  // Si el orderId es 'TEMP', generar un número aleatorio
+  // Si no, usar los primeros caracteres del ID
+  let identifier: string;
+  if (orderId === 'TEMP' || orderId.length < 4) {
+    // Generar un identificador aleatorio de 4 caracteres alfanuméricos
+    identifier = Math.random().toString(36).substring(2, 6).toUpperCase();
+  } else {
+    identifier = orderId.substring(0, 4).toUpperCase();
+  }
+  
+  return `FACT-${year}${month}${day}-${identifier}`;
 }
 
 /**

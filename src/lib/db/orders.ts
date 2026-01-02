@@ -41,7 +41,7 @@ export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
     const tempInvoiceNumber = generateInvoiceNumber('TEMP', nowDate);
     
     const shippingCost = data.shippingCost || 0;
-    const orderData: Order = {
+    const orderData: any = {
       id: '', // Se asignará después
       userId: data.userId,
       status: 'pending',
@@ -56,13 +56,46 @@ export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
       createdAt: now,
       updatedAt: now,
     };
-
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), orderData);
     
-    // Actualizar con el número de factura correcto usando el ID real
+    // Solo agregar campos de guest si realmente es una orden de invitado
+    if (data.isGuest === true) {
+      orderData.isGuest = true;
+      if (data.guestEmail) orderData.guestEmail = data.guestEmail;
+      if (data.guestPhone) orderData.guestPhone = data.guestPhone;
+      if (data.guestName) orderData.guestName = data.guestName;
+    }
+
+    console.log('📝 [ORDERS] Creando orden con datos:', {
+      userId: orderData.userId,
+      isGuest: orderData.isGuest || false,
+      itemsCount: orderData.items.length,
+      subtotal: orderData.subtotal,
+      total: orderData.total
+    });
+    
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), orderData);
+    console.log('✅ [ORDERS] Documento creado con ID:', docRef.id);
+    
+    // Actualizar con el número de factura correcto y el ID usando el ID real
     const invoiceNumber = generateInvoiceNumber(docRef.id, nowDate);
-    await updateDoc(docRef, {
+    console.log('📄 [ORDERS] Generando invoiceNumber:', invoiceNumber);
+    
+    try {
+      await updateDoc(docRef, {
+        id: docRef.id,
+        invoiceNumber: invoiceNumber,
+      });
+      console.log('✅ [ORDERS] Orden actualizada con invoiceNumber e id');
+    } catch (updateError: any) {
+      console.error('⚠️ [ORDERS] Error actualizando invoiceNumber:', updateError);
+      // Continuar de todas formas, el invoiceNumber temporal está bien
+    }
+    
+    console.log('✅ [ORDERS] Orden creada exitosamente:', {
+      id: docRef.id,
       invoiceNumber: invoiceNumber,
+      userId: orderData.userId,
+      isGuest: orderData.isGuest || false
     });
     
     return { success: true, id: docRef.id };

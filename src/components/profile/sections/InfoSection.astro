@@ -305,7 +305,32 @@ const headerStats = [
     </button>
   </div>
 
-  <script type="module">
+  <script>
+    // @ts-ignore - Extender Window interface para currentUserId
+    (function() {
+      // Obtener userId de forma segura
+      function getUserId() {
+        let userId = localStorage.getItem('userId');
+        if (!userId && typeof window !== 'undefined') {
+          // @ts-ignore
+          userId = window.currentUserId || null;
+        }
+        if (!userId) {
+          const profilePanel = document.getElementById('profile-content-panel');
+          if (profilePanel) {
+            userId = profilePanel.getAttribute('data-user-id');
+          }
+        }
+        return userId;
+      }
+      
+      // Exponer función globalmente
+      if (typeof window !== 'undefined') {
+        // @ts-ignore
+        window.getUserId = getUserId;
+      }
+    })();
+    
     const profileSection = document.getElementById('profile-info');
     if (profileSection) {
       const form = profileSection.querySelector('#profile-form');
@@ -345,12 +370,19 @@ const headerStats = [
 
       async function loadStats() {
         try {
-          const { getCurrentUser } = await import('../../../lib/auth.js');
-          const firebaseUser = getCurrentUser();
-          if (!firebaseUser) return;
+          // Obtener userId usando la función helper
+          // @ts-ignore
+          let userId = typeof window !== 'undefined' && window.getUserId 
+            ? window.getUserId() 
+            : localStorage.getItem('userId');
+          
+          if (!userId) {
+            console.warn('No se pudo obtener userId para cargar estadísticas');
+            return;
+          }
 
           const { getUserOrders } = await import('../../../lib/db/orders.js');
-          const ordersResult = await getUserOrders(firebaseUser.uid);
+          const ordersResult = await getUserOrders(userId);
           const orders = ordersResult.data || [];
 
           // Calcular puntos (ejemplo: 10 puntos por pedido)
@@ -534,18 +566,39 @@ const headerStats = [
             }
           }
 
-          // Si no hay datos en localStorage, obtenerlos desde Firebase
+          // Si no hay datos en localStorage, obtenerlos desde Firestore usando userId
           if (!currentUser) {
-            const { getCurrentUserData } = await import('../../../lib/auth.js');
-            const userDataResult = await getCurrentUserData();
+            // Obtener userId desde localStorage
+            let userId = localStorage.getItem('userId');
             
-            if (!userDataResult.success || !userDataResult.user) {
-              console.error('Error loading user data:', userDataResult.error);
+            if (!userId) {
+              userId = typeof window !== 'undefined' && window.currentUserId 
+                ? window.currentUserId 
+                : null;
+            }
+            
+            if (!userId) {
+              const profilePanel = document.getElementById('profile-content-panel');
+              if (profilePanel) {
+                userId = profilePanel.getAttribute('data-user-id');
+              }
+            }
+            
+            if (userId) {
+              const { getUser } = await import('../../../lib/db/users.js');
+              const userResult = await getUser(userId);
+              
+              if (userResult.data) {
+                currentUser = userResult.data;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+              } else {
+                console.error('Error loading user data: No se encontraron datos del usuario');
+                return;
+              }
+            } else {
+              console.error('No se pudo obtener userId');
               return;
             }
-
-            currentUser = userDataResult.user;
-            localStorage.setItem('user', JSON.stringify(currentUser));
           }
 
           // Mapear datos del usuario a formData
@@ -580,9 +633,13 @@ const headerStats = [
         }
 
         try {
-          const { getCurrentUser } = await import('../../../lib/auth.js');
-          const firebaseUser = getCurrentUser();
-          if (!firebaseUser) {
+          // Obtener userId usando la función helper
+          // @ts-ignore
+          let userId = typeof window !== 'undefined' && window.getUserId 
+            ? window.getUserId() 
+            : localStorage.getItem('userId');
+          
+          if (!userId) {
             throw new Error('Usuario no autenticado');
           }
           
@@ -613,7 +670,7 @@ const headerStats = [
             // birthdate, newsletter, notifications se pueden agregar si están en el tipo UpdateUserData
           };
 
-          const result = await updateUser(firebaseUser.uid, updateData);
+          const result = await updateUser(userId, updateData);
           
           if (!result.success) {
             throw new Error(result.error?.message || 'Error al actualizar el usuario');
@@ -754,11 +811,13 @@ const headerStats = [
         }
 
         try {
-          // Obtener usuario actual
-          const { getCurrentUser } = await import('../../../lib/auth.js');
-          const firebaseUser = getCurrentUser();
+          // Obtener userId usando la función helper
+          // @ts-ignore
+          let userId = typeof window !== 'undefined' && window.getUserId 
+            ? window.getUserId() 
+            : localStorage.getItem('userId');
           
-          if (!firebaseUser) {
+          if (!userId) {
             alert('Debes estar autenticado para subir una imagen');
             return;
           }
@@ -775,7 +834,7 @@ const headerStats = [
 
           // Subir imagen a Firebase Storage
           const { uploadUserAvatar } = await import('../../../lib/utils/storage.js');
-          const uploadResult = await uploadUserAvatar(file, firebaseUser.uid);
+          const uploadResult = await uploadUserAvatar(file, userId);
 
           if (!uploadResult.success || !uploadResult.url) {
             throw new Error(uploadResult.error?.message || 'Error al subir la imagen');

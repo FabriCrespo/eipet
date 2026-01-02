@@ -1,0 +1,387 @@
+---
+interface Props {
+  id?: string;
+}
+
+const modalId = Astro.props.id || 'order-confirmation-modal';
+---
+
+<div id={modalId} class="hidden fixed inset-0 z-9999">
+  <!-- Overlay con backdrop blur -->
+  <div 
+    class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity"
+    onclick={`closeOrderConfirmationModal('${modalId}')`}
+  ></div>
+
+  <!-- Modal Container -->
+  <div class="absolute inset-0 flex items-center justify-center px-4 pointer-events-none overflow-y-auto py-8">
+    <!-- Modal Content -->
+    <div class="relative bg-white rounded-3xl text-left overflow-hidden shadow-2xl w-full max-w-2xl pointer-events-auto my-auto">
+      <!-- Header con gradiente -->
+      <div class="bg-linear-to-r from-[#5d3fbb] via-[#6d4fcc] to-[#5d3fbb] px-6 pt-8 pb-6">
+        <div class="flex items-center gap-4 mb-4">
+          <div id={`${modalId}-icon`} class="shrink-0 w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
+            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 id={`${modalId}-title`} class="text-2xl font-bold text-white">¡Pedido Confirmado!</h3>
+            <p id={`${modalId}-subtitle`} class="text-white/90 text-sm mt-1">Tu pedido ha sido procesado exitosamente</p>
+          </div>
+          <button
+            onclick={`closeOrderConfirmationModal('${modalId}')`}
+            class="shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors flex items-center justify-center"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Número de orden -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+          <p class="text-white/80 text-xs font-medium mb-1">Número de Pedido</p>
+          <p id={`${modalId}-order-id`} class="text-white text-lg font-bold font-mono"></p>
+          <p id={`${modalId}-invoice-number`} class="text-white/70 text-xs mt-1"></p>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="bg-white px-6 py-6 max-h-[60vh] overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;">
+        <!-- Resumen del pedido -->
+        <div class="mb-6">
+          <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Resumen del Pedido
+          </h4>
+          
+          <!-- Items -->
+          <div id={`${modalId}-items`} class="space-y-3 mb-4">
+            <!-- Se llenará dinámicamente -->
+          </div>
+          
+          <!-- Totales -->
+          <div class="border-t border-gray-200 pt-4 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Subtotal:</span>
+              <span id={`${modalId}-subtotal`} class="font-semibold text-gray-900">Bs. 0.00</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Envío:</span>
+              <span id={`${modalId}-shipping`} class="font-semibold text-gray-900">Bs. 0.00</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
+              <span class="text-gray-900">Total:</span>
+              <span id={`${modalId}-total`} class="text-[#5d3fbb]">Bs. 0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de envío -->
+        <div class="mb-6">
+          <h4 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Dirección de Envío
+          </h4>
+          <div id={`${modalId}-shipping-address`} class="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
+            <!-- Se llenará dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Método de pago -->
+        <div>
+          <h4 class="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            Método de Pago
+          </h4>
+          <div id={`${modalId}-payment-method`} class="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
+            <!-- Se llenará dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="bg-gray-50 px-6 py-5 flex flex-col sm:flex-row gap-3 border-t border-gray-200">
+        <button
+          id={`${modalId}-view-order-btn`}
+          onclick={`viewOrder('${modalId}')`}
+          class="flex-1 px-6 py-3 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Ver Detalles del Pedido
+        </button>
+        <button
+          onclick={`closeOrderConfirmationModal('${modalId}')`}
+          class="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          Continuar Comprando
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Scrollbar personalizado */
+  #order-confirmation-modal::-webkit-scrollbar,
+  #order-confirmation-modal [style*="scrollbar"]::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #order-confirmation-modal::-webkit-scrollbar-track,
+  #order-confirmation-modal [style*="scrollbar"]::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+  }
+
+  #order-confirmation-modal::-webkit-scrollbar-thumb,
+  #order-confirmation-modal [style*="scrollbar"]::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+  }
+
+  #order-confirmation-modal::-webkit-scrollbar-thumb:hover,
+  #order-confirmation-modal [style*="scrollbar"]::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Animaciones para el modal */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px) scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  #order-confirmation-modal:not(.hidden) {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  #order-confirmation-modal:not(.hidden) .relative {
+    animation: slideUp 0.3s ease-out;
+  }
+</style>
+
+<script>
+  // Función helper para escapar HTML
+  function escapeHtml(text: any): string {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
+  // Función para formatear precio
+  function formatPrice(price: number): string {
+    return price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  // Función para cerrar el modal
+  (window as any).closeOrderConfirmationModal = function(modalId: string) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  };
+
+  // Función para mostrar el modal de confirmación (definida inmediatamente)
+  (window as any).showOrderConfirmationModal = function(
+    modalId: string,
+    orderData: {
+      id: string;
+      invoiceNumber?: string;
+      items: Array<{
+        productName: string;
+        productImage: string;
+        quantity: number;
+        price: number;
+        subtotal: number;
+      }>;
+      subtotal: number;
+      shippingCost: number;
+      total: number;
+      shippingAddress: {
+        fullName: string;
+        phone: string;
+        address: string;
+        city: string;
+        district: string;
+        zipCode?: string;
+        instructions?: string;
+      };
+      paymentMethod: {
+        type: string;
+        brand?: string;
+        cardNumber?: string;
+        cardholderName?: string;
+      };
+    }
+  ) {
+    const modal = document.getElementById(modalId);
+    if (!modal) {
+      console.error('❌ Modal no encontrado:', modalId);
+      return;
+    }
+
+    // Usar funciones globales si están disponibles
+    const escapeHtml = (window as any).escapeHtml || function(text: any): string {
+      if (text === null || text === undefined) return '';
+      const div = document.createElement('div');
+      div.textContent = String(text);
+      return div.innerHTML;
+    };
+
+    const formatPrice = (window as any).formatPrice || function(price: number): string {
+      return price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+
+    // Llenar datos
+    const orderIdEl = document.getElementById(`${modalId}-order-id`);
+    const invoiceNumberEl = document.getElementById(`${modalId}-invoice-number`);
+    const itemsEl = document.getElementById(`${modalId}-items`);
+    const subtotalEl = document.getElementById(`${modalId}-subtotal`);
+    const shippingEl = document.getElementById(`${modalId}-shipping`);
+    const totalEl = document.getElementById(`${modalId}-total`);
+    const shippingAddressEl = document.getElementById(`${modalId}-shipping-address`);
+    const paymentMethodEl = document.getElementById(`${modalId}-payment-method`);
+    const viewOrderBtn = document.getElementById(`${modalId}-view-order-btn`) as HTMLButtonElement;
+
+    if (orderIdEl) orderIdEl.textContent = orderData.id || 'N/A';
+    if (invoiceNumberEl) {
+      invoiceNumberEl.textContent = orderData.invoiceNumber 
+        ? `Factura: ${orderData.invoiceNumber}` 
+        : '';
+    }
+
+    // Renderizar items
+    if (itemsEl) {
+      itemsEl.innerHTML = orderData.items.map(item => `
+        <div class="flex gap-3 p-3 bg-gray-50 rounded-lg">
+          <div class="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
+            <img 
+              src="${escapeHtml(item.productImage)}" 
+              alt="${escapeHtml(item.productName)}"
+              class="w-full h-full object-contain"
+              onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'12\'%3EImagen%3C/text%3E%3C/svg%3E';"
+            />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h5 class="font-semibold text-gray-900 text-sm mb-1">${escapeHtml(item.productName)}</h5>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-600">Cantidad: ${item.quantity}</span>
+              <span class="font-bold text-[#5d3fbb]">Bs. ${formatPrice(item.subtotal)}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Totales
+    if (subtotalEl) subtotalEl.textContent = `Bs. ${formatPrice(orderData.subtotal)}`;
+    if (shippingEl) shippingEl.textContent = `Bs. ${formatPrice(orderData.shippingCost)}`;
+    if (totalEl) totalEl.textContent = `Bs. ${formatPrice(orderData.total)}`;
+
+    // Dirección de envío
+    if (shippingAddressEl) {
+      const address = orderData.shippingAddress;
+      shippingAddressEl.innerHTML = `
+        <p class="font-semibold text-gray-900 mb-2">${escapeHtml(address.fullName)}</p>
+        <p class="text-gray-600 mb-1">${escapeHtml(address.address)}</p>
+        <p class="text-gray-600 mb-1">${escapeHtml(address.district)}, ${escapeHtml(address.city)}</p>
+        ${address.zipCode ? `<p class="text-gray-600 mb-1">Código Postal: ${escapeHtml(address.zipCode)}</p>` : ''}
+        <p class="text-gray-600 mb-2">Teléfono: ${escapeHtml(address.phone)}</p>
+        ${address.instructions ? `<p class="text-gray-500 text-xs italic mt-2 pt-2 border-t border-gray-200">Instrucciones: ${escapeHtml(address.instructions)}</p>` : ''}
+      `;
+    }
+
+    // Método de pago
+    if (paymentMethodEl) {
+      const payment = orderData.paymentMethod;
+      if (payment.type === 'card' && payment.cardNumber) {
+        const last4 = payment.cardNumber.length > 4 ? payment.cardNumber.slice(-4) : payment.cardNumber;
+        paymentMethodEl.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-8 bg-linear-to-br from-slate-800 to-slate-900 rounded-lg flex items-center justify-center">
+              <span class="text-white text-xs font-bold">${escapeHtml(payment.brand || 'CARD')}</span>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-900">Tarjeta terminada en ${escapeHtml(last4)}</p>
+              ${payment.cardholderName ? `<p class="text-gray-600 text-xs">${escapeHtml(payment.cardholderName)}</p>` : ''}
+            </div>
+          </div>
+        `;
+      } else {
+        paymentMethodEl.innerHTML = `
+          <div class="flex items-center gap-3">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <div>
+              <p class="font-semibold text-gray-900">Pago Contra Entrega</p>
+              <p class="text-gray-600 text-xs">Pagarás cuando recibas tu pedido</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Guardar orderId para el botón de ver pedido
+    if (viewOrderBtn) {
+      (window as any)[`${modalId}_orderId`] = orderData.id;
+    }
+
+    // Prevenir scroll del body
+    document.body.style.overflow = 'hidden';
+    
+    // Mostrar modal con animación suave
+    modal.classList.remove('hidden');
+    
+    // Scroll suave al inicio de la página para mejor visualización del modal
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Pequeño delay para asegurar que la animación se vea suave
+    requestAnimationFrame(() => {
+      // El modal ya está visible, no necesitamos hacer scroll al modal mismo
+      // ya que está en position fixed
+    });
+    
+    console.log('✅ Modal de confirmación de orden mostrado');
+  };
+
+  // Función para ver el pedido
+  (window as any).viewOrder = function(modalId: string) {
+    const orderId = (window as any)[`${modalId}_orderId`];
+    if (orderId) {
+      window.location.href = `/profile?tab=orders&orderId=${orderId}`;
+    } else {
+      window.location.href = '/profile?tab=orders';
+    }
+  };
+</script>

@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 ---
 
 <Layout title="Checkout - Eipet">
@@ -86,6 +87,25 @@ import Layout from '../layouts/Layout.astro';
                 </svg>
                 Información de Envío
               </h2>
+              
+              <!-- Direcciones guardadas (solo si hay usuario logueado) -->
+              <div id="saved-addresses-section" class="hidden mb-4">
+                <div class="mb-3">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Seleccionar dirección guardada
+                  </label>
+                  <div id="addresses-list" class="space-y-2 mb-3">
+                    <!-- Se llenará dinámicamente -->
+                  </div>
+                  <button
+                    type="button"
+                    id="use-new-address-btn"
+                    class="text-sm text-[#5d3fbb] hover:underline font-medium"
+                  >
+                    Usar nueva dirección
+                  </button>
+                </div>
+              </div>
               
               <form id="shipping-form" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -196,7 +216,26 @@ import Layout from '../layouts/Layout.astro';
                 Método de Pago
               </h2>
               
-              <div class="space-y-3">
+              <!-- Métodos de pago guardados (solo si hay usuario logueado) -->
+              <div id="saved-payment-methods-section" class="hidden mb-4">
+                <div class="mb-3">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Seleccionar método de pago guardado
+                  </label>
+                  <div id="payment-methods-list" class="space-y-2 mb-3">
+                    <!-- Se llenará dinámicamente -->
+                  </div>
+                  <button
+                    type="button"
+                    id="use-new-payment-btn"
+                    class="text-sm text-[#5d3fbb] hover:underline font-medium"
+                  >
+                    Usar otro método de pago
+                  </button>
+                </div>
+              </div>
+              
+              <div id="payment-methods-options" class="space-y-3">
                 <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all payment-method-option" data-method="cash">
                   <input type="radio" name="paymentMethod" value="cash" class="w-5 h-5 text-[#5d3fbb] focus:ring-[#5d3fbb]" checked />
                   <div class="flex-1">
@@ -205,17 +244,6 @@ import Layout from '../layouts/Layout.astro';
                   </div>
                   <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </label>
-                
-                <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all payment-method-option" data-method="card">
-                  <input type="radio" name="paymentMethod" value="card" class="w-5 h-5 text-[#5d3fbb] focus:ring-[#5d3fbb]" disabled />
-                  <div class="flex-1">
-                    <div class="font-semibold text-gray-900">Tarjeta de Crédito/Débito</div>
-                    <div class="text-sm text-gray-600">Próximamente disponible</div>
-                  </div>
-                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
                 </label>
               </div>
@@ -277,6 +305,9 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- Modal de Confirmación de Orden -->
+  <OrderConfirmationModal id="order-confirmation-modal" />
+
   <style>
     .payment-method-option input:checked + div {
       color: #5d3fbb;
@@ -297,13 +328,60 @@ import Layout from '../layouts/Layout.astro';
       let currentUserId: string | null = null;
       let cartItems: any[] = [];
       let productsData: Map<string, any> = new Map();
-      let shippingCost = 0; // Costo de envío fijo por ahora
+      let shippingCost = 0;
+      let userAddresses: any[] = [];
+      let userPaymentMethods: any[] = [];
+      let selectedAddressId: string | null = null;
+      let selectedPaymentMethodId: string | null = null;
+      let useManualAddress = true;
+      let useManualPayment = true;
 
-      // Obtener usuario actual si está autenticado (no bloquear si no lo está)
-      const firebaseUser = getCurrentUser();
-      if (firebaseUser) {
-        currentUserId = firebaseUser.uid;
+      // Función para obtener y actualizar el usuario actual
+      async function updateCurrentUser() {
+        console.log('🔐 [CHECKOUT] updateCurrentUser - Verificando autenticación...');
+        const firebaseUser = getCurrentUser();
+        console.log('🔐 [CHECKOUT] firebaseUser desde getCurrentUser():', firebaseUser);
+        console.log('🔐 [CHECKOUT] auth.currentUser:', (await import('../lib/firebase')).auth.currentUser);
+        
+        if (firebaseUser) {
+          currentUserId = firebaseUser.uid;
+          console.log('🔐 [CHECKOUT] Usuario encontrado, currentUserId:', currentUserId);
+        } else {
+          currentUserId = null;
+          console.log('🔐 [CHECKOUT] No se encontró usuario autenticado');
+        }
+        return currentUserId;
       }
+
+      // Esperar a que Firebase Auth esté inicializado usando onAuthStateChange
+      let authInitialized = false;
+      const unsubscribeAuth = onAuthStateChange((firebaseUser) => {
+        console.log('🔐 [CHECKOUT] onAuthStateChange - Usuario cambió:', firebaseUser);
+        if (!authInitialized) {
+          authInitialized = true;
+          console.log('🔐 [CHECKOUT] Firebase Auth inicializado');
+        }
+        
+        if (firebaseUser) {
+          currentUserId = firebaseUser.uid;
+          console.log('🔐 [CHECKOUT] Usuario autenticado, currentUserId:', currentUserId);
+          // Recargar direcciones y métodos de pago si el usuario se autentica y el checkout está visible
+          if (checkoutContent && !checkoutContent.classList.contains('hidden')) {
+            console.log('🔐 [CHECKOUT] Checkout visible, cargando direcciones y métodos de pago...');
+            loadUserAddresses();
+            loadUserPaymentMethods();
+          }
+        } else {
+          currentUserId = null;
+          console.log('🔐 [CHECKOUT] Usuario desautenticado');
+        }
+      });
+      
+      // Esperar un momento para que Firebase Auth se inicialice
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Verificar usuario después de esperar
+      await updateCurrentUser();
 
       // Elementos del DOM
       const loadingDiv = document.getElementById('checkout-loading');
@@ -321,6 +399,13 @@ import Layout from '../layouts/Layout.astro';
       const confirmBtnText = document.getElementById('confirm-btn-text');
       const confirmBtnLoading = document.getElementById('confirm-btn-loading');
       const shippingForm = document.getElementById('shipping-form') as HTMLFormElement;
+      const savedAddressesSection = document.getElementById('saved-addresses-section');
+      const addressesList = document.getElementById('addresses-list');
+      const useNewAddressBtn = document.getElementById('use-new-address-btn');
+      const savedPaymentMethodsSection = document.getElementById('saved-payment-methods-section');
+      const paymentMethodsList = document.getElementById('payment-methods-list');
+      const useNewPaymentBtn = document.getElementById('use-new-payment-btn');
+      const paymentMethodsOptions = document.getElementById('payment-methods-options');
 
       // Función para mostrar error
       function showError(message: string) {
@@ -347,40 +432,32 @@ import Layout from '../layouts/Layout.astro';
         try {
           hideError();
           
-          // Obtener carrito desde localStorage (igual que en Header.astro)
+          // Obtener carrito desde localStorage
           let cartData: any = null;
           try {
             const cartStorage = localStorage.getItem('cart');
-            console.log('📦 Carrito desde localStorage:', cartStorage);
             if (cartStorage) {
               cartData = JSON.parse(cartStorage);
-              console.log('📦 Carrito parseado:', cartData);
             }
           } catch (e) {
-            console.error('Error cargando carrito desde localStorage:', e);
+            // Error silencioso
           }
           
           if (!cartData || !cartData.items || cartData.items.length === 0) {
-            console.log('⚠️ Carrito vacío o no encontrado');
             if (loadingDiv) loadingDiv.classList.add('hidden');
             if (emptyCartDiv) emptyCartDiv.classList.remove('hidden');
             return;
           }
 
-          console.log('✅ Items en el carrito:', cartData.items.length);
-
           // Convertir items del localStorage al formato esperado
           cartItems = cartData.items.map((item: any) => {
             const productId = item.productId || item.id || item.product?.id;
             const quantity = item.quantity || 1;
-            console.log(`📦 Item: productId=${productId}, quantity=${quantity}`);
             return {
               productId: productId,
               quantity: quantity
             };
-          }).filter((item: any) => item.productId); // Filtrar items sin productId
-          
-          console.log('✅ Items procesados:', cartItems.length);
+          }).filter((item: any) => item.productId);
 
           // Obtener información de productos
           const { getProductById } = await import('../lib/db/products');
@@ -393,11 +470,9 @@ import Layout from '../layouts/Layout.astro';
           }
 
           // Obtener detalles de cada producto
-          // Primero intentar usar los datos que ya están en el carrito (localStorage)
           for (const item of cartData.items) {
             const productId = item.productId || item.id;
             
-            // Si el item ya tiene datos del producto, usarlos
             if (item.product) {
               productsData.set(productId, {
                 ...item.product,
@@ -405,7 +480,6 @@ import Layout from '../layouts/Layout.astro';
                 quantity: item.quantity
               });
             } else {
-              // Si no, obtener desde Firestore
               const productResult = await getProductById(productId);
               if (productResult.data) {
                 const product = productResult.data;
@@ -431,10 +505,39 @@ import Layout from '../layouts/Layout.astro';
           if (checkoutContent) checkoutContent.classList.remove('hidden');
           if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = false;
 
-          // Cargar datos del usuario si existen
-          await loadUserData();
+          // Esperar un poco más para asegurar que Firebase Auth esté listo
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          // Verificar nuevamente el usuario antes de cargar datos
+          await updateCurrentUser();
+          
+          // Cargar datos del usuario si está logueado
+          if (currentUserId) {
+            console.log('👤 [CHECKOUT] Usuario logueado, cargando datos del usuario...');
+            console.log('👤 [CHECKOUT] currentUserId:', currentUserId);
+            await loadUserData();
+            console.log('👤 [CHECKOUT] loadUserData completado');
+            await loadUserAddresses();
+            console.log('👤 [CHECKOUT] loadUserAddresses completado');
+            await loadUserPaymentMethods();
+            console.log('👤 [CHECKOUT] loadUserPaymentMethods completado');
+          } else {
+            console.log('👤 [CHECKOUT] No hay usuario logueado después de verificar');
+            console.log('👤 [CHECKOUT] Esperando a que Firebase Auth se inicialice...');
+            // Esperar un poco más y verificar de nuevo
+            setTimeout(async () => {
+              await updateCurrentUser();
+              if (currentUserId) {
+                console.log('👤 [CHECKOUT] Usuario encontrado después de esperar, cargando datos...');
+                await loadUserData();
+                await loadUserAddresses();
+                await loadUserPaymentMethods();
+              } else {
+                console.log('👤 [CHECKOUT] Aún no hay usuario después de esperar');
+              }
+            }, 500);
+          }
         } catch (error: any) {
-          console.error('Error loading checkout:', error);
           showError(error.message || 'Error al cargar el carrito');
           if (loadingDiv) loadingDiv.classList.add('hidden');
         }
@@ -451,16 +554,218 @@ import Layout from '../layouts/Layout.astro';
             const fullNameInput = document.getElementById('fullName') as HTMLInputElement;
             const phoneInput = document.getElementById('phone') as HTMLInputElement;
             
-            if (fullNameInput) {
+            if (fullNameInput && !fullNameInput.value) {
               fullNameInput.value = `${user.firstName || ''} ${user.lastName || ''}`.trim();
             }
-            if (phoneInput) {
+            if (phoneInput && !phoneInput.value) {
               phoneInput.value = user.phone || '';
             }
           }
         } catch (error) {
-          console.error('Error loading user data:', error);
+          // Error silencioso
         }
+      }
+
+      // Cargar direcciones del usuario
+      async function loadUserAddresses() {
+        console.log('📍 [CHECKOUT] loadUserAddresses - Iniciando...');
+        console.log('📍 [CHECKOUT] currentUserId:', currentUserId);
+        
+        if (!currentUserId) {
+          console.log('📍 [CHECKOUT] No hay currentUserId, saliendo');
+          return;
+        }
+        
+        try {
+          console.log('📍 [CHECKOUT] Importando getUserAddresses...');
+          const { getUserAddresses } = await import('../lib/db/users');
+          console.log('📍 [CHECKOUT] Llamando getUserAddresses con userId:', currentUserId);
+          
+          const result = await getUserAddresses(currentUserId);
+          console.log('📍 [CHECKOUT] Resultado de getUserAddresses:', result);
+          console.log('📍 [CHECKOUT] result.data:', result.data);
+          console.log('📍 [CHECKOUT] result.data?.length:', result.data?.length);
+          
+          if (result.data && result.data.length > 0) {
+            console.log('📍 [CHECKOUT] Direcciones encontradas:', result.data.length);
+            userAddresses = result.data;
+            console.log('📍 [CHECKOUT] userAddresses asignado:', userAddresses);
+            renderAddresses();
+            if (savedAddressesSection) {
+              savedAddressesSection.classList.remove('hidden');
+              console.log('📍 [CHECKOUT] Sección de direcciones mostrada');
+            }
+          } else {
+            console.log('📍 [CHECKOUT] No se encontraron direcciones o result.data está vacío');
+          }
+        } catch (error) {
+          console.error('📍 [CHECKOUT] Error cargando direcciones:', error);
+        }
+      }
+
+      // Función helper para escapar HTML
+      function escapeHtml(text: any): string {
+        if (text === null || text === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+      }
+
+      // Renderizar direcciones guardadas
+      function renderAddresses() {
+        if (!addressesList || userAddresses.length === 0) return;
+
+        addressesList.innerHTML = userAddresses.map((address: any) => {
+          const isSelected = selectedAddressId === address.id;
+          return `
+            <label class="flex items-start gap-3 p-3 border-2 ${isSelected ? 'border-[#5d3fbb] bg-purple-50' : 'border-gray-200'} rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all address-option" data-address-id="${escapeHtml(address.id)}">
+              <input type="radio" name="selectedAddress" value="${escapeHtml(address.id)}" class="mt-1 w-4 h-4 text-[#5d3fbb] focus:ring-[#5d3fbb]" ${isSelected ? 'checked' : ''} />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold text-gray-900">${escapeHtml(address.name || 'Dirección')}</span>
+                  ${address.isDefault ? '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">Predeterminada</span>' : ''}
+                </div>
+                <p class="text-sm text-gray-700">${escapeHtml(address.fullName)}</p>
+                <p class="text-sm text-gray-600">${escapeHtml(address.address)}, ${escapeHtml(address.district)}, ${escapeHtml(address.city)}</p>
+                <p class="text-sm text-gray-600">${escapeHtml(address.phone)}</p>
+              </div>
+            </label>
+          `;
+        }).join('');
+
+        // Event listeners para selección de direcciones
+        document.querySelectorAll('.address-option').forEach((option) => {
+          option.addEventListener('click', () => {
+            const input = option.querySelector('input[type="radio"]') as HTMLInputElement;
+            if (input) {
+              selectedAddressId = input.value;
+              useManualAddress = false;
+              fillAddressForm(selectedAddressId);
+              renderAddresses();
+            }
+          });
+        });
+      }
+
+      // Llenar formulario con dirección seleccionada
+      function fillAddressForm(addressId: string) {
+        const address = userAddresses.find((a: any) => a.id === addressId);
+        if (!address || !shippingForm) return;
+
+        const fullNameInput = document.getElementById('fullName') as HTMLInputElement;
+        const phoneInput = document.getElementById('phone') as HTMLInputElement;
+        const addressInput = document.getElementById('address') as HTMLInputElement;
+        const cityInput = document.getElementById('city') as HTMLInputElement;
+        const districtInput = document.getElementById('district') as HTMLInputElement;
+        const zipCodeInput = document.getElementById('zipCode') as HTMLInputElement;
+        const instructionsInput = document.getElementById('instructions') as HTMLTextAreaElement;
+
+        if (fullNameInput) fullNameInput.value = address.fullName || '';
+        if (phoneInput) phoneInput.value = address.phone || '';
+        if (addressInput) addressInput.value = address.address || '';
+        if (cityInput) cityInput.value = address.city || '';
+        if (districtInput) districtInput.value = address.district || '';
+        if (zipCodeInput) zipCodeInput.value = address.zipCode || '';
+        if (instructionsInput) instructionsInput.value = address.instructions || '';
+      }
+
+      // Cargar métodos de pago del usuario
+      async function loadUserPaymentMethods() {
+        console.log('💳 [CHECKOUT] loadUserPaymentMethods - Iniciando...');
+        console.log('💳 [CHECKOUT] currentUserId:', currentUserId);
+        
+        if (!currentUserId) {
+          console.log('💳 [CHECKOUT] No hay currentUserId, saliendo');
+          return;
+        }
+        
+        try {
+          console.log('💳 [CHECKOUT] Importando getPaymentMethods...');
+          const { getPaymentMethods } = await import('../lib/db/payment');
+          console.log('💳 [CHECKOUT] Llamando getPaymentMethods con userId:', currentUserId);
+          
+          const result = await getPaymentMethods(currentUserId);
+          console.log('💳 [CHECKOUT] Resultado de getPaymentMethods:', result);
+          console.log('💳 [CHECKOUT] result.data:', result.data);
+          console.log('💳 [CHECKOUT] result.data?.length:', result.data?.length);
+          
+          if (result.data && result.data.length > 0) {
+            console.log('💳 [CHECKOUT] Métodos de pago encontrados:', result.data.length);
+            userPaymentMethods = result.data;
+            console.log('💳 [CHECKOUT] userPaymentMethods asignado:', userPaymentMethods);
+            
+            // Seleccionar método de pago predeterminado si existe
+            const defaultPayment = userPaymentMethods.find((m: any) => m.isDefault);
+            console.log('💳 [CHECKOUT] Método predeterminado encontrado:', defaultPayment);
+            
+            if (defaultPayment) {
+              selectedPaymentMethodId = defaultPayment.id;
+              useManualPayment = false;
+              console.log('💳 [CHECKOUT] Método predeterminado seleccionado:', selectedPaymentMethodId);
+              if (paymentMethodsOptions) {
+                paymentMethodsOptions.classList.add('hidden');
+                console.log('💳 [CHECKOUT] Opciones de pago manual ocultadas');
+              }
+            }
+            
+            renderPaymentMethods();
+            if (savedPaymentMethodsSection) {
+              savedPaymentMethodsSection.classList.remove('hidden');
+              console.log('💳 [CHECKOUT] Sección de métodos de pago mostrada');
+            }
+          } else {
+            console.log('💳 [CHECKOUT] No se encontraron métodos de pago o result.data está vacío');
+          }
+        } catch (error) {
+          console.error('💳 [CHECKOUT] Error cargando métodos de pago:', error);
+        }
+      }
+
+      // Renderizar métodos de pago guardados
+      function renderPaymentMethods() {
+        console.log('🎨 [CHECKOUT] renderPaymentMethods - Iniciando...');
+        console.log('🎨 [CHECKOUT] paymentMethodsList:', paymentMethodsList);
+        console.log('🎨 [CHECKOUT] userPaymentMethods.length:', userPaymentMethods.length);
+        console.log('🎨 [CHECKOUT] userPaymentMethods:', userPaymentMethods);
+        
+        if (!paymentMethodsList || userPaymentMethods.length === 0) {
+          console.log('🎨 [CHECKOUT] No hay métodos de pago para renderizar');
+          return;
+        }
+
+        paymentMethodsList.innerHTML = userPaymentMethods.map((method: any) => {
+          const isSelected = selectedPaymentMethodId === method.id;
+          const cardNumber = method.cardNumber || '';
+          const last4 = cardNumber.length > 4 ? cardNumber.slice(-4) : '';
+          const displayNumber = last4 ? `**** **** **** ${last4}` : 'Tarjeta guardada';
+          
+          return `
+            <label class="flex items-center gap-3 p-3 border-2 ${isSelected ? 'border-[#5d3fbb] bg-purple-50' : 'border-gray-200'} rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all payment-method-saved-option" data-payment-id="${escapeHtml(method.id)}">
+              <input type="radio" name="selectedPaymentMethod" value="${escapeHtml(method.id)}" class="w-4 h-4 text-[#5d3fbb] focus:ring-[#5d3fbb]" ${isSelected ? 'checked' : ''} />
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold text-gray-900">${escapeHtml(method.brand || 'Tarjeta')} ${escapeHtml(displayNumber)}</span>
+                  ${method.isDefault ? '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">Predeterminada</span>' : ''}
+                </div>
+                <p class="text-sm text-gray-600">${escapeHtml(method.cardholderName || '')}</p>
+                <p class="text-sm text-gray-600">Válida hasta: ${escapeHtml(method.expiryDate || '')}</p>
+              </div>
+            </label>
+          `;
+        }).join('');
+
+        // Event listeners para selección de métodos de pago
+        document.querySelectorAll('.payment-method-saved-option').forEach((option) => {
+          option.addEventListener('click', () => {
+            const input = option.querySelector('input[type="radio"]') as HTMLInputElement;
+            if (input) {
+              selectedPaymentMethodId = input.value;
+              useManualPayment = false;
+              if (paymentMethodsOptions) paymentMethodsOptions.classList.add('hidden');
+              renderPaymentMethods();
+            }
+          });
+        });
       }
 
       // Renderizar items del pedido
@@ -484,15 +789,15 @@ import Layout from '../layouts/Layout.astro';
             <div class="flex gap-3">
               <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
                 <img 
-                  src="${product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'}" 
-                  alt="${product.name}"
+                  src="${escapeHtml(product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80')}" 
+                  alt="${escapeHtml(product.name || 'Producto')}"
                   class="w-full h-full object-contain"
                   onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
                 />
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="font-semibold text-gray-900 text-sm line-clamp-1">${product.name || 'Producto'}</h4>
-                <p class="text-xs text-gray-500">${product.brandName || 'Sin marca'}</p>
+                <h4 class="font-semibold text-gray-900 text-sm line-clamp-1">${escapeHtml(product.name || 'Producto')}</h4>
+                <p class="text-xs text-gray-500">${escapeHtml(product.brandName || 'Sin marca')}</p>
                 <div class="flex items-center justify-between mt-1">
                   <span class="text-xs text-gray-600">Cantidad: ${quantity}</span>
                   <span class="font-bold text-[#5d3fbb]">Bs. ${formatPrice(subtotal)}</span>
@@ -532,79 +837,84 @@ import Layout from '../layouts/Layout.astro';
 
       // Confirmar pedido
       async function confirmOrder() {
-        console.log('🛒 [CHECKOUT] Iniciando confirmación de pedido...');
-        
         if (!confirmBtn || !shippingForm) {
-          console.error('❌ [CHECKOUT] Elementos del DOM no encontrados');
           return;
         }
 
-        // Verificar autenticación antes de confirmar
-        console.log('🔐 [CHECKOUT] Verificando autenticación...');
-        console.log('🔐 [CHECKOUT] currentUserId:', currentUserId);
+        // Verificar autenticación (opcional - permite guest checkout)
+        await updateCurrentUser();
+        let isGuestOrder = false;
+        let guestEmail = '';
         
         if (!currentUserId) {
           const firebaseUser = getCurrentUser();
-          console.log('🔐 [CHECKOUT] firebaseUser:', firebaseUser);
-          if (!firebaseUser) {
-            console.warn('⚠️ [CHECKOUT] Usuario no autenticado, redirigiendo a login');
-            window.location.href = '/login?redirect=' + encodeURIComponent('/checkout');
-            return;
-          }
-          currentUserId = firebaseUser.uid;
-          console.log('✅ [CHECKOUT] Usuario autenticado, userId:', currentUserId);
-        }
-
-        // Verificar que el usuario existe en la colección de usuarios (requerido por Firestore rules)
-        console.log('👤 [CHECKOUT] Verificando existencia del usuario en Firestore...');
-        try {
-          const { getCurrentUserData } = await import('../lib/auth');
-          const userDataResult = await getCurrentUserData();
-          console.log('👤 [CHECKOUT] Resultado de getCurrentUserData:', userDataResult);
+          console.log('🔐 [CHECKOUT] confirmOrder - firebaseUser:', firebaseUser);
           
-          if (!userDataResult.success || !userDataResult.user) {
-            console.error('❌ [CHECKOUT] Usuario no existe en la colección de usuarios');
-            showError('Tu cuenta no está configurada correctamente. Por favor, inicia sesión nuevamente.');
-            (confirmBtn as HTMLButtonElement).disabled = false;
-            if (confirmBtnText) confirmBtnText.classList.remove('hidden');
-            if (confirmBtnLoading) {
-              confirmBtnLoading.classList.add('hidden');
-              confirmBtnLoading.classList.remove('flex');
-            }
-            return;
+          if (!firebaseUser) {
+            // Usuario no logueado - permitir checkout como invitado
+            console.log('🔐 [CHECKOUT] Usuario no logueado - procesando como invitado');
+            isGuestOrder = true;
+            
+            // Obtener email del formulario si está disponible
+            const formData = new FormData(shippingForm);
+            const fullName = formData.get('fullName') as string;
+            // Intentar obtener email si hay un campo de email (opcional)
+            // Por ahora usamos un ID temporal basado en timestamp
+            guestEmail = `guest-${Date.now()}@checkout.local`;
+            
+            // Generar userId temporal para guest
+            currentUserId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            console.log('🔐 [CHECKOUT] Guest userId generado:', currentUserId);
+          } else {
+            currentUserId = firebaseUser.uid;
+            console.log('🔐 [CHECKOUT] Usuario encontrado en confirmOrder, currentUserId:', currentUserId);
           }
-          console.log('✅ [CHECKOUT] Usuario verificado en Firestore:', userDataResult.user);
-        } catch (error: any) {
-          console.error('❌ [CHECKOUT] Error verificando usuario:', error);
-          showError('Error al verificar tu cuenta. Por favor, intenta nuevamente.');
-          (confirmBtn as HTMLButtonElement).disabled = false;
-          if (confirmBtnText) confirmBtnText.classList.remove('hidden');
-          if (confirmBtnLoading) confirmBtnLoading.classList.add('hidden');
-          return;
+        } else {
+          // Usuario logueado - verificar que existe en la colección de usuarios
+          try {
+            const { getCurrentUserData } = await import('../lib/auth');
+            const userDataResult = await getCurrentUserData();
+            
+            if (!userDataResult.success || !userDataResult.user) {
+              console.warn('⚠️ [CHECKOUT] Usuario autenticado pero no existe en Firestore');
+              // Continuar de todas formas, pero marcar como guest
+              isGuestOrder = true;
+            } else {
+              console.log('✅ [CHECKOUT] Usuario verificado en Firestore');
+              guestEmail = userDataResult.user.email || '';
+            }
+          } catch (error: any) {
+            console.error('❌ [CHECKOUT] Error verificando usuario:', error);
+            // Continuar de todas formas
+          }
         }
 
-        // Validar formulario
-        console.log('📝 [CHECKOUT] Validando formulario...');
-        if (!shippingForm.checkValidity()) {
-          console.warn('⚠️ [CHECKOUT] Formulario inválido');
+        // Validar formulario o dirección seleccionada
+        if (useManualAddress && !shippingForm.checkValidity()) {
           shippingForm.reportValidity();
           return;
         }
-        console.log('✅ [CHECKOUT] Formulario válido');
 
         // Obtener método de pago seleccionado
-        console.log('💳 [CHECKOUT] Obteniendo método de pago...');
-        const paymentMethodInput = document.querySelector('input[name="paymentMethod"]:checked') as HTMLInputElement;
-        if (!paymentMethodInput) {
-          console.error('❌ [CHECKOUT] Método de pago no seleccionado');
-          showError('Por favor selecciona un método de pago');
-          return;
+        let paymentMethodType = 'cash';
+        let selectedPaymentMethod: any = null;
+
+        if (!useManualPayment && selectedPaymentMethodId) {
+          selectedPaymentMethod = userPaymentMethods.find((m: any) => m.id === selectedPaymentMethodId);
+          if (selectedPaymentMethod) {
+            paymentMethodType = selectedPaymentMethod.type || 'card';
+          }
+        } else {
+          const paymentMethodInput = document.querySelector('input[name="paymentMethod"]:checked') as HTMLInputElement;
+          if (!paymentMethodInput) {
+            showError('Por favor selecciona un método de pago');
+            return;
+          }
+          paymentMethodType = paymentMethodInput.value;
         }
-        console.log('✅ [CHECKOUT] Método de pago seleccionado:', paymentMethodInput.value);
 
         try {
           // Deshabilitar botón y mostrar loading
-          console.log('⏳ [CHECKOUT] Deshabilitando botón y mostrando loading...');
           (confirmBtn as HTMLButtonElement).disabled = true;
           if (confirmBtnText) confirmBtnText.classList.add('hidden');
           if (confirmBtnLoading) {
@@ -614,22 +924,33 @@ import Layout from '../layouts/Layout.astro';
 
           hideError();
 
-          // Validar stock antes de crear la orden (solo validación, sin actualizar)
-          console.log('📦 [CHECKOUT] Validando stock de productos...');
-          console.log('📦 [CHECKOUT] Items del carrito:', cartItems);
-          
-          const { validateStockMultiple } = await import('../lib/db/products');
+          // Validar stock antes de crear la orden
+          // Si es invitado, solo validamos sin actualizar (el stock se actualizará después por admin o Cloud Function)
+          // Si es usuario logueado, intentamos validar y actualizar
+          const { validateAndAdjustStockMultiple, validateStockMultiple } = await import('../lib/db/products');
           const stockItems = cartItems.map(item => ({
             productId: item.productId,
             quantity: item.quantity || 1
           }));
-          console.log('📦 [CHECKOUT] Items para validar stock:', stockItems);
 
-          const stockValidation = await validateStockMultiple(stockItems);
+          console.log('📦 [CHECKOUT] Validando stock...');
+          console.log('📦 [CHECKOUT] isGuest:', isGuestOrder);
+          console.log('📦 [CHECKOUT] stockItems:', stockItems);
+
+          let stockValidation;
+          if (isGuestOrder) {
+            // Para invitados, solo validar sin actualizar (no tienen permisos)
+            console.log('📦 [CHECKOUT] Validando stock para invitado (solo lectura)...');
+            stockValidation = await validateStockMultiple(stockItems);
+          } else {
+            // Para usuarios logueados, intentar validar y actualizar
+            console.log('📦 [CHECKOUT] Validando y ajustando stock para usuario logueado...');
+            stockValidation = await validateAndAdjustStockMultiple(stockItems);
+          }
+          
           console.log('📦 [CHECKOUT] Resultado de validación de stock:', stockValidation);
           
           if (!stockValidation.success) {
-            console.error('❌ [CHECKOUT] Error en validación de stock:', stockValidation.errors);
             showError(stockValidation.errors.join(', ') || 'Error al validar el stock');
             (confirmBtn as HTMLButtonElement).disabled = false;
             if (confirmBtnText) confirmBtnText.classList.remove('hidden');
@@ -639,31 +960,92 @@ import Layout from '../layouts/Layout.astro';
             }
             return;
           }
-          console.log('✅ [CHECKOUT] Stock validado correctamente');
 
-          // Obtener datos del formulario
-          console.log('📋 [CHECKOUT] Obteniendo datos del formulario...');
-          const formData = new FormData(shippingForm);
-          const fullName = formData.get('fullName') as string;
-          const phone = formData.get('phone') as string;
-          const address = formData.get('address') as string;
-          const city = formData.get('city') as string;
-          const district = formData.get('district') as string;
-          const zipCode = formData.get('zipCode') as string || '';
-          const instructions = formData.get('instructions') as string || '';
-          
-          console.log('📋 [CHECKOUT] Datos del formulario:', {
-            fullName,
-            phone,
-            address,
-            city,
-            district,
-            zipCode,
-            instructions
-          });
+          if (isGuestOrder) {
+            console.log('⚠️ [CHECKOUT] Orden de invitado - El stock se actualizará manualmente o por Cloud Function');
+          } else {
+            // Verificar si realmente se actualizó o solo se validó
+            if (stockValidation.errors && stockValidation.errors.length === 0) {
+              console.log('✅ [CHECKOUT] Stock validado correctamente');
+              // Si no es guest pero no se pudo actualizar, avisar
+              if (!currentUserId || currentUserId.startsWith('guest_')) {
+                console.log('⚠️ [CHECKOUT] Stock no se actualizó automáticamente (requiere permisos de admin)');
+              }
+            }
+          }
+
+          // Obtener datos de dirección (de formulario o seleccionada)
+          let shippingAddress: any;
+          if (!useManualAddress && selectedAddressId) {
+            const address = userAddresses.find((a: any) => a.id === selectedAddressId);
+            if (address) {
+              shippingAddress = {
+                id: address.id,
+                name: address.name,
+                fullName: address.fullName,
+                phone: address.phone,
+                address: address.address,
+                city: address.city,
+                district: address.district,
+                zipCode: address.zipCode || '',
+                instructions: address.instructions || '',
+                isDefault: address.isDefault,
+                latitude: address.latitude,
+                longitude: address.longitude
+              };
+            } else {
+              useManualAddress = true;
+            }
+          }
+
+          if (useManualAddress) {
+            const formData = new FormData(shippingForm);
+            const { Timestamp } = await import('firebase/firestore');
+            const now = Timestamp.now();
+            
+            shippingAddress = {
+              id: `temp-${Date.now()}`,
+              name: 'Dirección de Envío',
+              fullName: formData.get('fullName') as string,
+              phone: formData.get('phone') as string,
+              address: formData.get('address') as string,
+              city: formData.get('city') as string,
+              district: formData.get('district') as string,
+              zipCode: (formData.get('zipCode') as string) || '',
+              instructions: (formData.get('instructions') as string) || '',
+              isDefault: false,
+              createdAt: now,
+              updatedAt: now
+            };
+          }
+
+          // Obtener método de pago (seleccionado o manual)
+          let paymentMethod: any;
+          if (!useManualPayment && selectedPaymentMethod) {
+            paymentMethod = {
+              id: selectedPaymentMethod.id,
+              type: selectedPaymentMethod.type,
+              cardNumber: selectedPaymentMethod.cardNumber,
+              cardholderName: selectedPaymentMethod.cardholderName,
+              expiryDate: selectedPaymentMethod.expiryDate,
+              brand: selectedPaymentMethod.brand,
+              bank: selectedPaymentMethod.bank,
+              isDefault: selectedPaymentMethod.isDefault
+            };
+          } else {
+            const { Timestamp } = await import('firebase/firestore');
+            const now = Timestamp.now();
+            
+            paymentMethod = {
+              id: `temp-${Date.now()}`,
+              type: paymentMethodType as 'card' | 'cash',
+              isDefault: false,
+              createdAt: now,
+              updatedAt: now
+            };
+          }
 
           // Calcular totales
-          console.log('💰 [CHECKOUT] Calculando totales...');
           let subtotal = 0;
           const orderItems: any[] = [];
 
@@ -687,51 +1069,12 @@ import Layout from '../layouts/Layout.astro';
             }
           });
 
-          console.log('💰 [CHECKOUT] Items de la orden:', orderItems);
-          console.log('💰 [CHECKOUT] Subtotal calculado:', subtotal);
-
           const discount = 0;
           const total = subtotal - discount + shippingCost;
-          console.log('💰 [CHECKOUT] Total calculado:', total);
 
-          // Importar Timestamp de Firestore
-          console.log('⏰ [CHECKOUT] Creando timestamps...');
-          const { Timestamp } = await import('firebase/firestore');
-          const now = Timestamp.now();
-          console.log('⏰ [CHECKOUT] Timestamp creado:', now);
-
-          // Crear dirección de envío
-          console.log('📍 [CHECKOUT] Creando dirección de envío...');
-          const shippingAddress = {
-            id: `temp-${Date.now()}`,
-            name: 'Dirección de Envío',
-            fullName: fullName,
-            phone: phone,
-            address: address,
-            city: city,
-            district: district,
-            zipCode: zipCode,
-            instructions: instructions,
-            isDefault: false,
-            createdAt: now,
-            updatedAt: now
-          };
-          console.log('📍 [CHECKOUT] Dirección de envío creada:', shippingAddress);
-
-          // Crear método de pago
-          console.log('💳 [CHECKOUT] Creando método de pago...');
-          const paymentMethod = {
-            id: `temp-${Date.now()}`,
-            type: paymentMethodInput.value as 'card' | 'cash',
-            isDefault: false,
-            createdAt: now,
-            updatedAt: now
-          };
-          console.log('💳 [CHECKOUT] Método de pago creado:', paymentMethod);
-
-          // Crear orden
-          console.log('🛒 [CHECKOUT] Preparando datos para crear orden...');
-          const orderData = {
+          // Preparar datos de la orden
+          // Si es guest, agregar información adicional para identificación
+          const orderData: any = {
             userId: currentUserId!,
             items: orderItems,
             subtotal: subtotal,
@@ -740,59 +1083,155 @@ import Layout from '../layouts/Layout.astro';
             paymentMethod: paymentMethod,
             shippingCost: shippingCost
           };
-          console.log('🛒 [CHECKOUT] Datos de la orden:', {
-            ...orderData,
-            items: orderData.items.map(item => ({ ...item, productImage: item.productImage ? '...' : '' }))
-          });
-          console.log('🛒 [CHECKOUT] userId:', currentUserId);
-          console.log('🛒 [CHECKOUT] items count:', orderItems.length);
-          console.log('🛒 [CHECKOUT] subtotal:', subtotal);
-          console.log('🛒 [CHECKOUT] shippingCost:', shippingCost);
           
-          const { createOrder } = await import('../lib/db/orders');
-          console.log('🛒 [CHECKOUT] Llamando a createOrder...');
-          
-          const orderResult = await createOrder(orderData);
-          console.log('🛒 [CHECKOUT] Resultado de createOrder:', orderResult);
-
-          if (!orderResult.success) {
-            console.error('❌ [CHECKOUT] Error al crear la orden:', orderResult.error);
-            throw new Error(orderResult.error?.message || 'Error al crear la orden');
+          // Solo agregar campos de guest si realmente es una orden de invitado
+          if (isGuestOrder) {
+            orderData.isGuest = true;
+            orderData.guestEmail = guestEmail;
+            orderData.guestPhone = shippingAddress.phone;
+            orderData.guestName = shippingAddress.fullName;
           }
           
-          console.log('✅ [CHECKOUT] Orden creada exitosamente con ID:', orderResult.id);
+          console.log('📦 [CHECKOUT] Datos de la orden a crear:', {
+            userId: orderData.userId,
+            isGuest: orderData.isGuest,
+            itemsCount: orderData.items.length,
+            subtotal: orderData.subtotal,
+            total: total,
+            shippingAddress: {
+              fullName: orderData.shippingAddress.fullName,
+              phone: orderData.shippingAddress.phone,
+              city: orderData.shippingAddress.city
+            },
+            paymentMethod: {
+              type: orderData.paymentMethod.type
+            }
+          });
+          
+          const { createOrder } = await import('../lib/db/orders');
+          const orderResult = await createOrder(orderData);
+
+          if (!orderResult.success) {
+            throw new Error(orderResult.error?.message || 'Error al crear la orden');
+          }
+
+          // Obtener el invoiceNumber actualizado después de crear la orden
+          let invoiceNumber: string | undefined;
+          if (orderResult.id) {
+            try {
+              // Esperar un momento para que se actualice el invoiceNumber
+              await new Promise(resolve => setTimeout(resolve, 500));
+              const { getOrderById } = await import('../lib/db/orders');
+              const orderDetails = await getOrderById(orderResult.id);
+              if (orderDetails.data && orderDetails.data.invoiceNumber) {
+                invoiceNumber = orderDetails.data.invoiceNumber;
+                console.log('📄 [CHECKOUT] InvoiceNumber obtenido:', invoiceNumber);
+              }
+            } catch (e) {
+              console.warn('⚠️ [CHECKOUT] No se pudo obtener invoiceNumber:', e);
+              // Continuar sin invoiceNumber
+            }
+          }
 
           // Limpiar carrito desde localStorage
-          console.log('🧹 [CHECKOUT] Limpiando carrito...');
           localStorage.setItem('cart', JSON.stringify({ items: [], lastUpdated: Date.now() }));
-          console.log('✅ [CHECKOUT] Carrito limpiado');
 
           // Actualizar contador del carrito en el header si existe
           if ((window as any).updateCartCount) {
-            console.log('🔄 [CHECKOUT] Actualizando contador del carrito en header...');
             (window as any).updateCartCount();
           }
           
           // Disparar evento de actualización del carrito
-          console.log('📢 [CHECKOUT] Disparando evento cart-updated...');
           window.dispatchEvent(new CustomEvent('cart-updated'));
 
-          // Redirigir a página de confirmación
-          console.log('🚀 [CHECKOUT] Redirigiendo a página de confirmación...');
-          console.log('🚀 [CHECKOUT] URL:', `/order-confirmation?id=${orderResult.id}`);
-          window.location.href = `/order-confirmation?id=${orderResult.id}`;
-        } catch (error: any) {
-          console.error('❌ [CHECKOUT] Error en confirmOrder:', error);
-          console.error('❌ [CHECKOUT] Error message:', error.message);
-          console.error('❌ [CHECKOUT] Error stack:', error.stack);
-          console.error('❌ [CHECKOUT] Error code:', error.code);
-          console.error('❌ [CHECKOUT] Error details:', {
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            stack: error.stack
-          });
+          // Preparar datos del modal
+          const modalData = {
+            id: orderResult.id!,
+            invoiceNumber: invoiceNumber,
+            items: orderItems.map(item => ({
+              productName: item.productName,
+              productImage: item.productImage,
+              quantity: item.quantity,
+              price: item.price,
+              subtotal: item.subtotal
+            })),
+            subtotal: subtotal,
+            shippingCost: shippingCost,
+            total: total,
+            shippingAddress: shippingAddress,
+            paymentMethod: paymentMethod
+          };
+
+          // Ocultar cualquier loading o mensaje de error
+          const loadingDiv = document.getElementById('checkout-loading');
+          if (loadingDiv) loadingDiv.classList.add('hidden');
+
+          // Función para mostrar el modal con reintentos
+          const showModal = (retryCount = 0) => {
+            const maxRetries = 5;
+            const modal = document.getElementById('order-confirmation-modal');
+            
+            if (!modal) {
+              if (retryCount < maxRetries) {
+                console.log(`⏳ Modal no encontrado, reintentando... (${retryCount + 1}/${maxRetries})`);
+                setTimeout(() => showModal(retryCount + 1), 200);
+                return;
+              } else {
+                console.error('❌ Modal order-confirmation-modal no encontrado después de múltiples intentos');
+                showError('Pedido creado exitosamente. Por favor, revisa tus pedidos en tu perfil.');
+                return;
+              }
+            }
+
+            if (typeof (window as any).showOrderConfirmationModal === 'function') {
+              try {
+                (window as any).showOrderConfirmationModal('order-confirmation-modal', modalData);
+                console.log('✅ Modal de confirmación mostrado exitosamente');
+              } catch (error) {
+                console.error('❌ Error al mostrar modal:', error);
+                if (retryCount < maxRetries) {
+                  setTimeout(() => showModal(retryCount + 1), 200);
+                } else {
+                  showError('Pedido creado exitosamente. Por favor, revisa tus pedidos en tu perfil.');
+                }
+              }
+            } else {
+              if (retryCount < maxRetries) {
+                console.log(`⏳ Función showOrderConfirmationModal no disponible, reintentando... (${retryCount + 1}/${maxRetries})`);
+                setTimeout(() => showModal(retryCount + 1), 200);
+              } else {
+                console.error('❌ Función showOrderConfirmationModal no disponible después de múltiples intentos');
+                showError('Pedido creado exitosamente. Por favor, revisa tus pedidos en tu perfil.');
+              }
+            }
+          };
+
+          // Iniciar el proceso de mostrar el modal
+          // Usar múltiples estrategias para asegurar que funcione
+          if (document.readyState === 'complete') {
+            // Página completamente cargada
+            setTimeout(() => showModal(), 100);
+          } else if (document.readyState === 'interactive') {
+            // DOM listo pero recursos aún cargando
+            setTimeout(() => showModal(), 200);
+          } else {
+            // Esperar a que el DOM esté listo
+            document.addEventListener('DOMContentLoaded', () => {
+              setTimeout(() => showModal(), 200);
+            });
+          }
           
+          // También intentar después de que todos los scripts se hayan ejecutado
+          window.addEventListener('load', () => {
+            setTimeout(() => {
+              const modal = document.getElementById('order-confirmation-modal');
+              if (modal && modal.classList.contains('hidden')) {
+                // Si el modal aún está oculto, intentar mostrarlo
+                showModal();
+              }
+            }, 100);
+          });
+        } catch (error: any) {
           showError(error.message || 'Error al procesar el pedido. Por favor, intenta nuevamente.');
           (confirmBtn as HTMLButtonElement).disabled = false;
           if (confirmBtnText) confirmBtnText.classList.remove('hidden');
@@ -805,16 +1244,51 @@ import Layout from '../layouts/Layout.astro';
         confirmBtn.addEventListener('click', confirmOrder);
       }
 
+      // Botón para usar nueva dirección
+      if (useNewAddressBtn) {
+        useNewAddressBtn.addEventListener('click', () => {
+          useManualAddress = true;
+          selectedAddressId = null;
+          if (savedAddressesSection) savedAddressesSection.classList.add('hidden');
+          if (shippingForm) {
+            document.querySelectorAll('input[name="selectedAddress"]').forEach((input: any) => {
+              input.checked = false;
+            });
+          }
+        });
+      }
+
+      // Botón para usar otro método de pago
+      if (useNewPaymentBtn) {
+        useNewPaymentBtn.addEventListener('click', () => {
+          useManualPayment = true;
+          selectedPaymentMethodId = null;
+          if (savedPaymentMethodsSection) savedPaymentMethodsSection.classList.add('hidden');
+          if (paymentMethodsOptions) paymentMethodsOptions.classList.remove('hidden');
+          document.querySelectorAll('input[name="selectedPaymentMethod"]').forEach((input: any) => {
+            input.checked = false;
+          });
+          // Seleccionar pago contra entrega por defecto
+          const cashOption = document.querySelector('input[name="paymentMethod"][value="cash"]') as HTMLInputElement;
+          if (cashOption) cashOption.checked = true;
+        });
+      }
+
       // Actualizar estilos de método de pago
       document.querySelectorAll('.payment-method-option').forEach((option) => {
         option.addEventListener('click', () => {
           const input = option.querySelector('input[type="radio"]') as HTMLInputElement;
           if (input && !input.disabled) {
             input.checked = true;
+            useManualPayment = true;
+            selectedPaymentMethodId = null;
             document.querySelectorAll('.payment-method-option').forEach((opt) => {
               opt.classList.remove('border-[#5d3fbb]', 'bg-purple-50');
             });
             option.classList.add('border-[#5d3fbb]', 'bg-purple-50');
+            document.querySelectorAll('input[name="selectedPaymentMethod"]').forEach((input: any) => {
+              input.checked = false;
+            });
           }
         });
       });

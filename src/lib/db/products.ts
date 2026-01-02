@@ -278,8 +278,43 @@ export async function adjustStock(id: string, adjustment: number): Promise<Write
 }
 
 /**
+ * Validar stock de múltiples productos sin actualizarlo (solo lectura)
+ * Útil para usuarios no autenticados o validación previa
+ */
+export async function validateStockMultiple(
+  items: Array<{ productId: string; quantity: number }>
+): Promise<{ success: boolean; errors: string[]; error?: Error }> {
+  let errors: string[] = [];
+  try {
+    for (const item of items) {
+      const productResult = await getProductById(item.productId);
+      
+      if (!productResult.data) {
+        errors.push(`Producto ${item.productId} no encontrado`);
+        continue;
+      }
+      
+      const product = productResult.data;
+      const currentStock = product.stock || 0;
+      
+      if (currentStock < item.quantity) {
+        errors.push(
+          `${product.name || item.productId}: Stock disponible (${currentStock}) es menor que la cantidad solicitada (${item.quantity})`
+        );
+      }
+    }
+    
+    return { success: errors.length === 0, errors };
+  } catch (error: any) {
+    console.error('Error in validateStockMultiple:', error);
+    return { success: false, errors: [error.message || 'Error desconocido'], error: error as Error };
+  }
+}
+
+/**
  * Validar y ajustar stock de múltiples productos de manera atómica usando transacciones
  * Esto previene race conditions cuando múltiples usuarios compran simultáneamente
+ * NOTA: Requiere permisos de admin para actualizar productos
  */
 export async function validateAndAdjustStockMultiple(
   items: Array<{ productId: string; quantity: number }>
@@ -341,6 +376,11 @@ export async function validateAndAdjustStockMultiple(
     // Si el error es de validación, retornar los errores
     if (error.message === 'Stock validation failed') {
       return { success: false, errors };
+    }
+    // Si es error de permisos, intentar solo validar sin actualizar
+    if (error.code === 'permission-denied' || error.message?.includes('permission')) {
+      console.warn('⚠️ Permisos insuficientes para actualizar stock, solo validando...');
+      return await validateStockMultiple(items);
     }
     return { success: false, errors: [error.message || 'Error desconocido'], error: error as Error };
   }

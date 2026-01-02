@@ -449,36 +449,46 @@ import '../styles/global.css';
   function updateAuthUI(user: any | null) {
     const loginMenuItems = document.getElementById('login-menu-items');
     const userMenuItems = document.querySelectorAll('a[href="/profile"], a[href="/profile/orders"], a[href="/profile/favorites"]');
+    const userMenuItemsContainer = document.getElementById('user-menu-items');
     const adminLink = document.getElementById('admin-link');
     const mobileAdminLink = document.getElementById('mobile-admin-link');
     const userMenuDivider = document.getElementById('user-menu-divider');
     const mobileLogoutDivider = document.getElementById('mobile-logout-divider');
     const mobileUserMenuItems = document.getElementById('mobile-user-menu-items');
+    const mobileProfileLink = document.querySelector('a[href="/profile"]');
+    const mobileOrdersLink = document.querySelector('a[href="/profile/orders"]');
+    const mobileFavoritesLink = document.querySelector('a[href="/profile/favorites"]');
     
     if (user) {
       // Usuario autenticado - mostrar opciones de usuario logueado
-          logoutBtn?.classList.remove('hidden');
-          mobileLogoutBtn?.classList.remove('hidden');
-          document.getElementById('mobile-login-btn')?.classList.add('hidden');
-          loginMenuItems?.classList.add('hidden');
-          
-      // Ocultar items del menú de usuario (perfil, pedidos, favoritos) - no se muestran cuando está logueado
-      userMenuItems.forEach(item => item.classList.add('hidden'));
-      if (mobileUserMenuItems) mobileUserMenuItems.classList.add('hidden');
+      logoutBtn?.classList.remove('hidden');
+      mobileLogoutBtn?.classList.remove('hidden');
+      document.getElementById('mobile-login-btn')?.classList.add('hidden');
+      loginMenuItems?.classList.add('hidden');
+      
+      // Mostrar items del menú de usuario (perfil, pedidos, favoritos)
+      if (userMenuItemsContainer) userMenuItemsContainer.classList.remove('hidden');
+      userMenuItems.forEach(item => item.classList.remove('hidden'));
+      
+      // Mostrar items del menú móvil de usuario
+      if (mobileUserMenuItems) mobileUserMenuItems.classList.remove('hidden');
+      if (mobileProfileLink) mobileProfileLink.classList.remove('hidden');
+      if (mobileOrdersLink) mobileOrdersLink.classList.remove('hidden');
+      if (mobileFavoritesLink) mobileFavoritesLink.classList.remove('hidden');
       
       // Mostrar/ocultar enlace de admin según el rol
-          if (user.role === 'admin') {
-            adminLink?.classList.remove('hidden');
-            mobileAdminLink?.classList.remove('hidden');
+      if (user.role === 'admin') {
+        adminLink?.classList.remove('hidden');
+        mobileAdminLink?.classList.remove('hidden');
         // Mostrar separador si hay admin link y logout
         if (userMenuDivider) userMenuDivider.classList.remove('hidden');
         if (mobileLogoutDivider) mobileLogoutDivider.classList.remove('hidden');
-          } else {
-            adminLink?.classList.add('hidden');
-            mobileAdminLink?.classList.add('hidden');
-        // Ocultar separador si no hay admin link
-        if (userMenuDivider) userMenuDivider.classList.add('hidden');
-        if (mobileLogoutDivider) mobileLogoutDivider.classList.add('hidden');
+      } else {
+        adminLink?.classList.add('hidden');
+        mobileAdminLink?.classList.add('hidden');
+        // Mostrar separador antes del logout para usuarios regulares también
+        if (userMenuDivider) userMenuDivider.classList.remove('hidden');
+        if (mobileLogoutDivider) mobileLogoutDivider.classList.remove('hidden');
       }
     } else {
       // No hay usuario - mostrar opciones de login
@@ -488,8 +498,14 @@ import '../styles/global.css';
       loginMenuItems?.classList.remove('hidden');
       
       // Ocultar items del menú de usuario
+      if (userMenuItemsContainer) userMenuItemsContainer.classList.add('hidden');
       userMenuItems.forEach(item => item.classList.add('hidden'));
+      
+      // Ocultar items del menú móvil de usuario
       if (mobileUserMenuItems) mobileUserMenuItems.classList.add('hidden');
+      if (mobileProfileLink) mobileProfileLink.classList.add('hidden');
+      if (mobileOrdersLink) mobileOrdersLink.classList.add('hidden');
+      if (mobileFavoritesLink) mobileFavoritesLink.classList.add('hidden');
       
       // Ocultar admin link y separadores
       adminLink?.classList.add('hidden');

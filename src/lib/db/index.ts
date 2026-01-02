@@ -15,6 +15,8 @@ export {
   deleteProduct,
   updateStock,
   adjustStock,
+  validateStockMultiple,
+  validateAndAdjustStockMultiple,
 } from './products';
 
 // Usuarios y Direcciones

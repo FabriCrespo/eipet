@@ -112,11 +112,21 @@ const sectionIds = sectionConfig.map((section) => section.id);
 
                 // Guardar datos del usuario en localStorage para uso en componentes
                 localStorage.setItem('user', JSON.stringify(userResult.data));
+                localStorage.setItem('userId', firebaseUser.uid);
+                
+                // También guardar en window para acceso fácil desde componentes
+                if (profileWindow) {
+                  (profileWindow as any).currentUserId = firebaseUser.uid;
+                }
                 
                 // Ocultar loading y mostrar contenido
                 if (loadingDiv) loadingDiv.classList.add('hidden');
                 if (errorDiv) errorDiv.classList.add('hidden');
-                if (contentPanel) contentPanel.classList.remove('hidden');
+                if (contentPanel) {
+                  contentPanel.classList.remove('hidden');
+                  // Pasar userId como atributo data para acceso desde componentes
+                  contentPanel.setAttribute('data-user-id', firebaseUser.uid);
+                }
                 
                 // Inicializar contenido del perfil
                 initProfileContent();
