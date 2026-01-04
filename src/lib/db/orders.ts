@@ -118,10 +118,14 @@ export async function getUserOrders(userId: string): Promise<QueryResult<Order>>
     );
     const querySnapshot = await getDocs(q);
 
-    const orders: Order[] = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Order[];
+    const orders: Order[] = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      // Asegurar que el ID del documento tenga prioridad sobre cualquier campo 'id' en los datos
+      return {
+        ...data,
+        id: doc.id, // El ID del documento siempre tiene prioridad
+      } as Order;
+    });
 
     return { data: orders };
   } catch (error) {
@@ -142,9 +146,11 @@ export async function getOrderById(orderId: string): Promise<SingleResult<Order>
       return { data: null };
     }
 
+    const data = orderSnap.data();
+    // Asegurar que el ID del documento tenga prioridad sobre cualquier campo 'id' en los datos
     const order = {
-      id: orderSnap.id,
-      ...orderSnap.data(),
+      ...data,
+      id: orderSnap.id, // El ID del documento siempre tiene prioridad
     } as Order;
 
     return { data: order };
@@ -197,10 +203,14 @@ export async function getOrdersByStatus(status: OrderStatus): Promise<QueryResul
     const q = query(ordersRef, where('status', '==', status), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
-    const orders: Order[] = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Order[];
+    const orders: Order[] = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      // Asegurar que el ID del documento tenga prioridad sobre cualquier campo 'id' en los datos
+      return {
+        ...data,
+        id: doc.id, // El ID del documento siempre tiene prioridad
+      } as Order;
+    });
 
     return { data: orders };
   } catch (error) {
@@ -218,10 +228,14 @@ export async function getAllOrders(): Promise<QueryResult<Order>> {
     const q = query(ordersRef, orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
-    const orders: Order[] = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Order[];
+    const orders: Order[] = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      // Asegurar que el ID del documento tenga prioridad sobre cualquier campo 'id' en los datos
+      return {
+        ...data,
+        id: doc.id, // El ID del documento siempre tiene prioridad
+      } as Order;
+    });
 
     return { data: orders };
   } catch (error) {

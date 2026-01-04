@@ -228,6 +228,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
       let currentPage = 1;
       let currentFilter = 'all';
       let currentSearch = '';
+      let orderEventListenersAttached = false;
 
       // Elementos del DOM
       const ordersContainer = document.getElementById('orders-container');
@@ -441,67 +442,190 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         };
       }
 
+      // Función para obtener userId con reintentos
+      function getUserId(maxAttempts = 20, delay = 200): Promise<string> {
+        return new Promise((resolve, reject) => {
+          let attempts = 0;
+          
+          const tryGetUserId = () => {
+            attempts++;
+            let userId: string | null = null;
+            
+            // Intentar obtener desde localStorage
+            userId = localStorage.getItem('userId');
+            
+            // Si no está en localStorage, intentar desde window
+            if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
+              userId = (window as any).currentUserId;
+            }
+            
+            // Si aún no está, intentar desde el atributo data del contenedor de perfil
+            if (!userId) {
+              const profilePanel = document.getElementById('profile-content-panel');
+              if (profilePanel) {
+                userId = profilePanel.getAttribute('data-user-id');
+              }
+            }
+            
+            if (userId && userId.trim() !== '') {
+              console.log('✅ [ORDERS] UserId obtenido:', userId);
+              resolve(userId);
+            } else if (attempts < maxAttempts) {
+              // Esperar un poco más antes de reintentar
+              setTimeout(tryGetUserId, delay);
+            } else {
+              reject(new Error('Usuario no autenticado. Por favor, inicia sesión.'));
+            }
+          };
+          
+          tryGetUserId();
+        });
+      }
+
+      // Verificar si la sección de orders está visible
+      function isOrdersSectionVisible(): boolean {
+        const ordersSection = document.querySelector('[data-profile-section="orders"]');
+        if (!ordersSection) return false;
+        const isHidden = ordersSection.classList.contains('hidden') || 
+                        (ordersSection as HTMLElement).style.display === 'none' ||
+                        getComputedStyle(ordersSection).display === 'none';
+        return !isHidden;
+      }
+
       // Cargar pedidos desde Firebase
       async function loadOrders() {
         try {
-          if (ordersLoading) ordersLoading.classList.remove('hidden');
-          if (ordersError) ordersError.classList.add('hidden');
-          if (ordersContainer) ordersContainer.classList.add('hidden');
-
-          // Obtener userId desde localStorage (ya guardado por la página de perfil)
-          let userId: string | null = null;
-          
-          // Intentar obtener desde localStorage
-          userId = localStorage.getItem('userId');
-          
-          // Si no está en localStorage, intentar desde window
-          if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
-            userId = (window as any).currentUserId;
-          }
-          
-          // Si aún no está, intentar desde el atributo data del contenedor de perfil
-          if (!userId) {
-            const profilePanel = document.getElementById('profile-content-panel');
-            if (profilePanel) {
-              userId = profilePanel.getAttribute('data-user-id');
-            }
-          }
-          
-          if (!userId) {
-            throw new Error('Usuario no autenticado. Por favor, inicia sesión.');
+          // Verificar que la sección esté visible antes de cargar
+          if (!isOrdersSectionVisible()) {
+            console.log('⏳ [ORDERS] Sección no visible, esperando...');
+            return;
           }
 
-          // Obtener pedidos del usuario
+          // Mostrar loader inmediatamente y ocultar otros estados
+          if (ordersLoading) {
+            ordersLoading.classList.remove('hidden');
+            ordersLoading.style.display = 'flex';
+          }
+          if (ordersError) {
+            ordersError.classList.add('hidden');
+            ordersError.style.display = 'none';
+          }
+          if (ordersContainer) {
+            ordersContainer.classList.add('hidden');
+            ordersContainer.style.display = 'none';
+          }
+          if (noOrdersMessage) {
+            noOrdersMessage.classList.add('hidden');
+            noOrdersMessage.style.display = 'none';
+          }
+
+          console.log('🔄 [ORDERS] Iniciando carga de pedidos...');
+          
+          // Esperar a que el userId esté disponible (mantener loader visible)
+          const userId = await getUserId(30, 200); // Hasta 6 segundos (30 intentos x 200ms)
+          
+          if (!userId || userId.trim() === '') {
+            throw new Error('No se pudo obtener el ID del usuario. Por favor, recarga la página.');
+          }
+          
+          console.log('✅ [ORDERS] UserId confirmado:', userId);
+
+          // Obtener pedidos del usuario (loader sigue visible)
           const { getUserOrders } = await import('../../../lib/db/orders');
+          console.log('📦 [ORDERS] Obteniendo pedidos para userId:', userId);
           const ordersResult = await getUserOrders(userId);
 
           if (ordersResult.error) {
             throw ordersResult.error;
           }
 
+          const rawOrders = ordersResult.data || [];
+          console.log('📦 [ORDERS] Pedidos obtenidos de Firebase:', rawOrders.length);
+
+          // Verificar CRÍTICAMENTE que todos los pedidos pertenezcan al usuario logueado
+          const userOrders = rawOrders.filter((order: any) => {
+            const orderUserId = order.userId;
+            const matches = orderUserId === userId;
+            if (!matches && orderUserId) {
+              console.warn('⚠️ [ORDERS] Pedido filtrado (userId no coincide):', {
+                orderId: order.id,
+                orderUserId: orderUserId,
+                currentUserId: userId
+              });
+            }
+            return matches;
+          });
+
+          console.log('✅ [ORDERS] Pedidos válidos del usuario después de filtrado:', userOrders.length);
+          console.log('❌ [ORDERS] Pedidos filtrados (no pertenecen al usuario):', rawOrders.length - userOrders.length);
+
+          // Si hay pedidos que no pertenecen al usuario, es un error crítico
+          if (rawOrders.length > 0 && userOrders.length !== rawOrders.length) {
+            console.error('🚨 [ORDERS] ERROR: Se encontraron pedidos de otros usuarios!', {
+              total: rawOrders.length,
+              validos: userOrders.length,
+              invalidos: rawOrders.length - userOrders.length,
+              userId: userId
+            });
+          }
+
           // Convertir pedidos de Firebase al formato del componente
-          allOrders = (ordersResult.data || []).map(convertFirebaseOrderToComponentOrder);
+          allOrders = userOrders.map(convertFirebaseOrderToComponentOrder);
           filteredOrders = [...allOrders];
 
-          if (ordersLoading) ordersLoading.classList.add('hidden');
+          console.log('✅ [ORDERS] Pedidos convertidos al formato del componente:', allOrders.length);
+
+          // OCULTAR loader SOLO después de procesar todos los pedidos
+          if (ordersLoading) {
+            ordersLoading.classList.add('hidden');
+            ordersLoading.style.display = 'none';
+          }
           
+          // Mostrar resultados
           if (allOrders.length === 0) {
-            if (ordersContainer) ordersContainer.classList.add('hidden');
-            if (noOrdersMessage) noOrdersMessage.classList.remove('hidden');
-            if (paginationContainer) paginationContainer.classList.add('hidden');
+            if (ordersContainer) {
+              ordersContainer.classList.add('hidden');
+              ordersContainer.style.display = 'none';
+            }
+            if (noOrdersMessage) {
+              noOrdersMessage.classList.remove('hidden');
+              noOrdersMessage.style.display = 'block';
+            }
+            if (paginationContainer) {
+              paginationContainer.classList.add('hidden');
+            }
           } else {
-            if (ordersContainer) ordersContainer.classList.remove('hidden');
+            if (ordersContainer) {
+              ordersContainer.classList.remove('hidden');
+              ordersContainer.style.display = 'block';
+            }
+            if (noOrdersMessage) {
+              noOrdersMessage.classList.add('hidden');
+              noOrdersMessage.style.display = 'none';
+            }
             renderOrders();
             updatePagination();
           }
+          
+          console.log('✅ [ORDERS] Carga completada exitosamente');
         } catch (error: any) {
-          console.error('Error cargando pedidos:', error);
-          if (ordersLoading) ordersLoading.classList.add('hidden');
+          console.error('❌ [ORDERS] Error cargando pedidos:', error);
+          // Ocultar loader y mostrar error
+          if (ordersLoading) {
+            ordersLoading.classList.add('hidden');
+            ordersLoading.style.display = 'none';
+          }
           if (ordersError) {
             ordersError.classList.remove('hidden');
+            ordersError.style.display = 'block';
             if (ordersErrorMessage) {
               ordersErrorMessage.textContent = error.message || 'Error desconocido al cargar los pedidos';
             }
+          }
+          // Asegurar que el contenedor esté oculto en caso de error
+          if (ordersContainer) {
+            ordersContainer.classList.add('hidden');
+            ordersContainer.style.display = 'none';
           }
         }
       }
@@ -573,8 +697,9 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
 
         ordersContainer.innerHTML = ordersToShow.map((order: any) => {
           const escapeHtml = (text: any) => {
+            if (text === null || text === undefined) return '';
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = String(text);
             return div.innerHTML;
           };
 
@@ -676,7 +801,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
           // Botones de acción compactos y elegantes
           const actionsHtml = [
             order.showActions.includes('verDetalles') ? 
-              '<button type="button" onclick="toggleOrderDetails(\'' + order.id + '\')" class="toggle-details-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-[#5d3fbb] text-white rounded-lg hover:bg-[#4d2fa8] transition-all duration-200 active:scale-95" data-order-id="' + order.id + '">' +
+              '<button type="button" class="toggle-details-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-[#5d3fbb] text-white rounded-lg hover:bg-[#4d2fa8] transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
               '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />' +
@@ -691,7 +816,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
               'Factura' +
               '</button>' : '',
             order.showActions.includes('calificar') ? 
-              '<button type="button" onclick="openRatingModal(\'' + order.id + '\')" class="rate-order-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 active:scale-95" data-order-id="' + order.id + '">' +
+              '<button type="button" class="rate-order-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
               '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />' +
               '</svg>' +
@@ -706,7 +831,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
               '</button>' : ''
           ].filter(Boolean).join('');
 
-          return '<div class="bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 p-4 order-card" data-order-id="' + order.id + '">' +
+          return '<div class="bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 p-4 order-card" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
             // Header compacto y elegante
             '<div class="flex items-start justify-between gap-4 mb-3 pb-3 border-b border-gray-50">' +
             '<div class="flex-1 min-w-0">' +
@@ -731,7 +856,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
             productImagesHtml + moreProductsHtml +
             '</div>' +
             // Barra de progreso compacta (se muestra cuando se expanden los detalles)
-            '<div class="order-progress-section hidden mb-4" data-progress-order-id="' + order.id + '">' +
+            '<div class="order-progress-section hidden mb-4" data-progress-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
             progressBarHtml +
             '</div>' +
             // Botones de acción compactos
@@ -739,7 +864,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
             actionsHtml +
             '</div>' +
             // Sección de detalles expandible (productos e información de envío)
-            '<div class="order-details-section hidden mt-4 pt-4 border-t border-gray-100" data-details-order-id="' + order.id + '">' +
+            '<div class="order-details-section hidden mt-4 pt-4 border-t border-gray-100" data-details-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
             '<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">' +
             '<div>' +
             '<h3 class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">Productos</h3>' +
@@ -757,6 +882,47 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
             '</div>' +
             '</div>';
         }).join('');
+
+        // Asignar event listeners a los botones después de renderizar
+        attachOrderEventListeners();
+      }
+
+      // Handler de eventos para los botones (función separada para poder removerla si es necesario)
+      function handleOrderContainerClick(e: Event) {
+        const target = e.target as HTMLElement;
+        
+        // Manejar botones de toggle detalles
+        const toggleBtn = target.closest('.toggle-details-btn') as HTMLButtonElement;
+        if (toggleBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const orderId = toggleBtn.getAttribute('data-order-id');
+          if (orderId) {
+            toggleOrderDetails(orderId);
+          }
+          return;
+        }
+        
+        // Manejar botones de calificar
+        const rateBtn = target.closest('.rate-order-btn') as HTMLButtonElement;
+        if (rateBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const orderId = rateBtn.getAttribute('data-order-id');
+          if (orderId && typeof (window as any).openRatingModal === 'function') {
+            (window as any).openRatingModal(orderId);
+          }
+          return;
+        }
+      }
+
+      // Función para asignar event listeners a los botones de pedidos
+      function attachOrderEventListeners() {
+        // Usar evento delegado en el contenedor (solo agregar una vez)
+        if (ordersContainer && !orderEventListenersAttached) {
+          ordersContainer.addEventListener('click', handleOrderContainerClick, true);
+          orderEventListenersAttached = true;
+        }
       }
 
       // Actualizar paginación
@@ -902,32 +1068,116 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
       }
 
       // Función para toggle de detalles del pedido
-      // @ts-ignore
-      window.toggleOrderDetails = function(orderId: string) {
-        const orderCard = document.querySelector('[data-order-id="' + orderId + '"]');
-        if (!orderCard) return;
+      function toggleOrderDetails(orderId: string) {
+        if (!orderId) {
+          return;
+        }
+        
+        // Buscar todas las tarjetas de pedidos y encontrar la correcta comparando el atributo
+        const allOrderCards = document.querySelectorAll('[data-order-id]');
+        let orderCard: Element | null = null;
+        
+        for (let i = 0; i < allOrderCards.length; i++) {
+          const card = allOrderCards[i];
+          if (card.getAttribute('data-order-id') === orderId) {
+            orderCard = card;
+            break;
+          }
+        }
 
-        const progressSection = orderCard.querySelector('[data-progress-order-id="' + orderId + '"]') as HTMLElement;
-        const thumbnailsSection = orderCard.querySelector('[data-thumbnails-order-id="' + orderId + '"]') as HTMLElement;
-        const detailsSection = orderCard.querySelector('[data-details-order-id="' + orderId + '"]') as HTMLElement;
-        const toggleBtn = orderCard.querySelector('.toggle-details-btn[data-order-id="' + orderId + '"]') as HTMLButtonElement;
+        if (!orderCard) {
+          return;
+        }
+
+        // Buscar elementos dentro de la tarjeta específica comparando atributos
+        const allProgressSections = orderCard.querySelectorAll('[data-progress-order-id]');
+        const allDetailsSections = orderCard.querySelectorAll('[data-details-order-id]');
+        const allToggleBtns = orderCard.querySelectorAll('.toggle-details-btn');
+        
+        let progressSection: HTMLElement | null = null;
+        let detailsSection: HTMLElement | null = null;
+        let toggleBtn: HTMLButtonElement | null = null;
+        
+        for (let i = 0; i < allProgressSections.length; i++) {
+          const section = allProgressSections[i] as HTMLElement;
+          if (section.getAttribute('data-progress-order-id') === orderId) {
+            progressSection = section;
+            break;
+          }
+        }
+        
+        for (let i = 0; i < allDetailsSections.length; i++) {
+          const section = allDetailsSections[i] as HTMLElement;
+          if (section.getAttribute('data-details-order-id') === orderId) {
+            detailsSection = section;
+            break;
+          }
+        }
+        
+        for (let i = 0; i < allToggleBtns.length; i++) {
+          const btn = allToggleBtns[i] as HTMLButtonElement;
+          if (btn.getAttribute('data-order-id') === orderId) {
+            toggleBtn = btn;
+            break;
+          }
+        }
+        
         const btnText = toggleBtn?.querySelector('.details-btn-text');
 
-        if (!detailsSection || !toggleBtn) return;
+        if (!detailsSection || !toggleBtn) {
+          return;
+        }
 
-        const isHidden = detailsSection.classList.contains('hidden');
+        const isHidden = detailsSection.classList.contains('hidden') || detailsSection.style.display === 'none' || getComputedStyle(detailsSection).display === 'none';
+        
+        // Si vamos a abrir este pedido, cerrar todos los demás primero
+        if (isHidden) {
+          // Cerrar todos los demás detalles abiertos
+          document.querySelectorAll('.order-details-section').forEach((section: Element) => {
+            const sectionElement = section as HTMLElement;
+            const sectionOrderId = sectionElement.getAttribute('data-details-order-id');
+            if (sectionOrderId && sectionOrderId !== orderId) {
+              // Cerrar este detalle
+              const sectionCard = sectionElement.closest('[data-order-id]');
+              if (sectionCard) {
+                const sectionProgress = sectionCard.querySelector(`[data-progress-order-id="${sectionOrderId}"]`) as HTMLElement;
+                const sectionToggleBtn = sectionCard.querySelector(`.toggle-details-btn[data-order-id="${sectionOrderId}"]`) as HTMLButtonElement;
+                const sectionBtnText = sectionToggleBtn?.querySelector('.details-btn-text');
+                
+                if (sectionProgress) {
+                  sectionProgress.classList.add('hidden');
+                  sectionProgress.style.display = 'none';
+                }
+                
+                sectionElement.style.maxHeight = '0';
+                sectionElement.style.opacity = '0';
+                setTimeout(() => {
+                  sectionElement.classList.add('hidden');
+                  sectionElement.style.display = 'none';
+                  sectionElement.style.maxHeight = '';
+                  sectionElement.style.opacity = '';
+                  sectionElement.style.transition = '';
+                }, 200);
+                
+                if (sectionBtnText) {
+                  sectionBtnText.textContent = 'Detalles';
+                }
+                if (sectionToggleBtn) {
+                  const iconSvg = sectionToggleBtn.querySelector('svg');
+                  if (iconSvg) {
+                    iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+                  }
+                }
+              }
+            }
+          });
+        }
 
         if (isHidden) {
           // Mostrar barra de progreso
           if (progressSection) {
             progressSection.classList.remove('hidden');
             progressSection.style.display = 'block';
-          }
-          
-          // Mostrar miniaturas
-          if (thumbnailsSection) {
-            thumbnailsSection.classList.remove('hidden');
-            thumbnailsSection.style.display = 'flex';
           }
           
           // Mostrar detalles con animación
@@ -975,12 +1225,6 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
           if (progressSection) {
             progressSection.classList.add('hidden');
             progressSection.style.display = 'none';
-          }
-          
-          // Ocultar miniaturas
-          if (thumbnailsSection) {
-            thumbnailsSection.classList.add('hidden');
-            thumbnailsSection.style.display = 'none';
           }
           
           if (btnText) {
@@ -1206,6 +1450,48 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         initRatingModal();
       }
 
+      // Observer para detectar cuando la sección de orders se hace visible
+      function setupSectionVisibilityObserver() {
+        const ordersSection = document.querySelector('[data-profile-section="orders"]');
+        if (!ordersSection) {
+          // Si la sección aún no existe, reintentar después
+          setTimeout(setupSectionVisibilityObserver, 200);
+          return;
+        }
+
+        // Observer para detectar cambios en la visibilidad
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+              const target = mutation.target as HTMLElement;
+              const isVisible = !target.classList.contains('hidden') && 
+                               getComputedStyle(target).display !== 'none';
+              
+              if (isVisible && allOrders.length === 0) {
+                // La sección se hizo visible y aún no hay pedidos cargados
+                console.log('👁️ [ORDERS] Sección visible, cargando pedidos...');
+                loadOrders();
+              }
+            }
+          });
+        });
+
+        observer.observe(ordersSection, {
+          attributes: true,
+          attributeFilter: ['class'],
+          subtree: false
+        });
+
+        // Verificar estado inicial
+        const isVisible = !ordersSection.classList.contains('hidden') && 
+                         getComputedStyle(ordersSection).display !== 'none';
+        
+        if (isVisible) {
+          console.log('👁️ [ORDERS] Sección ya visible inicialmente');
+          loadOrders();
+        }
+      }
+
       // Inicializar cuando el DOM esté completamente listo
       function initialize() {
         // Verificar nuevamente que todos los elementos estén disponibles
@@ -1216,24 +1502,28 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
           ordersLoading && ordersError;
 
         if (!allElementsPresent) {
-          console.warn('Algunos elementos aún no están disponibles, esperando...');
+          console.warn('⚠️ [ORDERS] Algunos elementos aún no están disponibles, esperando...');
           setTimeout(initialize, 200);
           return;
         }
 
+        console.log('✅ [ORDERS] Todos los elementos están disponibles, inicializando...');
+        
         // Todos los elementos están disponibles, inicializar funcionalidades
         initRatingModalWhenReady();
-        loadOrders();
+        
+        // Configurar observer para detectar cuando la sección se hace visible
+        setupSectionVisibilityObserver();
       }
 
       // Esperar a que el DOM esté completamente cargado
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-          setTimeout(initialize, 100);
+          setTimeout(initialize, 300);
         });
       } else {
-        // DOM ya está cargado, pero esperar un poco para asegurar que todos los elementos estén renderizados
-        setTimeout(initialize, 100);
+        // DOM ya está cargado, pero esperar un poco más para asegurar que todos los elementos estén renderizados
+        setTimeout(initialize, 300);
       }
     })();
   </script>

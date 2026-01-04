@@ -5,12 +5,180 @@ import ConfirmModal from '../../ConfirmModal.astro';
 const title = 'Métodos de Pago';
 ---
 
+<style>
+  .payment-card {
+    position: relative;
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    border: 2px solid rgba(251, 191, 36, 0.2);
+    border-radius: 24px;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  .payment-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 32px -8px rgba(251, 191, 36, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+    border-color: rgba(251, 191, 36, 0.4);
+  }
+
+  .payment-card.is-default {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: rgba(251, 191, 36, 0.5);
+  }
+
+  .payment-card.is-default::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
+    z-index: 1;
+  }
+
+  .payment-card-header {
+    padding: 1.25rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    position: relative;
+    z-index: 2;
+  }
+
+  .payment-card-body {
+    padding: 1.25rem;
+    background: white;
+    position: relative;
+    z-index: 2;
+  }
+
+  .payment-card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(229, 231, 235, 0.6);
+    background: rgba(249, 250, 251, 0.8);
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px -2px rgba(251, 191, 36, 0.3);
+  }
+
+  .default-badge-payment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid rgba(251, 191, 36, 0.4);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px -1px rgba(251, 191, 36, 0.3);
+  }
+
+  .payment-gradient-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+
+  .payment-card:hover .payment-gradient-bg {
+    opacity: 1;
+  }
+
+  .payment-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border: 2px solid rgba(229, 231, 235, 0.8);
+    background: white;
+    cursor: pointer;
+  }
+
+  .payment-action-btn:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.12);
+  }
+
+  .payment-action-btn.edit:hover {
+    background: #fef3c7;
+    border-color: #fbbf24;
+  }
+
+  .payment-action-btn.delete:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+  }
+
+  .set-default-payment-btn {
+    flex: 1;
+    padding: 0.625rem 1rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%);
+    border: 2px solid rgba(251, 191, 36, 0.4);
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #92400e;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .set-default-payment-btn:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(251, 191, 36, 0.4);
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .payment-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+    z-index: 3;
+  }
+
+  .payment-card:hover::after {
+    left: 100%;
+  }
+</style>
+
 <section class="space-y-4">
   <!-- Header compacto y elegante -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200">
     <div>
       <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-        <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
         {title}
@@ -20,9 +188,9 @@ const title = 'Métodos de Pago';
     <button
       type="button"
       id="add-payment-btn"
-      class="flex items-center gap-2 px-4 py-2.5 bg-[#5d3fbb] text-white rounded-lg text-sm font-medium hover:bg-[#4d2fa8] transition-all duration-200"
+      class="group flex items-center gap-2 px-5 py-3 bg-linear-to-r from-yellow-500 to-orange-600 text-white rounded-xl text-sm font-semibold hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
     >
-      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="h-5 w-5 transition-transform duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       Añadir Método de Pago
@@ -30,19 +198,31 @@ const title = 'Métodos de Pago';
   </div>
 
   <!-- Lista de métodos de pago -->
-  <div id="payment-methods-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div id="payment-methods-container" class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
     <!-- Se llenará con JavaScript -->
   </div>
 
   <!-- Mensaje cuando no hay métodos elegante -->
-  <div id="no-payment-message" class="hidden text-center py-16">
-    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
-      <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div id="no-payment-message" class="hidden">
+    <div class="text-center py-20 px-4">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-linear-to-br from-yellow-50 to-orange-50 mb-6 shadow-lg">
+        <svg class="h-10 w-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
       </svg>
     </div>
-    <p class="text-gray-900 font-semibold mb-1">No se encontraron métodos de pago</p>
-    <p class="text-sm text-gray-500">Añade tu primer método de pago para comenzar</p>
+      <h3 class="text-xl font-bold text-gray-900 mb-2">No tienes métodos de pago guardados</h3>
+      <p class="text-sm text-gray-600 mb-6 max-w-md mx-auto">Añade tu primer método de pago para realizar compras de forma rápida y segura.</p>
+      <button
+        type="button"
+        onclick="window.openPaymentModalFromSection && window.openPaymentModalFromSection()"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-yellow-500 to-orange-600 text-white rounded-xl text-sm font-semibold hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Añadir Primer Método de Pago
+      </button>
+    </div>
   </div>
 </section>
 
@@ -170,24 +350,7 @@ const title = 'Métodos de Pago';
     }
 
     // Función helper para renderizar una tarjeta de método de pago
-    // Esta función replica exactamente la estructura del componente PaymentCard.astro
-    // para mantener la consistencia entre el componente Astro y el renderizado dinámico
     function renderPaymentCard(method: any): string {
-      // Colores profesionales y elegantes según la marca
-      const brandConfig = method.brand === 'Visa' 
-        ? {
-            gradient: 'from-slate-800 via-slate-900 to-slate-950',
-            accent: 'from-blue-600 to-blue-700',
-            chip: 'bg-gradient-to-br from-amber-400 to-amber-500',
-            logoBg: 'bg-blue-600'
-          }
-        : {
-            gradient: 'from-gray-900 via-gray-950 to-black',
-            accent: 'from-red-600 to-orange-600',
-            chip: 'bg-gradient-to-br from-red-400 to-orange-500',
-            logoBg: 'bg-red-600'
-          };
-
       // Función helper para escapar HTML y prevenir XSS
       const escapeHtml = (text: any) => {
         if (text === null || text === undefined) return '';
@@ -196,92 +359,87 @@ const title = 'Métodos de Pago';
         return div.innerHTML;
       };
 
-      // Esta estructura debe coincidir exactamente con PaymentCard.astro
-      return `
-        <div class="group relative bg-linear-to-br ${brandConfig.gradient} rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50 hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] hover:border-gray-700/70" data-method-id="${escapeHtml(method.id)}">
-          <!-- Patrón de fondo sutil -->
-          <div class="absolute inset-0 opacity-10">
-            <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 40px 40px;"></div>
-          </div>
-          
-          <!-- Efecto de brillo sutil -->
-          <div class="absolute top-0 left-0 w-full h-1/2 bg-linear-to-b from-white/5 to-transparent"></div>
-          
-          <!-- Contenido principal -->
-          <div class="relative z-10 p-5">
-            <!-- Header con chip, logo y badge -->
-            <div class="flex items-start justify-between mb-5">
-              <!-- Chip de tarjeta -->
-              <div class="relative">
-                <div class="${brandConfig.chip} w-11 h-9 rounded-md shadow-lg flex items-center justify-center border border-white/20">
-                  <div class="w-7 h-5 bg-linear-to-br from-white/30 to-transparent rounded-sm"></div>
-                </div>
-              </div>
-              
-              <!-- Logo de la marca y Badge Predeterminada (lado derecho) -->
-              <div class="flex flex-col items-end gap-2">
-                <!-- Badge Predeterminada (arriba del logo) -->
-                ${method.isDefault ? `
-                  <span class="inline-flex items-center gap-1 bg-linear-to-r from-amber-500 to-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md border border-amber-400/40 uppercase tracking-wider">
-                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    Predeterminada
-                  </span>
-                ` : ''}
-                
-                <!-- Logo de la marca -->
-                <div class="flex flex-col items-end gap-0.5">
-                  <div class="${brandConfig.logoBg} px-3 py-1.5 rounded-lg shadow-md">
-                    <p class="text-white font-bold text-sm tracking-wide">${escapeHtml(method.brand)}</p>
-                  </div>
-                  ${method.bank ? `<p class="text-gray-400 text-[10px] font-medium leading-tight">${escapeHtml(method.bank)}</p>` : ''}
-                </div>
-              </div>
-            </div>
-            
-            <!-- Número de tarjeta -->
-            <div class="mb-5">
-              <p class="text-gray-400 text-[10px] font-medium mb-1.5 tracking-wider uppercase">Número de Tarjeta</p>
-              <p class="text-white text-xl font-mono tracking-[0.15em] font-semibold">${escapeHtml(method.cardNumber)}</p>
-            </div>
-            
-            <!-- Información inferior -->
-            <div class="flex items-end justify-between mb-4">
-              <div class="flex-1">
-                <p class="text-gray-400 text-[10px] font-medium mb-1 tracking-wider uppercase">Titular</p>
-                <p class="text-white text-sm font-semibold tracking-wide truncate">${escapeHtml(method.cardHolder)}</p>
-              </div>
-              <div class="text-right ml-3">
-                <p class="text-gray-400 text-[10px] font-medium mb-1 tracking-wider uppercase">Válida Hasta</p>
-                <p class="text-white text-sm font-semibold tracking-wide">${escapeHtml(method.expiryDate)}</p>
-              </div>
-            </div>
-            
-            <!-- Botones de acción -->
-            <div class="flex items-center gap-2 pt-3.5 border-t border-gray-700/50">
-              ${!method.isDefault ? `
-                <button type="button" class="set-default-btn flex-1 px-3 py-2 bg-linear-to-r ${brandConfig.accent} text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 text-xs font-semibold border border-white/20" data-id="${escapeHtml(method.id)}">
-                  Establecer Predeterminada
-                </button>
-              ` : ''}
-              <button type="button" class="edit-btn px-3 py-2 bg-gray-800/80 hover:bg-gray-700 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 border border-gray-700/50 shadow-md" data-id="${escapeHtml(method.id)}" title="Editar">
-                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-              <button type="button" class="delete-btn px-3 py-2 bg-red-900/80 hover:bg-red-800 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 border border-red-800/50 shadow-md" data-id="${escapeHtml(method.id)}" title="Eliminar">
-                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Borde decorativo inferior -->
-          <div class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r ${brandConfig.accent}"></div>
-        </div>
-      `;
+      const isDefault = method.isDefault || false;
+      const cardClass = isDefault ? 'payment-card is-default' : 'payment-card';
+      const cardBg = isDefault 
+        ? 'background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' 
+        : 'background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%)';
+      const cardBorder = isDefault 
+        ? 'border-color: rgba(251, 191, 36, 0.5)' 
+        : 'border-color: rgba(251, 191, 36, 0.2)';
+
+      // Colores para el logo según la marca
+      const brandColors = method.brand === 'Visa' 
+        ? { bg: '#1434CB', text: '#ffffff' }
+        : { bg: '#EB001B', text: '#ffffff' };
+
+      return '<div class="' + cardClass + '" data-method-id="' + escapeHtml(method.id) + '" style="position: relative; ' + cardBg + '; border: 2px solid; ' + cardBorder + '; border-radius: 24px; padding: 0; overflow: hidden; box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.04);">' +
+        '<div class="payment-gradient-bg" style="position: absolute; top: 0; right: 0; width: 250px; height: 250px; background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%); pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 0;"></div>' +
+        
+        // Header
+        '<div class="payment-card-header" style="padding: 1.25rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 250, 250, 0.9) 100%); border-bottom: 1px solid rgba(229, 231, 235, 0.8); position: relative; z-index: 2;">' +
+        '<div class="flex items-center justify-between gap-3">' +
+        '<div class="flex items-center gap-3 flex-1 min-w-0">' +
+        '<div class="brand-icon-wrapper flex-shrink-0" style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px -2px rgba(251, 191, 36, 0.3);">' +
+        '<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />' +
+        '</svg>' +
+        '</div>' +
+        '<div class="min-w-0 flex-1">' +
+        '<div class="flex items-center gap-2 mb-0.5">' +
+        '<div style="background: ' + brandColors.bg + '; color: ' + brandColors.text + '; padding: 0.25rem 0.625rem; border-radius: 6px; font-weight: 700; font-size: 0.8125rem;">' + escapeHtml(method.brand) + '</div>' +
+        (method.bank ? '<span class="text-xs text-gray-500 font-medium truncate">' + escapeHtml(method.bank) + '</span>' : '') +
+        '</div>' +
+        '<p class="text-xs text-gray-500 font-medium">' + (method.type === 'credit' ? 'Tarjeta de Crédito' : 'Tarjeta de Débito') + '</p>' +
+        '</div>' +
+        '</div>' +
+        
+        // Badge predeterminada (solo icono)
+        '<div class="flex items-center gap-2 flex-shrink-0">' +
+        (isDefault ? '<span class="default-badge-payment" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid rgba(251, 191, 36, 0.4); border-radius: 50%; box-shadow: 0 2px 4px -1px rgba(251, 191, 36, 0.3);" title="Predeterminada"><svg class="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg></span>' : '') +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        
+        // Body
+        '<div class="payment-card-body" style="padding: 1.25rem; background: white; position: relative; z-index: 2;">' +
+        '<div class="space-y-3">' +
+        
+        // Número de tarjeta
+        '<div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">' +
+        '<p class="text-xs text-gray-500 font-medium mb-1.5 uppercase tracking-wide">Número de Tarjeta</p>' +
+        '<p class="text-lg font-mono font-bold text-gray-900 tracking-wider">' + escapeHtml(method.cardNumber) + '</p>' +
+        '</div>' +
+        
+        // Información adicional
+        '<div class="grid grid-cols-2 gap-3">' +
+        '<div>' +
+        '<p class="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Titular</p>' +
+        '<p class="text-sm font-semibold text-gray-900 truncate">' + escapeHtml(method.cardHolder) + '</p>' +
+        '</div>' +
+        '<div class="text-right">' +
+        '<p class="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Válida Hasta</p>' +
+        '<p class="text-sm font-semibold text-gray-900">' + escapeHtml(method.expiryDate) + '</p>' +
+        '</div>' +
+        '</div>' +
+        
+        '</div>' +
+        '</div>' +
+        
+        // Footer con acciones
+        '<div class="payment-card-footer" style="padding: 1rem 1.25rem; border-top: 1px solid rgba(229, 231, 235, 0.6); background: rgba(249, 250, 251, 0.8); position: relative; z-index: 2;">' +
+        '<div class="flex items-center gap-2">' +
+        (!isDefault ? '<button type="button" class="set-default-payment-btn" data-id="' + escapeHtml(method.id) + '" style="flex: 1; padding: 0.625rem 1rem; background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%); border: 2px solid rgba(251, 191, 36, 0.4); border-radius: 10px; font-size: 0.75rem; font-weight: 600; color: #92400e; transition: all 0.2s ease; cursor: pointer;">Establecer Predeterminada</button>' : '<div class="flex-1"></div>') +
+        '<button type="button" class="payment-action-btn edit edit-btn" data-id="' + escapeHtml(method.id) + '" title="Editar" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border: 2px solid rgba(229, 231, 235, 0.8); background: white; cursor: pointer;">' +
+        '<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>' +
+        '</button>' +
+        '<button type="button" class="payment-action-btn delete delete-btn" data-id="' + escapeHtml(method.id) + '" title="Eliminar" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border: 2px solid rgba(229, 231, 235, 0.8); background: white; cursor: pointer;">' +
+        '<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
+        '</button>' +
+        '</div>' +
+        '</div>' +
+        
+        '</div>';
     }
 
     // Renderizar métodos de pago
@@ -304,7 +462,7 @@ const title = 'Métodos de Pago';
 
     // Asignar event listeners
     function attachEventListeners() {
-      document.querySelectorAll('.set-default-btn').forEach(btn => {
+      document.querySelectorAll('.set-default-payment-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const target = e.currentTarget;
           if (target && target instanceof HTMLButtonElement) {

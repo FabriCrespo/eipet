@@ -288,7 +288,7 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
     return {
       title: section.title,
       icon: metadata.icon,
-      href: `/profile/${section.id}`,
+      href: `/profile#${section.id}`,
       section: section.id,
       description: metadata.description,
       color: metadata.color
@@ -305,7 +305,7 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
     return {
       title: section.title,
       icon: metadata.icon,
-      href: `/profile/${section.id}`,
+      href: `/profile#${section.id}`,
       section: section.id,
       description: metadata.description,
       color: metadata.color
@@ -370,7 +370,7 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
       const isActive = currentSectionState === item.section;
       menuHTML += `
         <a
-          href="#"
+          href="/profile#${item.section}"
           class="menu-item m-2 flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 group flex-shrink-0 ${
             isActive
               ? 'bg-gradient-to-r ' + item.color + ' text-white shadow-lg transform scale-[1.02]'
@@ -406,7 +406,7 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
       const isActive = currentSectionState === item.section;
       menuHTML += `
         <a
-          href="#"
+          href="/profile#${item.section}"
           class="menu-item m-2 flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 group flex-shrink-0 ${
             isActive
               ? 'bg-gradient-to-r ' + item.color + ' text-white shadow-lg transform scale-[1.02]'
@@ -449,6 +449,11 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
           currentSectionState = section as Section;
           renderMenu();
           closeMobileSidebar();
+          
+          // Actualizar URL con hash sin recargar
+          if (profileWindow) {
+            profileWindow.history.pushState(null, '', `/profile#${section}`);
+          }
           
           // Llamar callback si existe
           if (profileWindow?.onProfileSectionChange) {

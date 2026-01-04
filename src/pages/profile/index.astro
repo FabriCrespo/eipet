@@ -51,7 +51,7 @@ const sectionIds = sectionConfig.map((section) => section.id);
   >
     {sectionConfig.map(({ id, Component }) => (
       <article
-        id={`profile-section-${id}`}
+        id={id}
         data-profile-section={id}
         class={`profile-section-panel ${id === initialSection ? '' : 'hidden'}`}
         aria-hidden={id === initialSection ? 'false' : 'true'}
@@ -173,25 +173,53 @@ const sectionIds = sectionConfig.map((section) => section.id);
         };
 
         const resolveInitialSection = () => {
+          // Leer hash de la URL
+          if (typeof window !== 'undefined' && window.location.hash) {
+            const hashSection = window.location.hash.substring(1); // Remover el #
+            if (sectionIds.includes(hashSection)) {
+              return hashSection;
+            }
+          }
+          // Si hay una sección actual guardada en window
           if (profileWindow?.currentProfileSection && sectionIds.includes(profileWindow.currentProfileSection)) {
             return profileWindow.currentProfileSection;
           }
           return defaultSection;
         };
 
-        const applySection = (sectionId: string) => {
+        const applySection = (sectionId: string, scrollToSection = false) => {
           if (!sectionIds.includes(sectionId)) return;
           profileWindow && (profileWindow.currentProfileSection = sectionId);
           setActiveProfileSection(sectionId);
+          
+          // Hacer scroll suave a la sección si es necesario
+          if (scrollToSection) {
+            const sectionEl = document.getElementById(sectionId);
+            if (sectionEl) {
+              // Pequeño delay para asegurar que la sección esté visible antes de hacer scroll
+              setTimeout(() => {
+                sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+          }
         };
 
         const initialActiveSection = resolveInitialSection();
-        applySection(initialActiveSection);
+        const hasHash = typeof window !== 'undefined' && window.location.hash;
+        applySection(initialActiveSection, !!hasHash); // Hacer scroll solo si hay hash en la URL
 
         if (profileWindow) {
           profileWindow.onProfileSectionChange = (sectionId: string) => {
             applySection(sectionId);
           };
+          
+          // Listener para cambios en el hash de la URL
+          window.addEventListener('hashchange', () => {
+            const hashSection = window.location.hash.substring(1);
+            if (sectionIds.includes(hashSection)) {
+              applySection(hashSection, true);
+            }
+          });
         }
       }
 

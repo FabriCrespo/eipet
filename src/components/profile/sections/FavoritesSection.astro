@@ -199,49 +199,106 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
         console.warn('⚠️ favorites-error no encontrado, creando elemento...');
       }
 
+      // Función para obtener userId con reintentos
+      function getUserId(maxAttempts = 30, delay = 200): Promise<string> {
+        return new Promise((resolve, reject) => {
+          let attempts = 0;
+          
+          const tryGetUserId = () => {
+            attempts++;
+            let userId: string | null = null;
+            
+            // Intentar obtener desde localStorage
+            userId = localStorage.getItem('userId');
+            
+            // Si no está en localStorage, intentar desde window
+            if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
+              userId = (window as any).currentUserId;
+            }
+            
+            // Si aún no está, intentar desde el atributo data del contenedor de perfil
+            if (!userId) {
+              const profilePanel = document.getElementById('profile-content-panel');
+              if (profilePanel) {
+                userId = profilePanel.getAttribute('data-user-id');
+              }
+            }
+            
+            if (userId && userId.trim() !== '') {
+              console.log('✅ [FAVORITES] UserId obtenido:', userId);
+              resolve(userId);
+            } else if (attempts < maxAttempts) {
+              setTimeout(tryGetUserId, delay);
+            } else {
+              reject(new Error('Usuario no autenticado. Por favor, inicia sesión.'));
+            }
+          };
+          
+          tryGetUserId();
+        });
+      }
+
+      // Verificar si la sección de favorites está visible
+      function isFavoritesSectionVisible(): boolean {
+        const favoritesSection = document.querySelector('[data-profile-section="favorites"]');
+        if (!favoritesSection) return false;
+        const isHidden = favoritesSection.classList.contains('hidden') || 
+                        (favoritesSection as HTMLElement).style.display === 'none' ||
+                        getComputedStyle(favoritesSection).display === 'none';
+        return !isHidden;
+      }
+
       // Cargar productos favoritos desde Firebase
       async function loadProducts() {
         try {
-          if (favoritesLoading) favoritesLoading.classList.remove('hidden');
-          if (favoritesError) favoritesError.classList.add('hidden');
-          if (productsContainer) productsContainer.classList.add('hidden');
-
-          // Obtener userId desde localStorage (ya guardado por la página de perfil)
-          let userId: string | null = null;
-          
-          // Intentar obtener desde localStorage
-          userId = localStorage.getItem('userId');
-          
-          // Si no está en localStorage, intentar desde window
-          if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
-            userId = (window as any).currentUserId;
-          }
-          
-          // Si aún no está, intentar desde el atributo data del contenedor de perfil
-          if (!userId) {
-            const profilePanel = document.getElementById('profile-content-panel');
-            if (profilePanel) {
-              userId = profilePanel.getAttribute('data-user-id');
-            }
-          }
-          
-          if (!userId) {
-            throw new Error('Usuario no autenticado. Por favor, inicia sesión.');
+          // Verificar que la sección esté visible antes de cargar
+          if (!isFavoritesSectionVisible()) {
+            console.log('⏳ [FAVORITES] Sección no visible, esperando...');
+            return;
           }
 
-          // Obtener favoritos del usuario
-          console.log('📦 Obteniendo favoritos para userId:', userId);
+          // Mostrar loader inmediatamente y ocultar otros estados
+          if (favoritesLoading) {
+            favoritesLoading.classList.remove('hidden');
+            favoritesLoading.style.display = 'flex';
+          }
+          if (favoritesError) {
+            favoritesError.classList.add('hidden');
+            favoritesError.style.display = 'none';
+          }
+          if (productsContainer) {
+            productsContainer.classList.add('hidden');
+            productsContainer.style.display = 'none';
+          }
+          if (noProductsMessage) {
+            noProductsMessage.classList.add('hidden');
+            noProductsMessage.style.display = 'none';
+          }
+
+          console.log('🔄 [FAVORITES] Iniciando carga de favoritos...');
+          
+          // Esperar a que el userId esté disponible (mantener loader visible)
+          const userId = await getUserId(30, 200); // Hasta 6 segundos (30 intentos x 200ms)
+          
+          if (!userId || userId.trim() === '') {
+            throw new Error('No se pudo obtener el ID del usuario. Por favor, recarga la página.');
+          }
+          
+          console.log('✅ [FAVORITES] UserId confirmado:', userId);
+
+          // Obtener favoritos del usuario (loader sigue visible)
+          console.log('📦 [FAVORITES] Obteniendo favoritos para userId:', userId);
           const { getUserFavorites } = await import('../../../lib/db/favorites');
           const favoritesResult = await getUserFavorites(userId);
 
-          console.log('📦 Resultado de getUserFavorites:', favoritesResult);
+          console.log('📦 [FAVORITES] Resultado de getUserFavorites:', favoritesResult);
 
           if (favoritesResult.error || !favoritesResult.data) {
             throw new Error(favoritesResult.error?.message || 'Error al cargar favoritos');
           }
 
           const favoriteProductIds = favoritesResult.data.productIds || [];
-          console.log('📦 IDs de productos favoritos:', favoriteProductIds);
+          console.log('📦 [FAVORITES] IDs de productos favoritos:', favoriteProductIds.length);
 
           if (favoriteProductIds.length === 0) {
             // No hay favoritos
@@ -320,22 +377,35 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
           });
           
           filteredProducts = [...allProducts];
-          console.log('✅ Productos cargados exitosamente:', filteredProducts.length);
+          console.log('✅ [FAVORITES] Productos cargados exitosamente:', filteredProducts.length);
 
+          // OCULTAR loader SOLO después de procesar todos los productos
           if (favoritesLoading) {
             favoritesLoading.classList.add('hidden');
             favoritesLoading.style.display = 'none';
           }
           renderProducts();
           updatePagination();
+          
+          console.log('✅ [FAVORITES] Carga completada exitosamente');
         } catch (error: any) {
-          console.error('Error cargando favoritos:', error);
-          if (favoritesLoading) favoritesLoading.classList.add('hidden');
+          console.error('❌ [FAVORITES] Error cargando favoritos:', error);
+          // Ocultar loader y mostrar error
+          if (favoritesLoading) {
+            favoritesLoading.classList.add('hidden');
+            favoritesLoading.style.display = 'none';
+          }
           if (favoritesError) {
             favoritesError.classList.remove('hidden');
+            favoritesError.style.display = 'block';
             if (favoritesErrorMessage) {
               favoritesErrorMessage.textContent = error.message || 'Error desconocido al cargar los favoritos';
             }
+          }
+          // Asegurar que el contenedor esté oculto en caso de error
+          if (productsContainer) {
+            productsContainer.classList.add('hidden');
+            productsContainer.style.display = 'none';
           }
         }
       }
@@ -751,8 +821,65 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
         }
       });
 
-      // Inicializar
-      loadProducts();
+      // Observer para detectar cuando la sección de favorites se hace visible
+      function setupSectionVisibilityObserver() {
+        const favoritesSection = document.querySelector('[data-profile-section="favorites"]');
+        if (!favoritesSection) {
+          // Si la sección aún no existe, reintentar después
+          setTimeout(setupSectionVisibilityObserver, 200);
+          return;
+        }
+
+        // Observer para detectar cambios en la visibilidad
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+              const target = mutation.target as HTMLElement;
+              const isVisible = !target.classList.contains('hidden') && 
+                               getComputedStyle(target).display !== 'none';
+              
+              if (isVisible && allProducts.length === 0) {
+                // La sección se hizo visible y aún no hay productos cargados
+                console.log('👁️ [FAVORITES] Sección visible, cargando favoritos...');
+                loadProducts();
+              }
+            }
+          });
+        });
+
+        observer.observe(favoritesSection, {
+          attributes: true,
+          attributeFilter: ['class'],
+          subtree: false
+        });
+
+        // Verificar estado inicial
+        const isVisible = !favoritesSection.classList.contains('hidden') && 
+                         getComputedStyle(favoritesSection).display !== 'none';
+        
+        if (isVisible) {
+          console.log('👁️ [FAVORITES] Sección ya visible inicialmente');
+          loadProducts();
+        }
+      }
+
+      // Inicializar cuando el DOM esté completamente listo
+      function initialize() {
+        console.log('✅ [FAVORITES] Inicializando...');
+        
+        // Configurar observer para detectar cuando la sección se hace visible
+        setupSectionVisibilityObserver();
+      }
+
+      // Esperar a que el DOM esté completamente cargado
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(initialize, 300);
+        });
+      } else {
+        // DOM ya está cargado, pero esperar un poco más para asegurar que todos los elementos estén renderizados
+        setTimeout(initialize, 300);
+      }
     })();
   </script>
 </section>
