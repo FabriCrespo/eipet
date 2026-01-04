@@ -683,6 +683,28 @@ import Layout from '../layouts/Layout.astro';
       animation: pulse-glow 2s ease-in-out infinite;
     }
 
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
     @keyframes pulse-glow {
       0%, 100% {
         box-shadow: 0 0 0 0 rgba(93, 63, 187, 0.7);
@@ -969,6 +991,7 @@ import Layout from '../layouts/Layout.astro';
       let searchTimeout: NodeJS.Timeout | null = null;
       let allCategoriesData: any[] = [];
       let allBrandsData: any[] = [];
+      let userFavorites: string[] = []; // IDs de productos favoritos
       
       // Caché para carga bajo demanda
       const brandsCache = new Map<string, any[]>(); // categoryId -> brands[]
@@ -1535,12 +1558,14 @@ import Layout from '../layouts/Layout.astro';
                 </div>
               ` : ''}
               <button 
-                class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-white/90 hover:bg-white rounded-full p-1 sm:p-1.5 z-10 transition-all hover:scale-110 shadow-md favorite-btn"
+                type="button"
+                class="favorite-btn absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-white/90 hover:bg-white rounded-full p-1 sm:p-1.5 z-20 transition-all hover:scale-110 shadow-md"
                 data-product-id="${product.id}"
-                aria-label="Agregar a favoritos"
+                data-is-favorite="${userFavorites.includes(String(product.id)) ? 'true' : 'false'}"
+                aria-label="${userFavorites.includes(String(product.id)) ? 'Quitar de favoritos' : 'Agregar a favoritos'}"
               >
-                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <svg class="favorite-icon w-3.5 h-3.5 sm:w-4 sm:h-4 ${userFavorites.includes(String(product.id)) ? 'text-red-600' : 'text-red-500'}" ${userFavorites.includes(String(product.id)) ? 'fill="currentColor"' : 'fill="none"'} stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </button>
               ${product.weight ? `
@@ -1629,6 +1654,120 @@ import Layout from '../layouts/Layout.astro';
       }
 
       // Función para renderizar todos los productos
+      
+      // Función para mostrar notificación (declarada antes de su uso)
+      const showNotification = (message: string, type: 'success' | 'info' = 'success') => {
+        // Remover notificación anterior si existe
+        const existingNotification = document.getElementById('favorite-notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+
+        const notification = document.createElement('div');
+        notification.id = 'favorite-notification';
+        notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 ${
+          type === 'success' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
+        }`;
+        notification.style.animation = 'slideInRight 0.3s ease-out';
+        
+        notification.innerHTML = `
+          <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="font-semibold text-sm md:text-base">${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remover después de 3 segundos
+        setTimeout(() => {
+          notification.style.animation = 'slideOutRight 0.3s ease-out';
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 300);
+        }, 3000);
+      };
+
+      // Función para actualizar el estado visual del botón de favoritos
+      function updateFavoriteButton(button: Element, isFavorite: boolean) {
+        const svg = button.querySelector('.favorite-icon') as SVGElement;
+        if (!svg) {
+          console.warn('No se encontró el SVG con clase favorite-icon');
+          return;
+        }
+        
+        const btn = button as HTMLElement;
+        btn.setAttribute('data-is-favorite', String(isFavorite));
+        btn.setAttribute('aria-label', isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos');
+        
+        if (isFavorite) {
+          svg.setAttribute('fill', 'currentColor');
+          svg.classList.remove('text-red-500');
+          svg.classList.add('text-red-600');
+        } else {
+          svg.setAttribute('fill', 'none');
+          svg.classList.remove('text-red-600');
+          svg.classList.add('text-red-500');
+        }
+      }
+
+      // Función para actualizar el botón de favoritos en el modal
+      function updateFavoriteModalButton(button: Element | null, isFavorite: boolean) {
+        if (!button) return;
+        const svg = button.querySelector('svg');
+        const span = button.querySelector('span');
+        
+        if (svg) {
+          if (isFavorite) {
+            svg.setAttribute('fill', 'currentColor');
+            svg.classList.remove('text-red-500');
+            svg.classList.add('text-red-600');
+          } else {
+            svg.setAttribute('fill', 'none');
+            svg.classList.remove('text-red-600');
+            svg.classList.add('text-red-500');
+          }
+        }
+        
+        if (span) {
+          span.textContent = isFavorite ? 'Quitar de Favoritos' : 'Agregar a Favoritos';
+        }
+      }
+
+      // Cargar favoritos del usuario
+      async function loadUserFavorites() {
+        try {
+          let userId: string | null = localStorage.getItem('userId');
+          if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
+            userId = (window as any).currentUserId;
+          }
+
+          if (!userId) {
+            userFavorites = [];
+            return;
+          }
+
+          const { getUserFavorites } = await import('../lib/db/favorites');
+          const favoritesResult = await getUserFavorites(userId);
+          
+          if (favoritesResult.data && favoritesResult.data.productIds) {
+            userFavorites = favoritesResult.data.productIds;
+            // Actualizar estado visual de todos los botones de favoritos
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+              const productId = btn.getAttribute('data-product-id');
+              if (productId && userFavorites.includes(productId)) {
+                updateFavoriteButton(btn, true);
+              }
+            });
+          }
+        } catch (error) {
+          console.warn('Error al cargar favoritos:', error);
+          userFavorites = [];
+        }
+      }
+
       function renderProducts(products: any[]) {
         const grid = document.getElementById('products-grid');
         const loadingState = document.getElementById('loading-state');
@@ -1677,15 +1816,92 @@ import Layout from '../layouts/Layout.astro';
           switchToGridView();
         }
 
-        // Agregar event listeners a los botones de favoritos
+        // Actualizar estado visual de botones de favoritos después de renderizar
         document.querySelectorAll('.favorite-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const productId = btn.getAttribute('data-product-id');
-            console.log('Agregar a favoritos:', productId);
-            // Aquí puedes agregar la lógica para favoritos
-          });
+          const productId = btn.getAttribute('data-product-id');
+          if (productId && userFavorites.includes(productId)) {
+            updateFavoriteButton(btn, true);
+          }
         });
+
+        // Agregar event listeners a los botones de favoritos usando delegación de eventos
+        // Esto evita problemas con múltiples listeners y elementos que se recrean
+        const productsGrid = document.getElementById('products-grid');
+        if (productsGrid) {
+          // Usar delegación de eventos en el contenedor
+          productsGrid.addEventListener('click', async (e) => {
+            const target = e.target as HTMLElement;
+            // Buscar el botón de favoritos o su padre
+            const favoriteBtn = target.closest('.favorite-btn') as HTMLElement;
+            
+            if (!favoriteBtn) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            const productId = favoriteBtn.getAttribute('data-product-id');
+            if (!productId) {
+              console.warn('No se encontró productId en el botón de favoritos');
+              return;
+            }
+
+            console.log('Botón de favoritos clickeado, productId:', productId);
+
+            // Obtener userId
+            let userId: string | null = localStorage.getItem('userId');
+            if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
+              userId = (window as any).currentUserId;
+            }
+
+            if (!userId) {
+              // Redirigir al login si no está autenticado
+              if (confirm('Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?')) {
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+              }
+              return;
+            }
+
+            try {
+              console.log('Gestionando favorito, userId:', userId, 'productId:', productId);
+              const { isFavorite, addToFavorites, removeFromFavorites } = await import('../lib/db/favorites');
+              const isFav = await isFavorite(userId, productId);
+              
+              console.log('¿Está en favoritos?', isFav);
+              
+              if (isFav) {
+                // Quitar de favoritos
+                const result = await removeFromFavorites(userId, productId);
+                if (result.success) {
+                  updateFavoriteButton(favoriteBtn, false);
+                  userFavorites = userFavorites.filter(id => id !== productId);
+                  console.log('Producto quitado de favoritos');
+                  showNotification('Producto quitado de favoritos', 'info');
+                } else {
+                  console.error('Error al quitar de favoritos:', result.error);
+                  showNotification('Error al quitar de favoritos', 'info');
+                }
+              } else {
+                // Agregar a favoritos
+                const result = await addToFavorites(userId, productId);
+                if (result.success) {
+                  updateFavoriteButton(favoriteBtn, true);
+                  if (!userFavorites.includes(productId)) {
+                    userFavorites.push(productId);
+                  }
+                  console.log('Producto agregado a favoritos');
+                  showNotification('Producto agregado a favoritos exitosamente', 'success');
+                } else {
+                  console.error('Error al agregar a favoritos:', result.error);
+                  showNotification('Error al agregar a favoritos', 'info');
+                }
+              }
+            } catch (error) {
+              console.error('Error al gestionar favoritos:', error);
+              alert('Error al gestionar favoritos. Por favor, intenta nuevamente.');
+            }
+          }, true); // Usar capture phase para capturar antes que otros listeners
+        }
 
         // Agregar event listeners a los botones "Ver Detalles"
         document.querySelectorAll('.view-details-btn').forEach(btn => {
@@ -2711,12 +2927,13 @@ import Layout from '../layouts/Layout.astro';
                   type="button"
                   class="favorite-modal-btn w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-1.5 sm:py-2.5 px-3 sm:px-5 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-base"
                   data-product-id="${product.id}"
+                  data-is-favorite="${userFavorites.includes(String(product.id)) ? 'true' : 'false'}"
                 >
-                  <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-3.5 h-3.5 sm:w-5 sm:h-5 ${userFavorites.includes(String(product.id)) ? 'text-red-600' : 'text-red-500'}" ${userFavorites.includes(String(product.id)) ? 'fill="currentColor"' : 'fill="none"'} stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
-                  <span class="hidden sm:inline">Agregar a Favoritos</span>
-                  <span class="sm:hidden">Favoritos</span>
+                  <span class="hidden sm:inline">${userFavorites.includes(String(product.id)) ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}</span>
+                  <span class="sm:hidden">${userFavorites.includes(String(product.id)) ? 'Quitar' : 'Favoritos'}</span>
                 </button>
               </div>
             </div>
@@ -2732,9 +2949,51 @@ import Layout from '../layouts/Layout.astro';
           // Aquí puedes agregar la lógica para agregar al carrito
         });
 
-        favoriteModalBtn?.addEventListener('click', () => {
-          console.log('Agregar a favoritos:', product.id);
-          // Aquí puedes agregar la lógica para favoritos
+        favoriteModalBtn?.addEventListener('click', async () => {
+          // Obtener userId
+          let userId: string | null = localStorage.getItem('userId');
+          if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
+            userId = (window as any).currentUserId;
+          }
+
+          if (!userId) {
+            if (confirm('Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?')) {
+              window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+            }
+            return;
+          }
+
+            try {
+              const { isFavorite, addToFavorites, removeFromFavorites } = await import('../lib/db/favorites');
+              const isFav = await isFavorite(userId, String(product.id));
+              
+              if (isFav) {
+                // Quitar de favoritos
+                const result = await removeFromFavorites(userId, String(product.id));
+                if (result.success) {
+                  updateFavoriteModalButton(favoriteModalBtn, false);
+                  userFavorites = userFavorites.filter(id => id !== String(product.id));
+                  // Actualizar botón en la card si existe
+                  const cardBtn = document.querySelector(`.favorite-btn[data-product-id="${product.id}"]`);
+                  if (cardBtn) updateFavoriteButton(cardBtn, false);
+                }
+              } else {
+                // Agregar a favoritos
+                const result = await addToFavorites(userId, String(product.id));
+                if (result.success) {
+                  updateFavoriteModalButton(favoriteModalBtn, true);
+                  if (!userFavorites.includes(String(product.id))) {
+                    userFavorites.push(String(product.id));
+                  }
+                  // Actualizar botón en la card si existe
+                  const cardBtn = document.querySelector(`.favorite-btn[data-product-id="${product.id}"]`);
+                  if (cardBtn) updateFavoriteButton(cardBtn, true);
+                }
+              }
+            } catch (error) {
+              console.error('Error al gestionar favoritos:', error);
+              alert('Error al gestionar favoritos. Por favor, intenta nuevamente.');
+            }
         });
 
         // Mostrar modal
@@ -2788,6 +3047,8 @@ import Layout from '../layouts/Layout.astro';
 
       // Inicializar
       loadProducts();
+      // Cargar favoritos del usuario después de que se carguen los productos
+      loadUserFavorites();
       
       // Inicializar contador de filtros activos
       updateActiveFiltersCount();

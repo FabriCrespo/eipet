@@ -10,6 +10,21 @@ const addresses: any[] = [];
 ---
 
 <style>
+  /* Asegurar que la sección permita scroll */
+  section {
+    overflow-y: visible !important;
+    overflow-x: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Asegurar que el contenedor de direcciones permita scroll */
+  #addresses-container {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
   /* Animación de pulso para el icono de ubicación */
   @keyframes locationPulse {
     0%, 100% {
@@ -65,14 +80,23 @@ const addresses: any[] = [];
   }
 </style>
 
-<section class="space-y-6">
-  <!-- Título y botón añadir -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">{title}</h1>
+<section class="space-y-4">
+  <!-- Header compacto y elegante -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        {title}
+      </h1>
+      <p class="text-xs text-gray-500 mt-1 uppercase tracking-wide">Gestiona tus direcciones de envío</p>
+    </div>
     <button
       type="button"
       id="add-address-btn"
-      class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all duration-200"
+      class="flex items-center gap-2 px-4 py-2.5 bg-[#5d3fbb] text-white rounded-lg text-sm font-medium hover:bg-[#4d2fa8] transition-all duration-200"
     >
       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -88,24 +112,16 @@ const addresses: any[] = [];
     ))}
   </div>
 
-  <!-- Mensaje cuando no hay direcciones -->
-  <div id="no-addresses-message" class="hidden text-center py-12">
-    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-    <p class="text-gray-700 text-base font-medium mb-2">No tienes direcciones registradas</p>
-    <p class="text-gray-500 text-sm mb-5">Añade tu primera dirección para comenzar</p>
-    <button
-      type="button"
-      class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all duration-200"
-      onclick="openAddressModal()"
-    >
-      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+  <!-- Mensaje cuando no hay direcciones elegante -->
+  <div id="no-addresses-message" class="hidden text-center py-16">
+    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
+      <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
-      Añadir Primera Dirección
-    </button>
+    </div>
+    <p class="text-gray-900 font-semibold mb-1">No se encontraron direcciones</p>
+    <p class="text-sm text-gray-500">Añade tu primera dirección para comenzar</p>
   </div>
 </section>
 

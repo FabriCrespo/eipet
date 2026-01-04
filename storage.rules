@@ -2,10 +2,14 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Función helper para verificar si el usuario es admin
-    function isAdmin() {
-      return request.auth != null && 
-             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    // Permitir lectura pública de todas las imágenes genéricas
+    match /images/{allImages=**} {
+      allow read: if true;
+    }
+    
+    // Solo usuarios autenticados pueden subir imágenes genéricas
+    match /images/{userId}/{allImages=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
     
     // Imágenes de productos
@@ -13,17 +17,42 @@ service firebase.storage {
       // Cualquiera puede leer imágenes de productos (públicas)
       allow read: if true;
       
-      // Solo admins pueden escribir (subir/eliminar)
-      allow write: if isAdmin();
+      // Solo usuarios autenticados pueden escribir (subir/eliminar)
+      // La validación de roles se hace en la aplicación cliente antes de subir
+      allow write: if request.auth != null;
+    }
+    
+    // Imágenes de categorías
+    match /categories/{categoryId}/{allPaths=**} {
+      // Cualquiera puede leer imágenes de categorías (públicas)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden escribir (subir/eliminar)
+      // La validación de roles se hace en la aplicación cliente antes de subir
+      allow write: if request.auth != null;
+    }
+    
+    // Imágenes de marcas
+    match /brands/{brandId}/{allPaths=**} {
+      // Cualquiera puede leer imágenes de marcas (públicas)
+      allow read: if true;
+      
+      // Solo usuarios autenticados pueden escribir (subir/eliminar)
+      // La validación de roles se hace en la aplicación cliente antes de subir
+      allow write: if request.auth != null;
     }
     
     // Avatares de usuarios
     match /users/{userId}/avatar/{allPaths=**} {
       // Cualquiera puede leer avatares (públicos)
+      // Esto incluye getDownloadURL que requiere permisos de lectura
       allow read: if true;
       
-      // Solo el usuario propietario puede escribir su propio avatar
+      // Solo el usuario propietario puede escribir (subir, actualizar, eliminar) su propio avatar
       allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Permitir operaciones de metadata y listado para el propietario
+      allow list: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

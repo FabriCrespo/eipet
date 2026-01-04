@@ -327,7 +327,7 @@ const headerStats = [
       // Exponer función globalmente
       if (typeof window !== 'undefined') {
         // @ts-ignore
-        window.getUserId = getUserId;
+        (window as any).getUserId = getUserId;
       }
     })();
     
@@ -347,8 +347,18 @@ const headerStats = [
       const avatarInput = profileSection.querySelector('#profile-avatar-input');
       const defaultAvatar = '';
 
-      let currentUser = null;
-      let formData = {
+      // @ts-ignore - currentUser puede ser cualquier objeto de usuario desde Firestore o localStorage
+      let currentUser: any = null;
+      let formData: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        birthdate: string;
+        newsletter: boolean;
+        notifications: boolean;
+        avatar?: string;
+      } = {
         firstName: '',
         lastName: '',
         email: '',
@@ -361,7 +371,13 @@ const headerStats = [
       let profileImage = defaultAvatar;
       let isEditing = false;
       let isSaving = false;
-      let stats = {
+      let stats: {
+        orders: number;
+        points: number;
+        savedPets: number;
+        memberSince: string;
+        [key: string]: string | number;
+      } = {
         orders: 0,
         points: 0,
         savedPets: 0,
@@ -372,8 +388,8 @@ const headerStats = [
         try {
           // Obtener userId usando la función helper
           // @ts-ignore
-          let userId = typeof window !== 'undefined' && window.getUserId 
-            ? window.getUserId() 
+          let userId = typeof window !== 'undefined' && (window as any).getUserId 
+            ? (window as any).getUserId() 
             : localStorage.getItem('userId');
           
           if (!userId) {
@@ -391,10 +407,39 @@ const headerStats = [
           // Obtener fecha de creación del usuario
           let memberSince = '';
           if (currentUser?.createdAt) {
-            const createdDate = currentUser.createdAt.toDate 
-              ? currentUser.createdAt.toDate() 
-              : new Date(currentUser.createdAt);
-            memberSince = createdDate.getFullYear().toString();
+            try {
+              let createdDate;
+              // Si createdAt es un Timestamp de Firestore (tiene método toDate)
+              if (currentUser.createdAt && typeof currentUser.createdAt === 'object' && 'toDate' in currentUser.createdAt && typeof currentUser.createdAt.toDate === 'function') {
+                createdDate = currentUser.createdAt.toDate();
+              } 
+              // Si es un string o número (desde localStorage serializado)
+              else if (typeof currentUser.createdAt === 'string' || typeof currentUser.createdAt === 'number') {
+                createdDate = new Date(currentUser.createdAt);
+              }
+              // Si es un objeto Date
+              else if (currentUser.createdAt instanceof Date) {
+                createdDate = currentUser.createdAt;
+              }
+              // Si es un objeto con propiedades de fecha (desde Firestore serializado)
+              else if (currentUser.createdAt && typeof currentUser.createdAt === 'object' && ('seconds' in currentUser.createdAt || 'nanoseconds' in currentUser.createdAt)) {
+                // Es un Timestamp de Firestore serializado
+                const seconds = currentUser.createdAt.seconds || (currentUser.createdAt._seconds || 0);
+                createdDate = new Date(seconds * 1000);
+              }
+              // Fallback: intentar crear Date directamente
+              else {
+                createdDate = new Date(currentUser.createdAt);
+              }
+              
+              if (createdDate && !isNaN(createdDate.getTime())) {
+                memberSince = createdDate.getFullYear().toString();
+              }
+            } catch (error) {
+              console.warn('Error al procesar fecha de creación:', error);
+              // Usar año actual como fallback
+              memberSince = new Date().getFullYear().toString();
+            }
           }
 
           stats = {
@@ -420,6 +465,7 @@ const headerStats = [
       }
 
       function syncHeader() {
+        if (!profileSection) return;
         const fullName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Tu nombre';
         profileSection.querySelectorAll('[data-text="name"]').forEach((el) => {
           el.textContent = fullName;
@@ -430,97 +476,147 @@ const headerStats = [
         
         // Actualizar avatar: mostrar imagen si existe, sino mostrar icono
         if (avatar instanceof HTMLImageElement && avatarIcon instanceof SVGElement) {
-          if (profileImage && profileImage !== defaultAvatar && profileImage.trim() !== '') {
+          const hasValidAvatar = profileImage && 
+                                 profileImage !== defaultAvatar && 
+                                 profileImage.trim() !== '' &&
+                                 profileImage.startsWith('http');
+          
+          console.log('🖼️ [InfoSection] syncHeader - Avatar:', {
+            profileImage,
+            hasValidAvatar,
+            defaultAvatar,
+            avatarExists: avatar !== null,
+            avatarIconExists: avatarIcon !== null
+          });
+          
+          if (hasValidAvatar) {
             avatar.src = profileImage;
             avatar.classList.remove('hidden');
             avatarIcon.classList.add('hidden');
+            console.log('✅ [InfoSection] Mostrando imagen de avatar');
           } else {
             avatar.classList.add('hidden');
             avatarIcon.classList.remove('hidden');
+            console.log('👤 [InfoSection] Mostrando icono por defecto');
           }
         }
       }
 
-      function applyValues(targetData) {
+      function applyValues(targetData: typeof formData) {
         inputs?.forEach((input) => {
           const key = input.getAttribute('data-input');
           if (!key) return;
           
-          if (key === 'birthdate' && targetData[key]) {
-            const dateValue = targetData[key];
-            if (dateValue instanceof Date) {
-              input.value = dateValue.toISOString().slice(0, 10);
-            } else if (typeof dateValue === 'string') {
-              input.value = dateValue.slice(0, 10);
-            } else if (dateValue.toDate) {
-              // Firestore Timestamp
-              input.value = dateValue.toDate().toISOString().slice(0, 10);
+          const htmlInput = input as HTMLInputElement;
+          
+          if (key === 'birthdate' && (targetData as any)[key]) {
+            const dateValue: any = (targetData as any)[key];
+            try {
+              let dateObj: Date | null = null;
+              
+              if (dateValue instanceof Date) {
+                dateObj = dateValue;
+              } else if (typeof dateValue === 'string') {
+                dateObj = new Date(dateValue);
+              } else if (dateValue && typeof dateValue === 'object') {
+                // Si es un Timestamp de Firestore (tiene método toDate)
+                if ('toDate' in dateValue && typeof dateValue.toDate === 'function') {
+                  dateObj = dateValue.toDate();
+                }
+                // Si es un Timestamp serializado desde localStorage (tiene seconds)
+                else if ('seconds' in dateValue || '_seconds' in dateValue) {
+                  const seconds = dateValue.seconds || dateValue._seconds || 0;
+                  dateObj = new Date(seconds * 1000);
+                }
+                // Si tiene propiedades de fecha
+                else if ('toISOString' in dateValue && typeof dateValue.toISOString === 'function') {
+                  dateObj = new Date(dateValue.toISOString());
+                }
+                else {
+                  dateObj = new Date(dateValue);
+                }
+              } else {
+                dateObj = new Date(dateValue);
+              }
+              
+              if (dateObj && !isNaN(dateObj.getTime())) {
+                htmlInput.value = dateObj.toISOString().slice(0, 10);
+              }
+            } catch (error) {
+              console.warn('Error al procesar fecha de nacimiento:', error);
+              // Si hay error, intentar usar el valor como string
+              if (typeof dateValue === 'string') {
+                htmlInput.value = dateValue.slice(0, 10);
+              }
             }
           } else {
-            input.value = targetData[key] ?? '';
+            htmlInput.value = String((targetData as any)[key] ?? '');
           }
         });
 
         toggles.forEach((toggle) => {
           const key = toggle.getAttribute('data-toggle');
           if (!key) return;
-          toggle.checked = Boolean(targetData[key]);
+          const htmlToggle = toggle as HTMLInputElement;
+          htmlToggle.checked = Boolean(targetData[key as keyof typeof targetData]);
         });
       }
 
-      function setEditingState(state) {
+      function setEditingState(state: boolean) {
+        if (!profileSection) return;
         isEditing = state;
-        profileSection.dataset.editing = state ? 'true' : 'false';
+        (profileSection as HTMLElement).dataset.editing = state ? 'true' : 'false';
         
         // Actualizar toolbar
         if (toolbar) {
           toolbar.classList.toggle('hidden', !state);
           if (state) {
-            toolbar.style.animation = 'fadeIn 0.3s ease-out';
+            (toolbar as HTMLElement).style.animation = 'fadeIn 0.3s ease-out';
           }
         }
         
         // Actualizar botón de editar
         if (editButton) {
-          editButton.dataset.active = state ? 'true' : 'false';
+          (editButton as HTMLElement).dataset.active = state ? 'true' : 'false';
           editButton.classList.toggle('hidden', state);
         }
         
         // Actualizar contenedor del formulario
         const formContainer = profileSection.querySelector('[data-form-container]');
         if (formContainer) {
-          formContainer.dataset.editing = state ? 'true' : 'false';
+          (formContainer as HTMLElement).dataset.editing = state ? 'true' : 'false';
         }
         
         // Actualizar header section
         const headerSection = profileSection.querySelector('[data-header-section]');
         if (headerSection) {
-          headerSection.dataset.editing = state ? 'true' : 'false';
+          (headerSection as HTMLElement).dataset.editing = state ? 'true' : 'false';
         }
         
         // Actualizar icono
         const iconContainer = profileSection.querySelector('[data-icon-container]');
         if (iconContainer) {
-          iconContainer.dataset.editing = state ? 'true' : 'false';
+          (iconContainer as HTMLElement).dataset.editing = state ? 'true' : 'false';
         }
         
         // Actualizar títulos y subtítulos
         const subtitles = profileSection.querySelectorAll('[data-subtitle]');
         const titles = profileSection.querySelectorAll('[data-title]');
         
-        subtitles.forEach(el => el.dataset.editing = state ? 'true' : 'false');
-        titles.forEach(el => el.dataset.editing = state ? 'true' : 'false');
+        subtitles.forEach(el => (el as HTMLElement).dataset.editing = state ? 'true' : 'false');
+        titles.forEach(el => (el as HTMLElement).dataset.editing = state ? 'true' : 'false');
         
           // Actualizar inputs
         inputs?.forEach((input) => {
-          input.disabled = !state;
-          input.readOnly = !state;
+          const htmlInput = input as HTMLInputElement;
+          htmlInput.disabled = !state;
+          htmlInput.readOnly = !state;
           if (state) {
-            input.classList.remove('bg-gray-50', 'border-gray-200');
-            input.classList.add('bg-white', 'border-gray-300');
+            htmlInput.classList.remove('bg-gray-50', 'border-gray-200');
+            htmlInput.classList.add('bg-white', 'border-gray-300');
           } else {
-            input.classList.remove('bg-white', 'border-gray-300');
-            input.classList.add('bg-gray-50', 'border-gray-200');
+            htmlInput.classList.remove('bg-white', 'border-gray-300');
+            htmlInput.classList.add('bg-gray-50', 'border-gray-200');
           }
         });
         
@@ -537,19 +633,20 @@ const headerStats = [
         });
         
         toggles.forEach((toggle) => {
-          toggle.disabled = !state;
+          (toggle as HTMLInputElement).disabled = !state;
         });
         
         applyValues(state ? tempData : formData);
       }
 
-      function setSavingState(state) {
+      function setSavingState(state: boolean) {
+        if (!profileSection) return;
         isSaving = state;
-        profileSection.dataset.saving = state ? 'true' : 'false';
+        (profileSection as HTMLElement).dataset.saving = state ? 'true' : 'false';
         if (saveButton) {
           saveButton.querySelector('[data-state="idle"]')?.classList.toggle('hidden', state);
           saveButton.querySelector('[data-state="saving"]')?.classList.toggle('hidden', !state);
-          saveButton.disabled = state;
+          (saveButton as HTMLButtonElement).disabled = state;
         }
       }
 
@@ -572,8 +669,9 @@ const headerStats = [
             let userId = localStorage.getItem('userId');
             
             if (!userId) {
-              userId = typeof window !== 'undefined' && window.currentUserId 
-                ? window.currentUserId 
+              // @ts-ignore
+              userId = typeof window !== 'undefined' && (window as any).currentUserId 
+                ? (window as any).currentUserId 
                 : null;
             }
             
@@ -585,14 +683,19 @@ const headerStats = [
             }
             
             if (userId) {
-              const { getUser } = await import('../../../lib/db/users.js');
-              const userResult = await getUser(userId);
-              
-              if (userResult.data) {
-                currentUser = userResult.data;
-                localStorage.setItem('user', JSON.stringify(currentUser));
-              } else {
-                console.error('Error loading user data: No se encontraron datos del usuario');
+              try {
+                const { getUser } = await import('../../../lib/db/users.js');
+                const userResult = await getUser(userId);
+                
+                if (userResult && userResult.data) {
+                  currentUser = userResult.data;
+                  localStorage.setItem('user', JSON.stringify(currentUser));
+                } else {
+                  console.error('Error loading user data: No se encontraron datos del usuario', userResult?.error);
+                  return;
+                }
+              } catch (importError) {
+                console.error('Error al importar getUser:', importError);
                 return;
               }
             } else {
@@ -613,7 +716,15 @@ const headerStats = [
           };
           
           tempData = { ...formData };
+          
+          // Cargar avatar del usuario
           profileImage = currentUser.avatar || defaultAvatar;
+          console.log('📸 [InfoSection] Avatar cargado:', {
+            hasAvatar: !!currentUser.avatar,
+            avatarUrl: currentUser.avatar,
+            profileImage: profileImage,
+            defaultAvatar: defaultAvatar
+          });
           
           // Sincronizar UI
           syncHeader();
@@ -635,8 +746,8 @@ const headerStats = [
         try {
           // Obtener userId usando la función helper
           // @ts-ignore
-          let userId = typeof window !== 'undefined' && window.getUserId 
-            ? window.getUserId() 
+          let userId = typeof window !== 'undefined' && (window as any).getUserId 
+            ? (window as any).getUserId() 
             : localStorage.getItem('userId');
           
           if (!userId) {
@@ -692,15 +803,17 @@ const headerStats = [
       }
 
       async function init() {
+        if (!profileSection) return;
+        
         // Deshabilitar inputs mientras se cargan los datos
         inputs?.forEach((input) => {
-          input.disabled = true;
+          (input as HTMLInputElement).disabled = true;
         });
         toggles.forEach((toggle) => {
-          toggle.disabled = true;
+          (toggle as HTMLInputElement).disabled = true;
         });
         if (editButton) {
-          editButton.disabled = true;
+          (editButton as HTMLButtonElement).disabled = true;
         }
         
         // Mostrar estado de carga en el header
@@ -768,16 +881,16 @@ const headerStats = [
         }
       });
 
-      inputs?.forEach((input) => {
-        input.addEventListener('input', (event) => {
-          if (!isEditing) return;
-          const target = event.currentTarget;
-          if (!(target instanceof HTMLInputElement)) return;
-          const key = target.getAttribute('data-input');
-          if (!key) return;
-          tempData[key] = target.value;
+        inputs?.forEach((input) => {
+          input.addEventListener('input', (event) => {
+            if (!isEditing) return;
+            const target = event.currentTarget;
+            if (!(target instanceof HTMLInputElement)) return;
+            const key = target.getAttribute('data-input');
+            if (!key) return;
+            (tempData as any)[key] = target.value;
+          });
         });
-      });
 
       toggles.forEach((toggle) => {
         toggle.addEventListener('change', (event) => {
@@ -786,9 +899,10 @@ const headerStats = [
             return;
           }
           const target = event.currentTarget;
+          if (!(target instanceof HTMLInputElement)) return;
           const key = target.getAttribute('data-toggle');
           if (!key) return;
-          tempData[key] = target.checked;
+          (tempData as any)[key] = target.checked;
         });
       });
 
@@ -813,8 +927,8 @@ const headerStats = [
         try {
           // Obtener userId usando la función helper
           // @ts-ignore
-          let userId = typeof window !== 'undefined' && window.getUserId 
-            ? window.getUserId() 
+          let userId = typeof window !== 'undefined' && (window as any).getUserId 
+            ? (window as any).getUserId() 
             : localStorage.getItem('userId');
           
           if (!userId) {
@@ -833,7 +947,15 @@ const headerStats = [
           reader.readAsDataURL(file);
 
           // Subir imagen a Firebase Storage
-          const { uploadUserAvatar } = await import('../../../lib/utils/storage.js');
+          let uploadUserAvatar;
+          try {
+            const storageModule = await import('../../../lib/utils/storage.js');
+            uploadUserAvatar = storageModule.uploadUserAvatar;
+          } catch (importError) {
+            console.error('Error al importar uploadUserAvatar:', importError);
+            throw new Error('Error al cargar módulo de almacenamiento');
+          }
+          
           const uploadResult = await uploadUserAvatar(file, userId);
 
           if (!uploadResult.success || !uploadResult.url) {
@@ -843,10 +965,36 @@ const headerStats = [
           // Actualizar con la URL de Firebase Storage
           profileImage = uploadResult.url;
           
-          if (isEditing) {
-            tempData.avatar = profileImage;
-          } else {
-            formData.avatar = profileImage;
+          // Actualizar formData y tempData con la nueva imagen
+          (formData as any).avatar = profileImage;
+          (tempData as any).avatar = profileImage;
+          
+          // Actualizar currentUser localmente
+          if (currentUser) {
+            currentUser.avatar = profileImage;
+          }
+          
+          // Guardar inmediatamente en Firestore (no esperar a que el usuario haga clic en "Guardar")
+          try {
+            const { updateUser } = await import('../../../lib/db/users.js');
+            const updateResult = await updateUser(userId, {
+              avatar: profileImage
+            });
+            
+            if (!updateResult.success) {
+              console.warn('⚠️ [InfoSection] Error al guardar avatar en Firestore:', updateResult.error);
+              // Continuar de todas formas, la imagen ya está subida
+            } else {
+              console.log('✅ [InfoSection] Avatar guardado exitosamente en Firestore');
+              // Actualizar localStorage con el nuevo avatar
+              if (currentUser) {
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                console.log('💾 [InfoSection] Avatar guardado en localStorage');
+              }
+            }
+          } catch (saveError) {
+            console.error('Error al guardar avatar en Firestore:', saveError);
+            // Continuar de todas formas, la imagen ya está subida
           }
           
           syncHeader();
@@ -858,7 +1006,7 @@ const headerStats = [
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span class="font-semibold">Imagen subida correctamente</span>
+            <span class="font-semibold">Imagen subida y guardada correctamente</span>
           `;
           document.body.appendChild(notification);
           setTimeout(() => {

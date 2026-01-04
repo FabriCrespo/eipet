@@ -1,60 +1,24 @@
 ---
 const title = 'Devoluciones';
 
-// Datos de ejemplo - en producción vendrían de una API o base de datos
-const activeReturns = [
-  {
-    id: 'RET-001',
-    orderId: '12345',
-    date: '20 de enero de 2025',
-    status: 'En revisión',
-    statusColor: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
-    product: {
-      name: 'Royal Canin Puppy 15kg',
-      image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=100&h=100&fit=crop',
-      quantity: 1,
-      reason: 'Producto defectuoso',
-      description: 'El producto llegó con el empaque dañado y parte del contenido estaba expuesto.',
-      sku: 'RC-PUPPY-15KG-001'
-    },
-    total: 150.00,
-    refundMethod: 'Tarjeta de crédito',
-    address: 'Av. Principal 123, Col. Centro, Ciudad de México, CDMX 06000',
-    timeline: [
-      { date: '20 de enero de 2025', time: '14:30', status: 'Solicitud creada', completed: true },
-      { date: '21 de enero de 2025', time: '10:15', status: 'En revisión', completed: true },
-      { date: '22 de enero de 2025', time: '09:00', status: 'Aprobación pendiente', completed: false },
-      { date: '', time: '', status: 'Reembolso procesado', completed: false }
-    ]
-  },
-  {
-    id: 'RET-002',
-    orderId: '12346',
-    date: '18 de enero de 2025',
-    status: 'Aprobada',
-    statusColor: 'bg-green-50 text-green-700 border border-green-200',
-    product: {
-      name: 'Collar Antipulgas para Perros',
-      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=100&h=100&fit=crop',
-      quantity: 1,
-      reason: 'Pedido incorrecto',
-      description: 'Se recibió un collar de tamaño incorrecto. Se solicitó tamaño mediano pero llegó pequeño.',
-      sku: 'COL-ANTI-MED-002'
-    },
-    total: 85.50,
-    refundMethod: 'Transferencia bancaria',
-    address: 'Calle Reforma 456, Col. Del Valle, Ciudad de México, CDMX 03100',
-    timeline: [
-      { date: '18 de enero de 2025', time: '16:45', status: 'Solicitud creada', completed: true },
-      { date: '19 de enero de 2025', time: '11:20', status: 'En revisión', completed: true },
-      { date: '20 de enero de 2025', time: '15:30', status: 'Aprobada', completed: true },
-      { date: '21 de enero de 2025', time: '08:00', status: 'Reembolso procesado', completed: true }
-    ]
-  }
-];
+// Las devoluciones se cargarán dinámicamente desde Firebase
+const activeReturns: any[] = [];
 ---
 
-<section class="space-y-6">
+<section class="space-y-4">
+  <!-- Header compacto y elegante -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        {title}
+      </h1>
+      <p class="text-xs text-gray-500 mt-1 uppercase tracking-wide">Gestiona tus solicitudes de devolución</p>
+    </div>
+  </div>
+
   <!-- Política de Devoluciones -->
   <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8">
     <!-- Header con icono y título -->
@@ -195,12 +159,15 @@ const activeReturns = [
         ))}
       </div>
     ) : (
-      <div class="profile-section-card rounded-2xl border border-gray-200 bg-white shadow-sm p-8 lg:p-12 text-center">
-        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <p class="text-gray-600 text-lg font-medium mb-2">No tienes devoluciones activas</p>
-        <p class="text-gray-500 text-sm">Tus solicitudes de devolución aparecerán aquí</p>
+      <!-- Mensaje cuando no hay devoluciones elegante -->
+      <div id="no-returns-message" class="text-center py-16">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
+          <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <p class="text-gray-900 font-semibold mb-1">No se encontraron devoluciones</p>
+        <p class="text-sm text-gray-500">Tus solicitudes de devolución aparecerán aquí</p>
       </div>
     )}
   </div>

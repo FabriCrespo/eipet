@@ -5,16 +5,24 @@ import ConfirmModal from '../../ConfirmModal.astro';
 const title = 'Métodos de Pago';
 ---
 
-<section class="space-y-6">
-  <!-- Título y botón añadir -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
+<section class="space-y-4">
+  <!-- Header compacto y elegante -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+        {title}
+      </h1>
+      <p class="text-xs text-gray-500 mt-1 uppercase tracking-wide">Gestiona tus métodos de pago</p>
+    </div>
     <button
       type="button"
       id="add-payment-btn"
-      class="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-all duration-200 hover:shadow-md active:scale-95"
+      class="flex items-center gap-2 px-4 py-2.5 bg-[#5d3fbb] text-white rounded-lg text-sm font-medium hover:bg-[#4d2fa8] transition-all duration-200"
     >
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       Añadir Método de Pago
@@ -26,23 +34,15 @@ const title = 'Métodos de Pago';
     <!-- Se llenará con JavaScript -->
   </div>
 
-  <!-- Mensaje cuando no hay métodos -->
-  <div id="no-payment-message" class="hidden text-center py-12">
-    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-    </svg>
-    <p class="text-gray-600 text-lg font-medium mb-2">No tienes métodos de pago registrados</p>
-    <p class="text-gray-500 text-sm mb-4">Añade tu primer método de pago para comenzar</p>
-    <button
-      type="button"
-      class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-all duration-200 hover:shadow-md"
-      onclick="openPaymentModalFromSection()"
-    >
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+  <!-- Mensaje cuando no hay métodos elegante -->
+  <div id="no-payment-message" class="hidden text-center py-16">
+    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
+      <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
       </svg>
-      Añadir Primer Método
-    </button>
+    </div>
+    <p class="text-gray-900 font-semibold mb-1">No se encontraron métodos de pago</p>
+    <p class="text-sm text-gray-500">Añade tu primer método de pago para comenzar</p>
   </div>
 </section>
 

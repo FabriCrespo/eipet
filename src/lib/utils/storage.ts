@@ -173,6 +173,16 @@ export async function uploadUserAvatar(
   userId: string
 ): Promise<{ success: boolean; url?: string; error?: Error }> {
   try {
+    // Verificar que el usuario esté autenticado
+    const { getCurrentUser } = await import('../auth');
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.uid !== userId) {
+      return { 
+        success: false, 
+        error: new Error('Usuario no autenticado o no autorizado para subir este avatar') 
+      };
+    }
+
     // Validar archivo
     const validation = validateImageFile(file);
     if (!validation.valid) {
@@ -191,13 +201,19 @@ export async function uploadUserAvatar(
     // Subir archivo
     const snapshot: UploadResult = await uploadBytes(storageRef, file);
     
-    // Obtener URL de descarga
+    // Obtener URL de descarga (esto requiere permisos de lectura)
+    // Esperar un momento para asegurar que el archivo esté completamente procesado
+    await new Promise(resolve => setTimeout(resolve, 100));
     const downloadURL = await getDownloadURL(snapshot.ref);
 
     return { success: true, url: downloadURL };
   } catch (error) {
     console.error('Error uploading avatar:', error);
-    return { success: false, error: error as Error };
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    return { 
+      success: false, 
+      error: new Error(`Error al subir avatar: ${errorMessage}`) 
+    };
   }
 }
 
