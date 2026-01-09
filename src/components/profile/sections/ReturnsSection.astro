@@ -5,89 +5,79 @@ const title = 'Devoluciones';
 const activeReturns: any[] = [];
 ---
 
-<section class="space-y-4">
-  <!-- Header compacto y elegante -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-        <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-        {title}
-      </h1>
-      <p class="text-xs text-gray-500 mt-1 uppercase tracking-wide">Gestiona tus solicitudes de devolución</p>
-    </div>
-  </div>
-
+<section class="space-y-6">
   <!-- Política de Devoluciones -->
-  <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8">
-    <!-- Header con icono y título -->
-    <div class="flex items-center gap-4 mb-6">
-      <div class="shrink-0 w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center">
-        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8 space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
       </div>
-      <h2 class="text-2xl font-bold text-gray-900">Política de Devoluciones</h2>
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Política de Devoluciones</h2>
+        <p class="text-sm text-gray-600 mt-1">Conoce nuestras políticas de devolución</p>
+      </div>
     </div>
 
     <!-- Contenido de la política -->
-    <div class="grid md:grid-cols-2 gap-6 lg:gap-8">
+    <div class="grid md:grid-cols-2 gap-4 lg:gap-6">
       <!-- Sección: Aceptamos devoluciones -->
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="shrink-0 w-8 h-8 rounded bg-green-500 flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="shrink-0 w-6 h-6 rounded bg-green-500 flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900">Aceptamos devoluciones de:</h3>
+          <h3 class="text-base font-semibold text-gray-900">Aceptamos devoluciones de:</h3>
         </div>
-        <ul class="space-y-2.5 ml-11">
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+        <ul class="space-y-2 ml-8">
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Productos defectuosos o dañados</span>
           </li>
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Pedidos incorrectos</span>
           </li>
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Productos que no coinciden con la descripción</span>
           </li>
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Dentro de 30 días desde la entrega</span>
           </li>
         </ul>
       </div>
 
       <!-- Sección: No aceptamos devoluciones -->
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="shrink-0 w-8 h-8 rounded bg-red-500 flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="space-y-3">
+        <div class="flex items-center gap-2">
+          <div class="shrink-0 w-6 h-6 rounded bg-red-500 flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900">No aceptamos devoluciones de:</h3>
+          <h3 class="text-base font-semibold text-gray-900">No aceptamos devoluciones de:</h3>
         </div>
-        <ul class="space-y-2.5 ml-11">
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+        <ul class="space-y-2 ml-8">
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Alimentos abiertos o consumidos</span>
           </li>
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Productos de higiene usados</span>
           </li>
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Artículos personalizados</span>
           </li>
-          <li class="flex items-start gap-2 text-gray-700">
-            <span class="text-gray-400 mt-1.5">•</span>
+          <li class="flex items-start gap-2 text-sm text-gray-700">
+            <span class="text-gray-400 mt-1">•</span>
             <span>Productos en oferta o liquidación</span>
           </li>
         </ul>
@@ -96,88 +86,41 @@ const activeReturns: any[] = [];
   </div>
 
   <!-- Devoluciones Activas -->
-  <div class="space-y-4">
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-bold text-gray-900">Devoluciones Activas ({activeReturns.length})</h2>
+  <div class="profile-section-card rounded-3xl border border-gray-200 bg-white shadow-md p-6 lg:p-8 space-y-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Devoluciones Activas</h2>
+      <p class="text-gray-600">Gestiona tus solicitudes de devolución</p>
     </div>
 
-    {activeReturns.length > 0 ? (
-      <div class="space-y-4">
-        {activeReturns.map((returnItem) => (
-          <div class="profile-section-card rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow p-5 lg:p-6">
-            <div class="flex flex-col lg:flex-row gap-4 lg:gap-6">
-              <!-- Imagen del producto -->
-              <div class="shrink-0">
-                <img
-                  src={returnItem.product.image}
-                  alt={returnItem.product.name}
-                  class="w-20 h-20 lg:w-24 lg:h-24 rounded-xl object-cover border border-gray-200"
-                />
-              </div>
+    <!-- Loading state -->
+    <div id="returns-loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#5d3fbb]"></div>
+      <p class="mt-4 text-gray-600">Cargando devoluciones...</p>
+    </div>
 
-              <!-- Información de la devolución -->
-              <div class="flex-1 space-y-3">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{returnItem.product.name}</h3>
-                    <p class="text-sm text-gray-600">Pedido #{returnItem.orderId}</p>
-                    <p class="text-sm text-gray-600">Solicitud: {returnItem.date}</p>
-                    <p class="text-sm text-gray-600 mt-1">
-                      <span class="font-medium">Motivo:</span> {returnItem.product.reason}
-                    </p>
-                  </div>
-                  <div class="flex flex-col items-start sm:items-end gap-2">
-                    <span class={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${returnItem.statusColor}`}>
-                      {returnItem.status}
-                    </span>
-                    <p class="text-lg font-bold text-gray-900">${returnItem.total.toFixed(2)}</p>
-                  </div>
-                </div>
+    <!-- Empty state -->
+    <div id="no-returns-message" class="hidden text-center py-12">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-3">
+        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <p class="text-gray-900 font-semibold mb-1">No se encontraron devoluciones</p>
+      <p class="text-sm text-gray-500">Tus solicitudes de devolución aparecerán aquí</p>
+    </div>
 
-                <!-- Acciones -->
-                <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    data-return-id={returnItem.id}
-                    data-action="details"
-                    class="return-details-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    Ver Detalles
-                  </button>
-                  <button
-                    type="button"
-                    data-return-id={returnItem.id}
-                    data-action="tracking"
-                    class="return-tracking-btn px-4 py-2 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                  >
-                    Seguimiento
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <!-- Mensaje cuando no hay devoluciones elegante -->
-      <div id="no-returns-message" class="text-center py-16">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-50 mb-4">
-          <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <p class="text-gray-900 font-semibold mb-1">No se encontraron devoluciones</p>
-        <p class="text-sm text-gray-500">Tus solicitudes de devolución aparecerán aquí</p>
-      </div>
-    )}
+    <!-- Returns list -->
+    <div id="returns-list" class="hidden space-y-4">
+      <!-- Las devoluciones se renderizarán aquí dinámicamente -->
+    </div>
   </div>
 
   <!-- Modal de Detalles de Devolución -->
   <div id="return-details-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 lg:p-6">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Detalles de Devolución</h2>
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-900">Detalles de Devolución</h2>
         <button
           type="button"
           id="close-details-modal-btn"
@@ -191,7 +134,7 @@ const activeReturns: any[] = [];
       </div>
 
       <!-- Contenido del modal -->
-      <div id="return-details-content" class="space-y-6">
+      <div id="return-details-content" class="space-y-5">
         <!-- Se cargará dinámicamente -->
       </div>
     </div>
@@ -199,10 +142,10 @@ const activeReturns: any[] = [];
 
   <!-- Modal de Seguimiento de Devolución -->
   <div id="return-tracking-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 lg:p-6">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Seguimiento de Devolución</h2>
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-900">Seguimiento de Devolución</h2>
         <button
           type="button"
           id="close-tracking-modal-btn"
@@ -216,28 +159,63 @@ const activeReturns: any[] = [];
       </div>
 
       <!-- Contenido del modal -->
-      <div id="return-tracking-content" class="space-y-6">
+      <div id="return-tracking-content" class="space-y-5">
         <!-- Se cargará dinámicamente -->
       </div>
     </div>
   </div>
 
-  <!-- Data attribute para pasar los datos al script -->
-  <script type="application/json" id="returns-data-json" set:html={JSON.stringify(activeReturns)}></script>
-
   <script>
-    (function() {
-      // Obtener datos de los returns
-      let returnsData: any[] = [];
-      const dataScript = document.getElementById('returns-data-json');
-      if (dataScript && dataScript.textContent) {
-        try {
-          returnsData = JSON.parse(dataScript.textContent);
-        } catch (e) {
-          console.error('Error parsing returns data:', e);
+    (async function() {
+      // Función para convertir Timestamp de Firestore a Date
+      function toDate(value: any): Date | null {
+        if (!value) return null;
+        if (value instanceof Date) return value;
+        if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
+          return value.toDate();
         }
+        if (typeof value === 'string' || typeof value === 'number') {
+          return new Date(value);
+        }
+        return null;
       }
+
+      function formatDate(timestamp: any): string {
+        const date = toDate(timestamp);
+        if (!date) return 'Fecha no disponible';
+        return new Intl.DateTimeFormat('es-ES', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }).format(date);
+      }
+
+      // Mapear estados a colores y etiquetas
+      const statusMap: Record<string, { label: string; color: string }> = {
+        pending: { label: 'Pendiente', color: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+        approved: { label: 'Aprobada', color: 'bg-green-50 text-green-700 border border-green-200' },
+        rejected: { label: 'Rechazada', color: 'bg-red-50 text-red-700 border border-red-200' },
+        processing: { label: 'Procesando', color: 'bg-blue-50 text-blue-700 border border-blue-200' },
+        completed: { label: 'Completada', color: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+        cancelled: { label: 'Cancelada', color: 'bg-gray-50 text-gray-700 border border-gray-200' },
+      };
+
+      const reasonMap: Record<string, string> = {
+        defective: 'Producto defectuoso',
+        wrong_item: 'Pedido incorrecto',
+        damaged: 'Producto dañado',
+        not_as_described: 'No coincide con la descripción',
+        other: 'Otra razón',
+      };
+
+      // Obtener datos de los returns y orders
+      let returnsData: any[] = [];
+      let ordersWithReturns: any[] = [];
       
+      // Elementos del DOM
+      const returnsLoading = document.getElementById('returns-loading');
+      const noReturnsMessage = document.getElementById('no-returns-message');
+      const returnsList = document.getElementById('returns-list');
       const detailsModal = document.getElementById('return-details-modal');
       const trackingModal = document.getElementById('return-tracking-modal');
       const closeDetailsBtn = document.getElementById('close-details-modal-btn');
@@ -245,24 +223,243 @@ const activeReturns: any[] = [];
       const detailsContent = document.getElementById('return-details-content');
       const trackingContent = document.getElementById('return-tracking-content');
 
+      // Función para obtener userId
+      function getUserId(maxAttempts = 20, delay = 200): Promise<string> {
+        return new Promise((resolve, reject) => {
+          let attempts = 0;
+          const tryGetUserId = () => {
+            attempts++;
+            let userId: string | null = null;
+            userId = localStorage.getItem('userId');
+            if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
+              userId = (window as any).currentUserId;
+            }
+            if (!userId) {
+              const profilePanel = document.getElementById('profile-content-panel');
+              if (profilePanel) {
+                userId = profilePanel.getAttribute('data-user-id');
+              }
+            }
+            if (userId && userId.trim() !== '') {
+              resolve(userId);
+            } else if (attempts < maxAttempts) {
+              setTimeout(tryGetUserId, delay);
+            } else {
+              reject(new Error('Usuario no autenticado'));
+            }
+          };
+          tryGetUserId();
+        });
+      }
+
+      // Función para cargar devoluciones y pedidos
+      async function loadReturns() {
+        try {
+          if (returnsLoading) returnsLoading.classList.remove('hidden');
+          if (noReturnsMessage) noReturnsMessage.classList.add('hidden');
+          if (returnsList) returnsList.classList.add('hidden');
+
+          const userId = await getUserId(30, 200);
+          
+          // Cargar devoluciones y pedidos en paralelo
+          const [returnsResult, ordersResult] = await Promise.all([
+            import('../../../lib/db/returns').then(m => m.getUserReturns(userId)),
+            import('../../../lib/db/orders').then(m => m.getUserOrders(userId))
+          ]);
+
+          if (returnsResult.error) {
+            throw returnsResult.error;
+          }
+
+          // Procesar devoluciones
+          returnsData = (returnsResult.data || []).map((ret: any) => {
+            const statusInfo = statusMap[ret.status] || statusMap.pending;
+            return {
+              ...ret,
+              statusLabel: statusInfo.label,
+              statusColor: statusInfo.color,
+              reasonLabel: reasonMap[ret.reason] || ret.reason,
+              date: formatDate(ret.createdAt),
+            };
+          });
+
+          // Procesar pedidos y agrupar con devoluciones
+          const orders = ordersResult.data || [];
+          const returnsByOrderId = new Map<string, any[]>();
+          
+          // Agrupar devoluciones por orderId
+          returnsData.forEach((ret: any) => {
+            if (!returnsByOrderId.has(ret.orderId)) {
+              returnsByOrderId.set(ret.orderId, []);
+            }
+            returnsByOrderId.get(ret.orderId)!.push(ret);
+          });
+
+          // Filtrar solo pedidos que tienen devoluciones
+          ordersWithReturns = orders
+            .filter((order: any) => returnsByOrderId.has(order.id))
+            .map((order: any) => {
+              const orderReturns = returnsByOrderId.get(order.id) || [];
+              const orderDate = formatDate(order.createdAt);
+              
+              return {
+                ...order,
+                orderDate,
+                returns: orderReturns,
+                returnsCount: orderReturns.length,
+                pendingReturnsCount: orderReturns.filter((r: any) => r.status === 'pending').length,
+              };
+            })
+            .sort((a: any, b: any) => {
+              // Ordenar por fecha de creación del pedido (más reciente primero)
+              const dateA = toDate(a.createdAt)?.getTime() || 0;
+              const dateB = toDate(b.createdAt)?.getTime() || 0;
+              return dateB - dateA;
+            });
+
+          if (returnsLoading) returnsLoading.classList.add('hidden');
+
+          if (ordersWithReturns.length === 0) {
+            if (noReturnsMessage) noReturnsMessage.classList.remove('hidden');
+            if (returnsList) returnsList.classList.add('hidden');
+            return;
+          }
+
+          if (noReturnsMessage) noReturnsMessage.classList.add('hidden');
+          if (returnsList) {
+            returnsList.classList.remove('hidden');
+            renderReturns();
+          }
+
+        } catch (error) {
+          console.error('Error cargando devoluciones:', error);
+          if (returnsLoading) returnsLoading.classList.add('hidden');
+          if (noReturnsMessage) {
+            noReturnsMessage.classList.remove('hidden');
+            const errorMsg = noReturnsMessage.querySelector('p');
+            if (errorMsg) errorMsg.textContent = 'Error al cargar las devoluciones';
+          }
+        }
+      }
+
+      // Función para renderizar pedidos con devoluciones
+      function renderReturns() {
+        if (!returnsList) return;
+
+        returnsList.innerHTML = ordersWithReturns.map((order: any) => `
+          <div class="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 hover:shadow-md transition-shadow">
+            <!-- Header del pedido -->
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h3 class="text-lg font-bold text-gray-900">Pedido #${order.id.substring(0, 8)}</h3>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                    ${order.returnsCount} Devolución${order.returnsCount > 1 ? 'es' : ''}
+                    ${order.pendingReturnsCount > 0 ? ` (${order.pendingReturnsCount} pendiente${order.pendingReturnsCount > 1 ? 's' : ''})` : ''}
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                  <span><span class="font-medium">Fecha del pedido:</span> ${order.orderDate}</span>
+                  <span>•</span>
+                  <span><span class="font-medium">Total:</span> Bs. ${order.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de devoluciones del pedido -->
+            <div class="space-y-3">
+              ${order.returns.map((returnItem: any) => `
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+                  <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <!-- Imagen del producto -->
+                    <div class="shrink-0">
+                      <img
+                        src="${returnItem.productImage || ''}"
+                        alt="${returnItem.productName}"
+                        class="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                      />
+                    </div>
+
+                    <!-- Información de la devolución -->
+                    <div class="flex-1 space-y-2">
+                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div class="flex-1">
+                          <h4 class="text-base font-semibold text-gray-900 mb-1">${returnItem.productName}</h4>
+                          <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600 mb-1">
+                            <span><span class="font-medium">Cantidad:</span> ${returnItem.quantity}</span>
+                            <span>•</span>
+                            <span><span class="font-medium">Solicitud:</span> ${returnItem.date}</span>
+                          </div>
+                          <p class="text-xs text-gray-600">
+                            <span class="font-medium">Motivo:</span> ${returnItem.reasonLabel}
+                          </p>
+                          ${returnItem.description ? `
+                            <p class="text-xs text-gray-600 mt-1 line-clamp-2">
+                              <span class="font-medium">Descripción:</span> ${returnItem.description}
+                            </p>
+                          ` : ''}
+                        </div>
+                        <div class="flex flex-col items-start sm:items-end gap-2">
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
+                            ${returnItem.statusLabel}
+                          </span>
+                          <p class="text-base font-bold text-gray-900">Bs. ${returnItem.refundAmount.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      <!-- Acciones -->
+                      <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-200 mt-2">
+                        <button
+                          type="button"
+                          data-return-id="${returnItem.id}"
+                          data-action="details"
+                          class="return-details-btn px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+                        >
+                          Ver Detalles
+                        </button>
+                        <button
+                          type="button"
+                          data-return-id="${returnItem.id}"
+                          data-action="tracking"
+                          class="return-tracking-btn px-3 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                        >
+                          Seguimiento
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        // Re-inicializar botones
+        initButtons();
+      }
+
       // Función para abrir modal de detalles
       function openReturnDetailsModal(returnId: string) {
         const returnItem = returnsData.find((r: any) => r.id === returnId);
         if (!returnItem || !detailsModal || !detailsContent) return;
 
+        const address = returnItem.shippingAddress || {};
+        const addressText = address.address 
+          ? `${address.address}, ${address.district || ''}, ${address.city || ''}`
+          : 'Dirección no disponible';
+
         detailsContent.innerHTML = `
           <!-- Información del producto -->
-          <div class="flex gap-4 pb-6 border-b border-gray-200">
+          <div class="flex gap-3 pb-4 border-b border-gray-200">
             <img
-              src="${returnItem.product.image}"
-              alt="${returnItem.product.name}"
-              class="w-24 h-24 rounded-xl object-cover border border-gray-200 shrink-0"
+              src="${returnItem.productImage || ''}"
+              alt="${returnItem.productName}"
+              class="w-20 h-20 rounded-lg object-cover border border-gray-200 shrink-0"
             />
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">${returnItem.product.name}</h3>
-              <p class="text-sm text-gray-600 mb-1"><span class="font-medium">SKU:</span> ${returnItem.product.sku}</p>
-              <p class="text-sm text-gray-600 mb-1"><span class="font-medium">Cantidad:</span> ${returnItem.product.quantity}</p>
-              <p class="text-sm text-gray-600"><span class="font-medium">Precio:</span> $${returnItem.total.toFixed(2)}</p>
+              <h3 class="text-base font-semibold text-gray-900 mb-1">${returnItem.productName}</h3>
+              <p class="text-xs text-gray-600 mb-1"><span class="font-medium">Cantidad:</span> ${returnItem.quantity}</p>
+              <p class="text-xs text-gray-600"><span class="font-medium">Monto:</span> Bs. ${returnItem.refundAmount.toFixed(2)}</p>
             </div>
           </div>
 
@@ -270,14 +467,14 @@ const activeReturns: any[] = [];
           <div class="space-y-4">
             <div>
               <h4 class="text-sm font-semibold text-gray-700 mb-2">Información de la Devolución</h4>
-              <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+              <div class="bg-gray-50 rounded-lg p-3 space-y-2">
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">ID de Devolución:</span>
-                  <span class="text-sm font-medium text-gray-900">${returnItem.id}</span>
+                  <span class="text-sm font-medium text-gray-900">${returnItem.id.substring(0, 8)}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">Pedido Original:</span>
-                  <span class="text-sm font-medium text-gray-900">#${returnItem.orderId}</span>
+                  <span class="text-sm font-medium text-gray-900">#${returnItem.orderId.substring(0, 8)}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">Fecha de Solicitud:</span>
@@ -285,13 +482,13 @@ const activeReturns: any[] = [];
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">Estado:</span>
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
-                    ${returnItem.status}
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
+                    ${returnItem.statusLabel}
                   </span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">Monto a Reembolsar:</span>
-                  <span class="text-sm font-bold text-gray-900">$${returnItem.total.toFixed(2)}</span>
+                  <span class="text-sm font-bold text-gray-900">Bs. ${returnItem.refundAmount.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -299,25 +496,26 @@ const activeReturns: any[] = [];
             <!-- Motivo y descripción -->
             <div>
               <h4 class="text-sm font-semibold text-gray-700 mb-2">Motivo de la Devolución</h4>
-              <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-sm font-medium text-gray-900 mb-2">${returnItem.product.reason}</p>
-                <p class="text-sm text-gray-600">${returnItem.product.description}</p>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-sm font-medium text-gray-900 mb-2">${returnItem.reasonLabel}</p>
+                <p class="text-sm text-gray-600">${returnItem.description || 'Sin descripción adicional'}</p>
               </div>
             </div>
 
             <!-- Dirección de recogida -->
             <div>
               <h4 class="text-sm font-semibold text-gray-700 mb-2">Dirección de Recogida</h4>
-              <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-sm text-gray-600">${returnItem.address}</p>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-sm text-gray-600">${addressText}</p>
+                ${address.phone ? `<p class="text-sm text-gray-600 mt-1">Tel: ${address.phone}</p>` : ''}
               </div>
             </div>
 
             <!-- Método de reembolso -->
             <div>
               <h4 class="text-sm font-semibold text-gray-700 mb-2">Método de Reembolso</h4>
-              <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-sm text-gray-600">${returnItem.refundMethod}</p>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <p class="text-sm text-gray-600">${returnItem.refundMethod === 'card' ? 'Tarjeta' : returnItem.refundMethod === 'transfer' ? 'Transferencia' : 'Efectivo'}</p>
               </div>
             </div>
           </div>
@@ -334,8 +532,9 @@ const activeReturns: any[] = [];
         const returnItem = returnsData.find((r: any) => r.id === returnId);
         if (!returnItem || !trackingModal || !trackingContent) return;
 
-        const timelineHTML = returnItem.timeline.map((step: any, index: number) => {
-          const isLast = index === returnItem.timeline.length - 1;
+        const timeline = returnItem.timeline || [];
+        const timelineHTML = timeline.map((step: any, index: number) => {
+          const isLast = index === timeline.length - 1;
           const iconColor = step.completed ? 'bg-green-500' : 'bg-gray-300';
           const textColor = step.completed ? 'text-gray-900' : 'text-gray-500';
           
@@ -356,7 +555,7 @@ const activeReturns: any[] = [];
               <div class="flex-1 pb-2">
                 <p class="text-sm font-semibold ${textColor} mb-1">${step.status}</p>
                 ${step.date ? `
-                  <p class="text-xs text-gray-500">${step.date} a las ${step.time}</p>
+                  <p class="text-xs text-gray-500">${step.date}${step.time ? ' a las ' + step.time : ''}</p>
                 ` : '<p class="text-xs text-gray-400">Pendiente</p>'}
               </div>
             </div>
@@ -365,32 +564,32 @@ const activeReturns: any[] = [];
 
         trackingContent.innerHTML = `
           <!-- Información del producto -->
-          <div class="flex gap-4 pb-6 border-b border-gray-200">
+          <div class="flex gap-3 pb-4 border-b border-gray-200">
             <img
-              src="${returnItem.product.image}"
-              alt="${returnItem.product.name}"
-              class="w-20 h-20 rounded-xl object-cover border border-gray-200 shrink-0"
+              src="${returnItem.productImage || ''}"
+              alt="${returnItem.productName}"
+              class="w-16 h-16 rounded-lg object-cover border border-gray-200 shrink-0"
             />
             <div class="flex-1">
-              <h3 class="text-base font-semibold text-gray-900 mb-1">${returnItem.product.name}</h3>
-              <p class="text-xs text-gray-600 mb-2">Devolución #${returnItem.id}</p>
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
-                ${returnItem.status}
+              <h3 class="text-base font-semibold text-gray-900 mb-1">${returnItem.productName}</h3>
+              <p class="text-xs text-gray-600 mb-2">Devolución #${returnItem.id.substring(0, 8)}</p>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${returnItem.statusColor}">
+                ${returnItem.statusLabel}
               </span>
             </div>
           </div>
 
           <!-- Timeline -->
           <div>
-            <h4 class="text-sm font-semibold text-gray-700 mb-4">Estado del Proceso</h4>
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">Estado del Proceso</h4>
             <div class="space-y-0">
-              ${timelineHTML}
+              ${timelineHTML || '<p class="text-sm text-gray-500">No hay información de seguimiento disponible</p>'}
             </div>
           </div>
 
           <!-- Información adicional -->
-          <div class="pt-4 border-t border-gray-200">
-            <div class="bg-blue-50 rounded-xl p-4">
+          <div class="pt-3 border-t border-gray-200">
+            <div class="bg-blue-50 rounded-lg p-3">
               <div class="flex gap-3">
                 <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -487,11 +686,62 @@ const activeReturns: any[] = [];
         });
       }
 
+      // Función para verificar si la sección está visible
+      function isReturnsSectionVisible(): boolean {
+        const returnsSection = document.querySelector('[data-profile-section="returns"]');
+        if (!returnsSection) return false;
+        const isHidden = returnsSection.classList.contains('hidden') || 
+                        (returnsSection as HTMLElement).style.display === 'none' ||
+                        getComputedStyle(returnsSection).display === 'none';
+        return !isHidden;
+      }
+
+      // Observer para detectar cuando la sección se hace visible
+      function setupSectionVisibilityObserver() {
+        const returnsSection = document.querySelector('[data-profile-section="returns"]');
+        if (!returnsSection) {
+          setTimeout(setupSectionVisibilityObserver, 200);
+          return;
+        }
+
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+              const target = mutation.target as HTMLElement;
+              const isVisible = !target.classList.contains('hidden') && 
+                               getComputedStyle(target).display !== 'none';
+              
+              if (isVisible && returnsData.length === 0) {
+                loadReturns();
+              }
+            }
+          });
+        });
+
+        observer.observe(returnsSection, {
+          attributes: true,
+          attributeFilter: ['class'],
+          subtree: false
+        });
+
+        // Verificar estado inicial
+        const isVisible = !returnsSection.classList.contains('hidden') && 
+                         getComputedStyle(returnsSection).display !== 'none';
+        
+        if (isVisible) {
+          loadReturns();
+        }
+      }
+
       // Inicializar cuando el DOM esté listo
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initButtons);
+        document.addEventListener('DOMContentLoaded', () => {
+          initButtons();
+          setupSectionVisibilityObserver();
+        });
       } else {
         initButtons();
+        setupSectionVisibilityObserver();
       }
     })();
   </script>

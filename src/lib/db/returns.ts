@@ -75,8 +75,8 @@ export async function createReturn(data: CreateReturnData): Promise<WriteResult>
       }
     ];
 
-    const returnData: Return = {
-      id: '', // Se asignará después
+    // Crear el objeto sin el campo id (Firestore lo genera automáticamente)
+    const returnData = {
       userId: data.userId,
       orderId: data.orderId,
       orderItemId: data.orderItemId,
@@ -86,7 +86,7 @@ export async function createReturn(data: CreateReturnData): Promise<WriteResult>
       quantity: orderItem.quantity || 1,
       reason: data.reason,
       description: data.description,
-      status: 'pending',
+      status: 'pending' as const,
       refundAmount: orderItem.subtotal || 0,
       refundMethod: order.paymentMethod?.type === 'card' ? 'card' : 'transfer',
       shippingAddress: data.shippingAddress,

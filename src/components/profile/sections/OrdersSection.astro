@@ -188,6 +188,84 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
     </div>
   </div>
 
+  <!-- Modal de Solicitud de Devolución -->
+  <div id="return-request-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6">
+      <!-- Título -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-xl font-bold text-gray-900">Solicitar Devolución</h2>
+        <button type="button" id="return-modal-close-btn" class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Información del pedido -->
+      <div id="return-order-info" class="mb-5 p-4 bg-gray-50 rounded-lg">
+        <!-- Se llenará dinámicamente -->
+      </div>
+
+      <!-- Selección de productos -->
+      <div class="mb-5">
+        <label class="block text-sm font-semibold text-gray-900 mb-3">Selecciona el producto a devolver:</label>
+        <div id="return-products-list" class="space-y-2 max-h-48 overflow-y-auto">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Razón de devolución -->
+      <div class="mb-5">
+        <label for="return-reason" class="block text-sm font-semibold text-gray-900 mb-2">
+          Razón de la devolución <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="return-reason"
+          class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all"
+          required
+        >
+          <option value="">Selecciona una razón</option>
+          <option value="defective">Producto defectuoso</option>
+          <option value="wrong_item">Pedido incorrecto</option>
+          <option value="damaged">Producto dañado</option>
+          <option value="not_as_described">No coincide con la descripción</option>
+          <option value="other">Otra razón</option>
+        </select>
+      </div>
+
+      <!-- Descripción -->
+      <div class="mb-5">
+        <label for="return-description" class="block text-sm font-semibold text-gray-900 mb-2">
+          Descripción detallada <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="return-description"
+          placeholder="Describe el problema o razón de la devolución..."
+          class="w-full h-32 px-4 py-3 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all duration-200 resize-none"
+          required
+        ></textarea>
+      </div>
+      
+      <!-- Botones de acción -->
+      <div class="flex gap-2">
+        <button
+          type="button"
+          id="return-cancel-btn"
+          class="flex-1 px-4 py-2.5 text-sm font-semibold bg-white text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          id="return-submit-btn"
+          class="flex-1 px-4 py-2.5 text-sm font-semibold bg-[#5d3fbb] text-white rounded-lg hover:bg-[#4d2fa8] transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Enviar Solicitud
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Paginación -->
   <div id="pagination-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-200">
     <div class="text-sm text-gray-600">
@@ -704,12 +782,12 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
           };
 
           const productImagesHtml = order.productImages.slice(0, 4).map((image: any, idx: number) => 
-            '<img src="' + escapeHtml(image) + '" alt="Producto ' + (idx + 1) + '" class="w-14 h-14 rounded-lg object-cover border border-gray-100 shadow-sm" />'
+            '<img src="' + escapeHtml(image) + '" alt="Producto ' + (idx + 1) + '" class="w-10 h-10 sm:w-14 sm:h-14 rounded-lg object-cover border border-gray-100 shadow-sm" />'
           ).join('');
           
           const moreProductsCount = order.productImages.length > 4 ? order.productImages.length - 4 : 0;
           const moreProductsHtml = moreProductsCount > 0 
-            ? '<div class="w-14 h-14 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-xs font-semibold text-gray-600">+' + moreProductsCount + '</div>'
+            ? '<div class="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-[10px] sm:text-xs font-semibold text-gray-600">+' + moreProductsCount + '</div>'
             : '';
 
           // Determinar el paso de progreso
@@ -743,25 +821,25 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
             estimatedDelivery: order.status === 'Entregados' ? order.date : 'Pendiente de calcular'
           };
 
-          // Barra de progreso HTML compacta y elegante
+          // Barra de progreso HTML compacta y elegante - optimizada para móvil
           const progressBarSteps = progressSteps.map((step: any, index: number) => {
             const stepNumber = index + 1;
             const isActive = stepNumber <= currentStep;
-            return '<div class="flex flex-col items-center flex-1">' +
-              '<div class="w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300 ' + 
+            return '<div class="flex flex-col items-center flex-1 min-w-0">' +
+              '<div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border transition-all duration-300 ' + 
               (isActive ? 'bg-[#5d3fbb] border-[#5d3fbb] text-white' : 'bg-white border-gray-200 text-gray-400') + '">' +
-              '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+              '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="' + step.icon + '" />' +
               '</svg>' +
               '</div>' +
-              '<p class="mt-1.5 text-[10px] font-medium text-center ' + (isActive ? 'text-[#5d3fbb]' : 'text-gray-400') + '">' + step.label + '</p>' +
+              '<p class="mt-1 sm:mt-1.5 text-[8px] sm:text-[10px] font-medium text-center leading-tight ' + (isActive ? 'text-[#5d3fbb]' : 'text-gray-400') + '">' + step.label + '</p>' +
               '</div>';
           }).join('');
 
-          const progressBarHtml = '<div class="relative mb-5">' +
-            '<div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-100 rounded-full"></div>' +
-            '<div class="absolute top-4 left-0 h-0.5 bg-[#5d3fbb] rounded-full transition-all duration-500" style="width: ' + (((currentStep - 1) / 3) * 100) + '%"></div>' +
-            '<div class="relative flex justify-between px-2">' +
+          const progressBarHtml = '<div class="relative mb-4 sm:mb-5">' +
+            '<div class="absolute top-3 sm:top-4 left-0 right-0 h-0.5 bg-gray-100 rounded-full"></div>' +
+            '<div class="absolute top-3 sm:top-4 left-0 h-0.5 bg-[#5d3fbb] rounded-full transition-all duration-500" style="width: ' + (((currentStep - 1) / 3) * 100) + '%"></div>' +
+            '<div class="relative flex justify-between px-1 sm:px-2">' +
             progressBarSteps +
             '</div>' +
             '</div>';
@@ -801,66 +879,67 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
           // Botones de acción compactos y elegantes
           const actionsHtml = [
             order.showActions.includes('verDetalles') ? 
-              '<button type="button" class="toggle-details-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-[#5d3fbb] text-white rounded-lg hover:bg-[#4d2fa8] transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
-              '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+              '<button type="button" class="toggle-details-btn flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold bg-[#5d3fbb] text-white rounded-lg hover:bg-[#4d2fa8] transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
+              '<svg class="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />' +
               '</svg>' +
-              '<span class="details-btn-text">Detalles</span>' +
+              '<span class="details-btn-text hidden sm:inline">Detalles</span>' +
               '</button>' : '',
             order.showActions.includes('factura') ? 
-              '<button type="button" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95">' +
-              '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+              '<button type="button" class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold bg-white text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95">' +
+              '<svg class="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />' +
               '</svg>' +
-              'Factura' +
+              '<span class="hidden sm:inline">Factura</span>' +
               '</button>' : '',
             order.showActions.includes('calificar') ? 
-              '<button type="button" class="rate-order-btn flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
-              '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+              '<button type="button" class="rate-order-btn flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
+              '<svg class="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />' +
               '</svg>' +
-              'Calificar' +
+              '<span class="hidden sm:inline">Calificar</span>' +
               '</button>' : '',
             order.showActions.includes('devolver') ? 
-              '<button type="button" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95">' +
-              '<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+              '<button type="button" class="return-request-btn flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold bg-white text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
+              '<svg class="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
               '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />' +
               '</svg>' +
-              'Devolver' +
+              '<span class="hidden sm:inline">Devolver</span>' +
               '</button>' : ''
           ].filter(Boolean).join('');
 
-          return '<div class="bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 p-4 order-card" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
-            // Header compacto y elegante
-            '<div class="flex items-start justify-between gap-4 mb-3 pb-3 border-b border-gray-50">' +
+          return '<div class="bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 p-3 sm:p-4 order-card" data-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
+            // Header compacto y elegante - optimizado para móvil
+            '<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3 pb-3 border-b border-gray-50">' +
             '<div class="flex-1 min-w-0">' +
-            '<div class="flex items-center gap-2.5 mb-1.5">' +
-            '<h2 class="text-lg font-bold text-gray-900 tracking-tight">#' + escapeHtml(order.id.substring(0, 8)) + '</h2>' +
-            '<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide flex items-center gap-1 ' + order.statusColor + '">' +
-            '<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
+            '<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 mb-1.5">' +
+            '<h2 class="text-base sm:text-lg font-bold text-gray-900 tracking-tight">#' + escapeHtml(order.id.substring(0, 8)) + '</h2>' +
+            '<span class="px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide flex items-center gap-0.5 sm:gap-1 w-fit ' + order.statusColor + '">' +
+            '<svg class="h-2.5 w-2.5 sm:h-3 sm:w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">' +
             '<path stroke-linecap="round" stroke-linejoin="round" d="' + order.statusIcon + '" />' +
             '</svg>' +
-            escapeHtml(order.status) +
+            '<span class="hidden sm:inline">' + escapeHtml(order.status) + '</span>' +
+            '<span class="sm:hidden">' + escapeHtml(order.status.length > 10 ? order.status.substring(0, 8) + '...' : order.status) + '</span>' +
             '</span>' +
             '</div>' +
-            '<p class="text-xs text-gray-500 font-medium">' + escapeHtml(order.date) + '</p>' +
+            '<p class="text-[10px] sm:text-xs text-gray-500 font-medium">' + escapeHtml(order.date) + '</p>' +
             '</div>' +
-            '<div class="text-right flex-shrink-0">' +
-            '<p class="text-lg font-bold text-gray-900">Bs. ' + order.total.toFixed(2) + '</p>' +
-            '<p class="text-xs text-gray-500 mt-0.5">' + order.productsCount + ' ' + (order.productsCount === 1 ? 'producto' : 'productos') + '</p>' +
+            '<div class="text-left sm:text-right flex-shrink-0">' +
+            '<p class="text-base sm:text-lg font-bold text-gray-900">Bs. ' + order.total.toFixed(2) + '</p>' +
+            '<p class="text-[10px] sm:text-xs text-gray-500 mt-0.5">' + order.productsCount + ' ' + (order.productsCount === 1 ? 'producto' : 'productos') + '</p>' +
             '</div>' +
             '</div>' +
             // Preview de productos (siempre visible, compacto)
-            '<div class="flex items-center gap-2 mb-3 pb-3 border-b border-gray-50">' +
+            '<div class="flex items-center gap-1.5 sm:gap-2 mb-3 pb-3 border-b border-gray-50 overflow-x-auto">' +
             productImagesHtml + moreProductsHtml +
             '</div>' +
             // Barra de progreso compacta (se muestra cuando se expanden los detalles)
             '<div class="order-progress-section hidden mb-4" data-progress-order-id="' + String(order.id).replace(/"/g, '&quot;') + '">' +
             progressBarHtml +
             '</div>' +
-            // Botones de acción compactos
-            '<div class="flex flex-wrap items-center gap-2">' +
+            // Botones de acción compactos - optimizados para móvil
+            '<div class="flex flex-wrap items-center gap-1.5 sm:gap-2">' +
             actionsHtml +
             '</div>' +
             // Sección de detalles expandible (productos e información de envío)
@@ -911,6 +990,18 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
           const orderId = rateBtn.getAttribute('data-order-id');
           if (orderId && typeof (window as any).openRatingModal === 'function') {
             (window as any).openRatingModal(orderId);
+          }
+          return;
+        }
+        
+        // Manejar botones de devolución
+        const returnBtn = target.closest('.return-request-btn') as HTMLButtonElement;
+        if (returnBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const orderId = returnBtn.getAttribute('data-order-id');
+          if (orderId && typeof (window as any).openReturnRequestModal === 'function') {
+            (window as any).openReturnRequestModal(orderId);
           }
           return;
         }
@@ -1419,6 +1510,245 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         });
       }
 
+      // Funciones para el modal de devolución
+      let currentReturnOrderId = '';
+      let selectedProductId = '';
+
+      // @ts-ignore
+      window.openReturnRequestModal = async function(orderId: string) {
+        currentReturnOrderId = orderId;
+        selectedProductId = '';
+        
+        const modal = document.getElementById('return-request-modal');
+        const orderInfo = document.getElementById('return-order-info');
+        const productsList = document.getElementById('return-products-list');
+        const reasonSelect = document.getElementById('return-reason') as HTMLSelectElement;
+        const descriptionTextarea = document.getElementById('return-description') as HTMLTextAreaElement;
+        
+        if (!modal || !orderInfo || !productsList) return;
+        
+        try {
+          // Obtener información del pedido
+          const { getOrderById } = await import('../../../lib/db/orders');
+          const orderResult = await getOrderById(orderId);
+          
+          if (!orderResult.data) {
+            alert('No se pudo encontrar el pedido');
+            return;
+          }
+          
+          const order = orderResult.data;
+          
+          // Mostrar información del pedido
+          orderInfo.innerHTML = `
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">Pedido #${order.id.substring(0, 8)}</p>
+                <p class="text-sm text-gray-600">Total: Bs. ${order.total.toFixed(2)}</p>
+              </div>
+            </div>
+          `;
+          
+          // Mostrar productos del pedido
+          if (!order.items || order.items.length === 0) {
+            productsList.innerHTML = '<p class="text-sm text-gray-500">No hay productos en este pedido</p>';
+            return;
+          }
+          
+          productsList.innerHTML = order.items.map((item: any, index: number) => `
+            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                name="return-product"
+                value="${item.productId}"
+                data-item-id="${item.id}"
+                class="w-4 h-4 text-[#5d3fbb] focus:ring-[#5d3fbb] border-gray-300"
+                ${index === 0 ? 'checked' : ''}
+              />
+              <img src="${item.productImage || ''}" alt="${item.productName}" class="w-12 h-12 rounded-lg object-cover border border-gray-200" />
+              <div class="flex-1">
+                <p class="font-medium text-sm text-gray-900">${item.productName}</p>
+                <p class="text-xs text-gray-600">Cantidad: ${item.quantity} × Bs. ${item.price.toFixed(2)}</p>
+                <p class="text-xs font-semibold text-gray-900 mt-1">Subtotal: Bs. ${item.subtotal.toFixed(2)}</p>
+              </div>
+            </label>
+          `).join('');
+          
+          // Establecer primer producto como seleccionado por defecto
+          if (order.items.length > 0) {
+            selectedProductId = order.items[0].productId;
+          }
+          
+          // Event listener para cambio de producto seleccionado
+          productsList.querySelectorAll('input[type="radio"]').forEach((radio: any) => {
+            radio.addEventListener('change', () => {
+              if (radio.checked) {
+                selectedProductId = radio.value;
+              }
+            });
+          });
+          
+          // Limpiar formulario
+          if (reasonSelect) reasonSelect.value = '';
+          if (descriptionTextarea) descriptionTextarea.value = '';
+          
+          // Mostrar modal
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          modal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+          
+        } catch (error) {
+          console.error('Error cargando pedido:', error);
+          alert('Error al cargar la información del pedido');
+        }
+      };
+
+      // Función para cerrar modal de devolución
+      function closeReturnRequestModal() {
+        const modal = document.getElementById('return-request-modal');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          modal.style.display = 'none';
+          document.body.style.overflow = '';
+          currentReturnOrderId = '';
+          selectedProductId = '';
+        }
+      }
+
+      // Inicializar event listeners para el modal de devolución
+      function initReturnRequestModal() {
+        const returnModal = document.getElementById('return-request-modal');
+        const closeBtn = document.getElementById('return-modal-close-btn');
+        const cancelBtn = document.getElementById('return-cancel-btn');
+        const submitBtn = document.getElementById('return-submit-btn');
+        const reasonSelect = document.getElementById('return-reason') as HTMLSelectElement;
+        const descriptionTextarea = document.getElementById('return-description') as HTMLTextAreaElement;
+
+        if (!returnModal) return;
+
+        // Botón cerrar
+        if (closeBtn) {
+          closeBtn.addEventListener('click', closeReturnRequestModal);
+        }
+
+        // Botón cancelar
+        if (cancelBtn) {
+          cancelBtn.addEventListener('click', closeReturnRequestModal);
+        }
+
+        // Botón enviar
+        if (submitBtn) {
+          submitBtn.addEventListener('click', async () => {
+            if (!currentReturnOrderId || !selectedProductId) {
+              alert('Por favor, selecciona un producto');
+              return;
+            }
+
+            const reason = reasonSelect?.value;
+            const description = descriptionTextarea?.value;
+
+            if (!reason) {
+              alert('Por favor, selecciona una razón de devolución');
+              return;
+            }
+
+            if (!description || description.trim() === '') {
+              alert('Por favor, describe el problema o razón de la devolución');
+              return;
+            }
+
+            // Deshabilitar botón
+            const btn = submitBtn as HTMLButtonElement;
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            try {
+              // Obtener userId
+              const userId = await getUserId(30, 200);
+              if (!userId) {
+                throw new Error('No se pudo obtener el ID del usuario');
+              }
+
+              // Obtener información del pedido para la dirección de envío
+              const { getOrderById } = await import('../../../lib/db/orders');
+              const orderResult = await getOrderById(currentReturnOrderId);
+              
+              if (!orderResult.data) {
+                throw new Error('Pedido no encontrado');
+              }
+
+              const order = orderResult.data;
+              const selectedItem = order.items.find((item: any) => item.productId === selectedProductId);
+              
+              if (!selectedItem) {
+                throw new Error('Producto no encontrado en el pedido');
+              }
+
+              // Crear devolución
+              const { createReturn } = await import('../../../lib/db/returns');
+              
+              const returnData = {
+                userId: userId,
+                orderId: currentReturnOrderId,
+                orderItemId: selectedItem.id,
+                productId: selectedProductId,
+                reason: reason as any,
+                description: description.trim(),
+                shippingAddress: order.shippingAddress
+              };
+
+              const result = await createReturn(returnData);
+
+              if (!result.success) {
+                throw result.error || new Error('Error al crear la devolución');
+              }
+
+              // Mostrar mensaje de éxito
+              alert('¡Solicitud de devolución enviada exitosamente!');
+              
+              // Cerrar modal
+              closeReturnRequestModal();
+              
+              // Recargar pedidos para actualizar la UI
+              await loadOrders();
+
+            } catch (error: any) {
+              console.error('Error creando devolución:', error);
+              alert(error.message || 'Error al enviar la solicitud de devolución');
+              
+              // Restaurar botón
+              const btn = submitBtn as HTMLButtonElement;
+              btn.disabled = false;
+              btn.textContent = 'Enviar Solicitud';
+            }
+          });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        returnModal.addEventListener('click', (e) => {
+          if (e.target === returnModal) {
+            closeReturnRequestModal();
+          }
+        });
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            const modal = document.getElementById('return-request-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+              closeReturnRequestModal();
+            }
+          }
+        });
+      }
+
       // Función para descargar factura
       // @ts-ignore
       window.downloadInvoice = async function(orderId: string, invoiceNumber: string) {
@@ -1511,6 +1841,7 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         
         // Todos los elementos están disponibles, inicializar funcionalidades
         initRatingModalWhenReady();
+        initReturnRequestModal();
         
         // Configurar observer para detectar cuando la sección se hace visible
         setupSectionVisibilityObserver();

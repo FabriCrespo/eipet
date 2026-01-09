@@ -17,198 +17,32 @@
     <div class="text-center mb-8 sm:mb-10 lg:mb-12">
       <h2 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-gray-900 mb-3">
         <span class="bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">
-          Los Más Vendidos
+          Productos Recién Agregados
         </span>
       </h2>
       <p class="text-gray-600 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto">
-        Descubre los productos preferidos por nuestra comunidad pet lover
+        Descubre las últimas novedades para tu mascota
       </p>
     </div>
 
+    <!-- Loading state -->
+    <div id="bestsellers-loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#5d3fbb]"></div>
+      <p class="mt-4 text-gray-600">Cargando productos recién agregados...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div id="bestsellers-empty" class="hidden text-center py-12">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+      <p class="text-gray-900 font-semibold mb-2">No hay productos nuevos aún</p>
+      <p class="text-gray-500 text-sm">Los productos recién agregados aparecerán aquí</p>
+    </div>
+
     <!-- Grid de productos compacto -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
-      <!-- Producto 1 -->
-      <a 
-        href="/products" 
-        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
-        style="animation-delay: 0.1s;"
-        data-astro-prefetch
-      >
-        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
-          <div class="absolute top-2 left-2 z-20">
-            <span class="bg-[#ffff11] text-[#5d3fbb] px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
-              #1
-            </span>
-          </div>
-          <img 
-            src="https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80" 
-            alt="Van Camps 20Kg" 
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        </div>
-        <div class="p-3 sm:p-4 flex flex-col grow">
-          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Van Camps</h3>
-          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">20Kg - Adulto Raza Med. y Grande</p>
-          <div class="mb-3 flex items-center">
-            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 315.00</p>
-          </div>
-          <div class="mt-auto pt-2 border-t border-gray-100">
-            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
-              Ver más
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </a>
-
-      <!-- Producto 2 -->
-      <a 
-        href="/products" 
-        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
-        style="animation-delay: 0.2s;"
-        data-astro-prefetch
-      >
-        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
-          <div class="absolute top-2 left-2 z-20">
-            <span class="bg-red-500 text-white px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
-              -11%
-            </span>
-          </div>
-          <img 
-            src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&q=80" 
-            alt="Van Camps Premium" 
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        </div>
-        <div class="p-3 sm:p-4 flex flex-col grow">
-          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Van Camps</h3>
-          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">Alimento Premium Perro Adulto 15kg</p>
-          <div class="mb-3 flex items-center gap-1.5">
-            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 285.00</p>
-            <p class="text-xs text-gray-400 line-through">Bs. 320.00</p>
-          </div>
-          <div class="mt-auto pt-2 border-t border-gray-100">
-            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
-              Ver más
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </a>
-
-      <!-- Producto 3 -->
-      <a 
-        href="/products" 
-        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
-        style="animation-delay: 0.3s;"
-        data-astro-prefetch
-      >
-        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
-          <div class="absolute top-2 left-2 z-20">
-            <span class="bg-red-500 text-white px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
-              -7%
-            </span>
-          </div>
-          <img 
-            src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&q=80" 
-            alt="Sofia 20kg" 
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        </div>
-        <div class="p-3 sm:p-4 flex flex-col grow">
-          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Sofia</h3>
-          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">20kg - Adulto Toda Raza Sabor Cordero</p>
-          <div class="mb-3 flex items-center gap-1.5">
-            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 335.00</p>
-            <p class="text-xs text-gray-400 line-through">Bs. 360.00</p>
-          </div>
-          <div class="mt-auto pt-2 border-t border-gray-100">
-            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
-              Ver más
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </a>
-
-      <!-- Producto 4 -->
-      <a 
-        href="/products" 
-        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
-        style="animation-delay: 0.4s;"
-        data-astro-prefetch
-      >
-        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
-          <img 
-            src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&q=80" 
-            alt="Podium 23Kg" 
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        </div>
-        <div class="p-3 sm:p-4 flex flex-col grow">
-          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Podium</h3>
-          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">23Kg - Adulto Raza Pequeña / Podium</p>
-          <div class="mb-3 flex items-center">
-            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 425.00</p>
-          </div>
-          <div class="mt-auto pt-2 border-t border-gray-100">
-            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
-              Ver más
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </a>
-
-      <!-- Producto 5 -->
-      <a 
-        href="/products" 
-        class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
-        style="animation-delay: 0.5s;"
-        data-astro-prefetch
-      >
-        <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
-          <div class="absolute top-2 left-2 z-20">
-            <span class="bg-red-500 text-white px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
-              -10%
-            </span>
-          </div>
-          <img 
-            src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&q=80" 
-            alt="Cibau Adulto" 
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        </div>
-        <div class="p-3 sm:p-4 flex flex-col grow">
-          <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">Cibau</h3>
-          <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">Cibau Adulto 15kg</p>
-          <div class="mb-3 flex items-center gap-1.5">
-            <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. 295.00</p>
-            <p class="text-xs text-gray-400 line-through">Bs. 330.00</p>
-          </div>
-          <div class="mt-auto pt-2 border-t border-gray-100">
-            <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
-              Ver más
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </a>
+    <div id="bestsellers-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
+      <!-- Los productos se renderizarán aquí dinámicamente -->
     </div>
 
     <!-- CTA para ver todos los productos -->
@@ -226,6 +60,147 @@
     </div>
   </div>
 </section>
+
+<script>
+  (async function() {
+    // Funciones helper para formatear números
+    function formatCurrency(value: number): string {
+      return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Elementos del DOM
+    const bestsellersLoading = document.getElementById('bestsellers-loading');
+    const bestsellersEmpty = document.getElementById('bestsellers-empty');
+    const bestsellersGrid = document.getElementById('bestsellers-grid');
+
+    // Función para convertir Timestamp de Firestore a Date
+    function toDate(value: any): Date | null {
+      if (!value) return null;
+      if (value instanceof Date) return value;
+      if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
+        return value.toDate();
+      }
+      if (typeof value === 'string' || typeof value === 'number') {
+        return new Date(value);
+      }
+      return null;
+    }
+
+    // Función para cargar productos recién agregados
+    async function loadBestSellers() {
+      try {
+        const { getProducts } = await import('../../lib/db/products');
+        
+        // Obtener productos activos
+        const productsResult = await getProducts({ 
+          status: 'active'
+        });
+        
+        const allProducts = productsResult.data || [];
+        
+        // Ordenar por fecha de creación descendente (más recientes primero)
+        const sortedProducts = allProducts.sort((a: any, b: any) => {
+          const dateA = toDate(a.createdAt);
+          const dateB = toDate(b.createdAt);
+          
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+          
+          return dateB.getTime() - dateA.getTime();
+        }).slice(0, 5); // Top 5 productos más recientes
+        
+        // Ocultar loading
+        if (bestsellersLoading) bestsellersLoading.classList.add('hidden');
+        
+        if (sortedProducts.length === 0) {
+          if (bestsellersEmpty) bestsellersEmpty.classList.remove('hidden');
+          if (bestsellersGrid) bestsellersGrid.classList.add('hidden');
+          return;
+        }
+        
+        if (bestsellersEmpty) bestsellersEmpty.classList.add('hidden');
+        if (bestsellersGrid) {
+          bestsellersGrid.classList.remove('hidden');
+          
+          // Renderizar productos
+          bestsellersGrid.innerHTML = sortedProducts.map((product: any, index: number) => {
+            const isNew = index === 0; // El primero es el más reciente
+            const hasDiscount = product.discount > 0;
+            const discountPercent = hasDiscount ? Math.round(product.discount) : 0;
+            const badgeClass = isNew 
+              ? 'bg-[#ffff11] text-[#5d3fbb]' 
+              : hasDiscount 
+                ? 'bg-red-500 text-white' 
+                : '';
+            const badgeText = isNew 
+              ? 'Nuevo' 
+              : hasDiscount 
+                ? `-${discountPercent}%` 
+                : '';
+            const showBadge = isNew || hasDiscount;
+            
+            return `
+              <a 
+                href="/product?id=${product.id}" 
+                class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
+                style="animation-delay: ${(index + 1) * 0.1}s;"
+                data-astro-prefetch
+              >
+                <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
+                  ${showBadge ? `
+                  <div class="absolute top-2 left-2 z-20">
+                    <span class="${badgeClass} px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
+                      ${badgeText}
+                    </span>
+                  </div>
+                  ` : ''}
+                  <img 
+                    src="${product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'}" 
+                    alt="${product.name}" 
+                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    onerror="this.src='https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'"
+                  />
+                  <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </div>
+                <div class="p-3 sm:p-4 flex flex-col grow">
+                  <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">${product.name}</h3>
+                  <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">${product.weight || product.brand || ''}</p>
+                  <div class="mb-3 flex items-center ${hasDiscount ? 'gap-1.5' : ''}">
+                    <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. ${formatCurrency(product.price)}</p>
+                    ${hasDiscount && product.originalPrice ? `
+                    <p class="text-xs text-gray-400 line-through">Bs. ${formatCurrency(product.originalPrice)}</p>
+                    ` : ''}
+                  </div>
+                  <div class="mt-auto pt-2 border-t border-gray-100">
+                    <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
+                      Ver más
+                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </a>
+            `;
+          }).join('');
+        }
+        
+      } catch (error) {
+        console.error('Error cargando productos recién agregados:', error);
+        if (bestsellersLoading) bestsellersLoading.classList.add('hidden');
+        if (bestsellersEmpty) {
+          bestsellersEmpty.classList.remove('hidden');
+          const errorMsg = bestsellersEmpty.querySelector('p');
+          if (errorMsg) errorMsg.textContent = 'Error al cargar los productos recién agregados';
+        }
+      }
+    }
+
+    // Cargar productos al iniciar
+    await loadBestSellers();
+  })();
+</script>
 
 <style>
   /* Animación de entrada */
