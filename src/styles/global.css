@@ -45,3 +45,18 @@
 header {
   font-family: 'Baloo2', system-ui, -apple-system, sans-serif;
 }
+
+/* Scrollbar invisible en toda la app desde el primer render (evita parpadeo/glitch) */
+html,
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+html,
+body {
+  -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
+}

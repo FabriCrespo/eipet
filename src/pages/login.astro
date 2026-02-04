@@ -3,10 +3,23 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-  <section class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-linear-to-br from-purple-50 via-white to-pink-50">
-    <div class="max-w-md w-full">
-      <!-- Logo y Título -->
-      <div class="text-center mb-8">
+  <!-- Móvil: modal con overlay. Desktop: página completa con fondo degradado -->
+  <section class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 sm:static sm:min-h-screen sm:py-12 sm:px-6 sm:bg-linear-to-br sm:from-purple-50 sm:via-white sm:to-pink-50 lg:px-8">
+    <div class="max-w-md w-full max-h-[90vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+      <!-- En móvil: una sola tarjeta tipo modal. En desktop: sin wrapper visible -->
+      <div class="relative rounded-3xl bg-white shadow-2xl p-6 sm:p-0 sm:bg-transparent sm:shadow-none sm:rounded-none">
+        <!-- Botón cerrar (solo móvil) -->
+        <a
+          href="/"
+          class="sm:hidden absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-colors"
+          aria-label="Cerrar y volver al inicio"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </a>
+        <!-- Logo y Título -->
+        <div class="text-center mb-8">
         <a href="/" class="inline-flex items-center gap-3 mb-4">
           <div class="bg-[#ffff11] rounded-xl p-2.5 shadow-lg">
             <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
@@ -24,7 +37,7 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
       <!-- Formulario -->
-      <div class="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
+      <div class="bg-transparent border-0 shadow-none p-0 sm:bg-white sm:rounded-3xl sm:shadow-2xl sm:p-8 sm:border sm:border-gray-100">
         <form id="login-form" class="space-y-6">
           <!-- Email -->
           <div>
@@ -160,6 +173,7 @@ import Layout from '../layouts/Layout.astro';
             </a>
           </p>
         </div>
+      </div>
       </div>
     </div>
   </section>

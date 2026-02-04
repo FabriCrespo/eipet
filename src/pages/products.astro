@@ -3,16 +3,10 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-  <!-- Estilo crítico para prevenir FOUC en móvil -->
+  <!-- Crítico: ocultar contenido en móvil en primera pintada (evita FOUC) -->
   <style is:inline>
-    @media (max-width: 1023px) {
-      #main-content {
-        opacity: 0 !important;
-        visibility: hidden !important;
-      }
-    }
+    @media (max-width: 1023px) { #main-content { opacity: 0; visibility: hidden; } }
   </style>
-
   <!-- Loader de transición -->
   <div id="page-loader" class="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300">
     <div class="text-center">
@@ -24,8 +18,8 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
-  <!-- Contenido principal - Oculto hasta que esté listo -->
-  <section id="main-content" class="py-8 lg:py-12 bg-white min-h-screen" style="opacity: 0; visibility: hidden; position: relative;">
+  <!-- Contenido principal - visibilidad controlada por CSS (.ready) -->
+  <section id="main-content" class="py-8 lg:py-12 bg-white min-h-screen relative">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Header -->
       <div class="mb-8">
@@ -887,57 +881,32 @@ import Layout from '../layouts/Layout.astro';
       }
     }
 
-    /* Prevenir FOUC (Flash of Unstyled Content) y optimizar carga móvil */
+    /* FOUC: un solo patrón por clase .ready */
     @media (max-width: 1023px) {
       #main-content {
         min-height: 100vh;
-        opacity: 0 !important;
-        visibility: hidden !important;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.35s ease-out, visibility 0.35s ease-out;
       }
-      
       #main-content.ready {
-        opacity: 1 !important;
-        visibility: visible !important;
-        transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+        opacity: 1;
+        visibility: visible;
       }
-      
-      /* Asegurar que el botón flotante de filtros esté oculto inicialmente */
       #mobile-filters-btn {
         opacity: 0;
-        transition: opacity 0.3s ease-in-out;
         pointer-events: none;
+        transition: opacity 0.3s ease-out;
       }
-      
       #main-content.ready #mobile-filters-btn {
         opacity: 1;
         pointer-events: auto;
       }
-      
-      /* Asegurar que los skeleton loaders estén visibles durante la carga */
-      #loading-state {
-        opacity: 1;
-      }
-      
-      /* Ocultar todos los elementos hijos hasta que esté listo */
-      #main-content > * {
-        opacity: 0;
-      }
-      
-      #main-content.ready > * {
-        opacity: 1;
-        transition: opacity 0.3s ease-in-out;
-      }
     }
-    
-    /* Optimización para desktop */
     @media (min-width: 1024px) {
       #main-content {
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-      
-      #main-content > * {
-        opacity: 1 !important;
+        opacity: 1;
+        visibility: visible;
       }
     }
 
@@ -2276,65 +2245,22 @@ import Layout from '../layouts/Layout.astro';
         }
       }
 
-      // Función para ocultar el loader de página y mostrar contenido
+      // Un solo patrón: clase .ready + fade-out del loader (sin reflow ni ramas móvil/desktop)
       function hidePageLoader() {
         const pageLoader = document.getElementById('page-loader');
         const navigationLoader = document.getElementById('navigation-loader');
-        const desktopSidebar = document.getElementById('desktop-filters-sidebar');
         const mainContent = document.getElementById('main-content');
-        const isMobile = window.innerWidth < 1024;
-        
-        // Asegurar que el sidebar desktop solo se muestre en desktop
-        if (desktopSidebar) {
-          if (!isMobile) {
-            desktopSidebar.style.display = 'block';
-            desktopSidebar.style.visibility = 'visible';
-          } else {
-            desktopSidebar.style.display = 'none';
-            desktopSidebar.style.visibility = 'hidden';
-          }
-        }
-        
-        // Asegurar que el loader de navegación esté oculto (si existe)
+
         if (navigationLoader) {
           navigationLoader.style.display = 'none';
           navigationLoader.remove();
         }
-        
-        // Mostrar contenido principal con animación suave
-        if (mainContent) {
-          if (isMobile) {
-            // En móvil: esperar un frame para asegurar que el layout esté calculado
-            requestAnimationFrame(() => {
-              // Forzar reflow para calcular layout
-              void mainContent.offsetHeight;
-              
-              // Marcar como listo
-              mainContent.classList.add('ready');
-              
-              // Mostrar con pequeño delay para suavizar transición
-              setTimeout(() => {
-                mainContent.style.visibility = 'visible';
-                mainContent.style.opacity = '1';
-              }, 100);
-            });
-          } else {
-            // En desktop: mostrar inmediatamente
-            mainContent.style.visibility = 'visible';
-            mainContent.style.opacity = '1';
-            mainContent.classList.add('ready');
-          }
-        }
-        
-        // Ocultar loader de página con animación (después de mostrar contenido)
+        if (mainContent) mainContent.classList.add('ready');
         if (pageLoader) {
-          const delay = isMobile ? 200 : 100;
           setTimeout(() => {
             pageLoader.style.opacity = '0';
-            setTimeout(() => {
-              pageLoader.style.display = 'none';
-            }, 300);
-          }, delay);
+            setTimeout(() => { pageLoader.style.display = 'none'; }, 300);
+          }, 120);
         }
       }
 
