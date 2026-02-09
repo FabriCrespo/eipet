@@ -23,8 +23,8 @@ import Layout from '../layouts/Layout.astro';
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Header -->
       <div class="mb-8">
-        <!-- Título y Subtítulo -->
-        <div class="mb-6">
+        <!-- Título y Subtítulo (solo desktop; en móvil no se muestra) -->
+        <div id="page-title-block" class="mb-6 hidden lg:block">
           <div class="flex items-center gap-3 mb-3">
             <div class="bg-linear-to-br from-[#ffff11] to-[#ffd700] rounded-xl p-2 shadow-lg">
               <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
@@ -44,15 +44,28 @@ import Layout from '../layouts/Layout.astro';
           </p>
         </div>
 
-        <!-- Barra de Búsqueda Mejorada -->
-        <div class="mb-6">
+        <!-- Móvil: botón que despliega la búsqueda -->
+        <button
+          id="mobile-search-toggle"
+          type="button"
+          class="lg:hidden w-full mb-4 flex items-center gap-3 px-4 py-3 bg-white rounded-xl shadow-md border border-gray-200 text-left text-gray-500 hover:border-[#5d3fbb]/50 hover:text-[#5d3fbb] transition-colors"
+          aria-label="Abrir búsqueda"
+        >
+          <svg class="w-5 h-5 text-[#5d3fbb] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span class="text-sm">Buscar productos por nombre, marca o descripción...</span>
+        </button>
+
+        <!-- Barra de Búsqueda: en desktop siempre visible; en móvil desplegable -->
+        <div id="search-bar-container" class="mb-6 hidden lg:block">
           <div class="relative group">
             <div class="absolute inset-0 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
             <div class="relative bg-white rounded-xl shadow-lg border border-gray-200">
               <input
                 type="text"
                 id="search-input"
-                placeholder="🔍 Buscar productos por nombre, marca o descripción..."
+                placeholder="Buscar productos por nombre, marca o descripción..."
                 class="w-full px-5 py-4 pl-14 pr-12 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/30 transition-all bg-transparent"
               />
               <svg class="absolute left-5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,42 +89,19 @@ import Layout from '../layouts/Layout.astro';
           <!-- Los chips se agregarán dinámicamente -->
         </div>
         
-        <!-- Controles de ordenamiento y vista -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-sm border border-purple-100">
+        <!-- Controles de ordenamiento (sin switch vista; en móvil solo visible cuando hay productos) -->
+        <div id="sort-and-view-controls" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-linear-to-r from-purple-50 to-pink-50 rounded-xl p-4 shadow-sm border border-purple-100">
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Ordenar por:</label>
-          <select 
-            id="sort-select"
+            <select
+              id="sort-select"
               class="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all shadow-sm"
-          >
-            <option value="relevant">Más relevantes</option>
-            <option value="price-low">Precio: menor a mayor</option>
-            <option value="price-high">Precio: mayor a menor</option>
-            <option value="discount">Mayor descuento</option>
-          </select>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 hidden sm:inline">Vista:</span>
-            <div class="flex gap-1 bg-white border border-gray-300 rounded-lg p-1 shadow-sm">
-            <button 
-              id="grid-view"
-                class="p-2.5 rounded-md hover:bg-purple-50 transition-all active:scale-95 bg-purple-50 text-[#5d3fbb] shadow-sm"
-              aria-label="Vista de cuadrícula"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-            <button 
-              id="list-view"
-                class="p-2.5 rounded-md hover:bg-purple-50 text-gray-600 hover:text-[#5d3fbb] transition-all active:scale-95"
-              aria-label="Vista de lista"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            </div>
+              <option value="relevant">Más relevantes</option>
+              <option value="price-low">Precio: menor a mayor</option>
+              <option value="price-high">Precio: mayor a menor</option>
+              <option value="discount">Mayor descuento</option>
+            </select>
           </div>
         </div>
       </div>
@@ -433,9 +423,9 @@ import Layout from '../layouts/Layout.astro';
           <!-- Categorías -->
           <div id="categories-section" class="mb-6 hidden">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Categorías</h2>
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Comprar por categoría</h2>
             </div>
-            <div id="categories-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div id="categories-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <!-- Las categorías se renderizarán aquí dinámicamente -->
             </div>
           </div>
@@ -443,7 +433,7 @@ import Layout from '../layouts/Layout.astro';
           <!-- Marcas -->
           <div id="brands-section" class="mb-6 hidden">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Marcas</h2>
+              <h2 class="text-lg sm:text-xl font-bold text-gray-900">Comprar por marca</h2>
               <button
                 id="back-to-categories-btn"
                 class="text-sm text-[#5d3fbb] hover:text-[#6d4fcc] font-semibold flex items-center gap-1 transition-colors"
@@ -454,7 +444,7 @@ import Layout from '../layouts/Layout.astro';
                 Volver a categorías
               </button>
             </div>
-            <div id="brands-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div id="brands-grid" class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               <!-- Las marcas se renderizarán aquí dinámicamente -->
             </div>
           </div>
@@ -480,8 +470,8 @@ import Layout from '../layouts/Layout.astro';
             </p>
                     </div>
 
-          <!-- Products Grid -->
-          <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6" style="display: none;">
+          <!-- Products Grid (móvil 2 cols, desktop 3–4) -->
+          <div id="products-grid" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6" style="display: none;">
             <!-- Los productos se renderizarán aquí dinámicamente -->
           </div>
 
@@ -847,14 +837,6 @@ import Layout from '../layouts/Layout.astro';
       }
     }
 
-    /* Mejora para los botones de vista */
-    #grid-view.active,
-    #list-view.active {
-      background: linear-gradient(135deg, #5d3fbb 0%, #6d4fcc 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(93, 63, 187, 0.3);
-    }
-
     /* Loader de página */
     #page-loader {
       backdrop-filter: blur(4px);
@@ -908,6 +890,21 @@ import Layout from '../layouts/Layout.astro';
         opacity: 1;
         visibility: visible;
       }
+    }
+
+    /* Móvil: ocultar "Ordenar por" cuando se muestran categorías o marcas (solo visible con productos) */
+    @media (max-width: 1023px) {
+      #sort-and-view-controls {
+        display: none !important;
+      }
+      #main-content.view-products #sort-and-view-controls {
+        display: flex !important;
+      }
+    }
+
+    /* Búsqueda desplegable en móvil */
+    #search-bar-container.mobile-search-open {
+      display: block !important;
     }
 
     /* Efecto hover mejorado para las tarjetas de productos */
@@ -1163,6 +1160,7 @@ import Layout from '../layouts/Layout.astro';
         if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
         if (productsGrid) productsGrid.style.display = 'none';
         brandsSection.classList.remove('hidden');
+        document.getElementById('main-content')?.classList.remove('view-products');
 
         // Renderizar marcas - imagen grande sin texto (el logo es la imagen)
         brandsGrid.innerHTML = categoryBrands.map((brand: any) => `
@@ -1452,6 +1450,8 @@ import Layout from '../layouts/Layout.astro';
         // Ocultar empty state
         if (emptyState) emptyState.classList.add('hidden');
 
+        document.getElementById('main-content')?.classList.add('view-products');
+
         // Actualizar contador de resultados
         if (resultsCount) {
           const resultsNumber = document.getElementById('results-number');
@@ -1477,6 +1477,7 @@ import Layout from '../layouts/Layout.astro';
         
         if (categoriesSection) categoriesSection.classList.remove('hidden');
         if (brandsSection) brandsSection.classList.add('hidden');
+        document.getElementById('main-content')?.classList.remove('view-products');
         
         // Scroll suave a la sección de categorías
         categoriesSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1497,6 +1498,7 @@ import Layout from '../layouts/Layout.astro';
         if (resultsCount) resultsCount.classList.add('hidden');
         if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
         if (emptyState) emptyState.classList.add('hidden');
+        document.getElementById('main-content')?.classList.remove('view-products');
 
         // Si se proporciona categoryId, mostrar marcas de esa categoría
         if (categoryId) {
@@ -1764,26 +1766,13 @@ import Layout from '../layouts/Layout.astro';
           resultsText.textContent = products.length === 1 ? ' producto encontrado' : ' productos encontrados';
         }
 
-        // Mostrar grid y ocultar empty state
-        // Respetar la vista actual (grid o lista)
-        if (currentView === 'list') {
-          grid.style.display = 'flex';
-          grid.classList.add('list-view');
-        } else {
-          grid.style.display = 'grid';
-          grid.classList.remove('list-view');
-        }
+        // Mostrar grid y ocultar empty state (siempre vista cuadrícula)
+        grid.style.display = 'grid';
+        grid.classList.remove('list-view');
         if (emptyState) emptyState.classList.add('hidden');
 
         // Renderizar productos
         grid.innerHTML = products.map(product => renderProduct(product)).join('');
-
-        // Asegurar que la vista actual se mantenga
-        if (currentView === 'list') {
-          switchToListView();
-        } else {
-          switchToGridView();
-        }
 
         // Actualizar estado visual de botones de favoritos después de renderizar
         document.querySelectorAll('.favorite-btn').forEach(btn => {
@@ -2077,43 +2066,6 @@ import Layout from '../layouts/Layout.astro';
         renderProducts(sorted);
       }
 
-      // Funciones para cambiar entre vista grid y lista
-      const gridViewBtn = document.getElementById('grid-view');
-      const listViewBtn = document.getElementById('list-view');
-      const productsGrid = document.getElementById('products-grid');
-
-      function switchToGridView() {
-        currentView = 'grid';
-        if (productsGrid) {
-          productsGrid.classList.remove('list-view');
-          productsGrid.style.display = 'grid';
-        }
-        if (gridViewBtn) {
-          gridViewBtn.classList.add('active', 'bg-purple-50', 'text-[#5d3fbb]');
-          gridViewBtn.classList.remove('text-gray-600');
-        }
-        if (listViewBtn) {
-          listViewBtn.classList.remove('active', 'bg-purple-50', 'text-[#5d3fbb]');
-          listViewBtn.classList.add('text-gray-600');
-        }
-      }
-
-      function switchToListView() {
-        currentView = 'list';
-        if (productsGrid) {
-          productsGrid.classList.add('list-view');
-          productsGrid.style.display = 'flex';
-        }
-        if (listViewBtn) {
-          listViewBtn.classList.add('active', 'bg-purple-50', 'text-[#5d3fbb]');
-          listViewBtn.classList.remove('text-gray-600');
-        }
-        if (gridViewBtn) {
-          gridViewBtn.classList.remove('active', 'bg-purple-50', 'text-[#5d3fbb]');
-          gridViewBtn.classList.add('text-gray-600');
-        }
-      }
-
       // Cargar productos desde Firebase (TODO se ejecuta en el CLIENTE)
       async function loadProducts() {
         try {
@@ -2305,9 +2257,19 @@ import Layout from '../layouts/Layout.astro';
       });
     });
 
-      // Event listeners para los botones de vista
-      gridViewBtn?.addEventListener('click', switchToGridView);
-      listViewBtn?.addEventListener('click', switchToListView);
+      // Búsqueda desplegable en móvil
+      const mobileSearchToggle = document.getElementById('mobile-search-toggle');
+      const searchBarContainer = document.getElementById('search-bar-container');
+      mobileSearchToggle?.addEventListener('click', () => {
+        if (!searchBarContainer) return;
+        const isOpen = searchBarContainer.classList.contains('mobile-search-open');
+        if (isOpen) {
+          searchBarContainer.classList.remove('mobile-search-open');
+        } else {
+          searchBarContainer.classList.add('mobile-search-open');
+          setTimeout(() => (document.getElementById('search-input') as HTMLInputElement)?.focus(), 100);
+        }
+      });
 
       // Funcionalidad del Drawer de Filtros Móvil
       const mobileFiltersBtn = document.getElementById('mobile-filters-btn');
