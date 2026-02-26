@@ -1,0 +1,19 @@
+---
+// Sección de categorías: paso 1 del flujo (Categoría → Marca → Productos).
+// El script inyecta las cards en #categories-grid y controla visibilidad de #categories-section.
+---
+
+<section id="categories-section" class="mb-8 hidden" aria-label="Elige una categoría">
+  <div class="mb-6">
+    <p class="text-sm font-medium text-[#5d3fbb] mb-1">Paso 1 de 2</p>
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Elige una categoría</h2>
+    <p class="text-gray-600 text-sm sm:text-base mt-1">Selecciona el tipo de productos que buscas para tu mascota.</p>
+  </div>
+  <div
+    id="categories-grid"
+    class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6"
+    role="list"
+  >
+    <!-- Las categorías se renderizan aquí por el script de la página -->
+  </div>
+</section>

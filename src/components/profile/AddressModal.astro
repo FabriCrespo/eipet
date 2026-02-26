@@ -121,9 +121,23 @@
 
       <!-- Mapa interactivo -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Selecciona la ubicación en el mapa <span class="text-red-500">*</span>
-        </label>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Selecciona la ubicación en el mapa <span class="text-red-500">*</span>
+          </label>
+          <button
+            type="button"
+            id="use-my-location-btn"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+            aria-label="Centrar mapa en mi ubicación"
+          >
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Usar mi ubicación</span>
+          </button>
+        </div>
         <div id="address-map" class="border border-gray-300 rounded-lg overflow-hidden"></div>
         <p class="text-xs text-gray-500 mt-2">Haz clic en el mapa para marcar la ubicación exacta</p>
         <input type="hidden" id="address-latitude" name="latitude" />
@@ -245,6 +259,43 @@
     const mapContainer = document.getElementById('address-map');
     const latitudeInput = document.getElementById('address-latitude') as HTMLInputElement;
     const longitudeInput = document.getElementById('address-longitude') as HTMLInputElement;
+    const useMyLocationBtn = document.getElementById('use-my-location-btn');
+
+    // Obtener ubicación del usuario y centrar mapa + colocar marcador
+    function useUserLocation(callback?: () => void) {
+      if (!navigator.geolocation) {
+        alert('Tu navegador no soporta la geolocalización.');
+        if (callback) callback();
+        return;
+      }
+      useMyLocationBtn?.setAttribute('disabled', 'true');
+      const btnText = useMyLocationBtn?.querySelector('span');
+      if (btnText) btnText.textContent = 'Buscando...';
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          if (latitudeInput) latitudeInput.value = lat.toString();
+          if (longitudeInput) longitudeInput.value = lng.toString();
+          initMap(lat, lng);
+          useMyLocationBtn?.removeAttribute('disabled');
+          if (btnText) btnText.textContent = 'Usar mi ubicación';
+          if (callback) callback();
+        },
+        (err) => {
+          useMyLocationBtn?.removeAttribute('disabled');
+          if (btnText) btnText.textContent = 'Usar mi ubicación';
+          if (err.code === 1) {
+            alert('Ubicación denegada. Puedes marcar la dirección haciendo clic en el mapa.');
+          } else {
+            alert('No se pudo obtener tu ubicación. Marca la dirección en el mapa.');
+          }
+          if (callback) callback();
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
 
     // Función para inicializar el mapa
     function initMap(lat?: number, lng?: number) {
@@ -366,6 +417,7 @@
           if (longitudeInput) longitudeInput.value = lng ? lng.toString() : '';
           
           if (modalTitle) modalTitle.textContent = 'Editar Dirección';
+          initMap(lat, lng);
         } else {
           if (addressForm) {
             addressForm.reset();
@@ -373,12 +425,11 @@
           if (latitudeInput) latitudeInput.value = '';
           if (longitudeInput) longitudeInput.value = '';
           if (modalTitle) modalTitle.textContent = 'Añadir Nueva Dirección';
+          // Nueva dirección: intentar centrar en la ubicación del usuario
+          useUserLocation(() => {
+            if (!map) initMap();
+          });
         }
-
-        // Inicializar mapa después de que el modal sea visible
-        const lat = latitudeInput?.value ? parseFloat(latitudeInput.value) : undefined;
-        const lng = longitudeInput?.value ? parseFloat(longitudeInput.value) : undefined;
-        initMap(lat, lng);
       }, 100);
     }
 
@@ -418,14 +469,18 @@
       cancelFormBtn.addEventListener('click', closeModal);
     }
 
+    if (useMyLocationBtn) {
+      useMyLocationBtn.addEventListener('click', () => useUserLocation());
+    }
+
     if (addressForm) {
       addressForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const lat = latitudeInput?.value || '';
-        const lng = longitudeInput?.value || '';
+        const formLat = latitudeInput?.value || '';
+        const formLng = longitudeInput?.value || '';
         
-        if (!lat || !lng) {
+        if (!formLat || !formLng) {
           alert('Por favor, selecciona una ubicación en el mapa haciendo clic en él');
           return;
         }
