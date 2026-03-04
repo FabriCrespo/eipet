@@ -72,7 +72,12 @@ export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
       subtotal: orderData.subtotal,
       total: orderData.total
     });
-    
+
+    if (!db) {
+      console.error('❌ [ORDERS] Firestore (db) no está inicializado');
+      return { success: false, error: new Error('Base de datos no disponible. Recarga la página e intenta de nuevo.') };
+    }
+
     const docRef = await addDoc(collection(db, COLLECTION_NAME), orderData);
     console.log('✅ [ORDERS] Documento creado con ID:', docRef.id);
     

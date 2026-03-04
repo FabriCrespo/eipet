@@ -3,6 +3,10 @@ import Layout from '../layouts/Layout.astro';
 import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 ---
 
+<!-- Leaflet para el mapa de ubicación -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" is:inline></script>
+
 <Layout title="Checkout - Eipet">
   <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -87,7 +91,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 </svg>
                 Información de Envío
               </h2>
-              
+
               <!-- Direcciones guardadas (solo si hay usuario logueado) -->
               <div id="saved-addresses-section" class="hidden mb-4">
                 <div class="mb-3">
@@ -106,8 +110,30 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   </button>
                 </div>
               </div>
-              
+
               <form id="shipping-form" class="space-y-4">
+                <!-- Mapa: seleccionar ubicación de entrega (dentro del form para que lat/lng se envíen) -->
+                <div id="map-address-section" class="mb-4">
+                  <p class="text-sm text-gray-600 mb-2">
+                    Usa tu ubicación actual o mueve el marcador al punto de entrega. Se pedirá permiso para acceder a tu ubicación.
+                  </p>
+                  <button
+                    type="button"
+                    id="use-my-location-btn"
+                    class="mb-3 inline-flex items-center gap-2 px-4 py-2.5 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-xl transition-colors text-sm"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    Usar mi ubicación actual
+                  </button>
+                  <div id="map-status" class="text-sm text-gray-500 mb-2"></div>
+                  <div id="checkout-map" class="w-full h-72 rounded-xl overflow-hidden border border-gray-200 bg-gray-100"></div>
+                  <p class="text-xs text-gray-500 mt-2">Arrastra el marcador para ajustar el punto de entrega.</p>
+                  <input type="hidden" id="address-lat" name="latitude" value="" />
+                  <input type="hidden" id="address-lng" name="longitude" value="" />
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label for="fullName" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -394,6 +420,124 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const paymentMethodsList = document.getElementById('payment-methods-list');
       const useNewPaymentBtn = document.getElementById('use-new-payment-btn');
       const paymentMethodsOptions = document.getElementById('payment-methods-options');
+      const mapAddressSection = document.getElementById('map-address-section');
+      const checkoutMapDiv = document.getElementById('checkout-map');
+      const useMyLocationBtn = document.getElementById('use-my-location-btn');
+      const mapStatus = document.getElementById('map-status');
+      const addressLatInput = document.getElementById('address-lat') as HTMLInputElement;
+      const addressLngInput = document.getElementById('address-lng') as HTMLInputElement;
+
+      // Mapa: Leaflet (se usa cuando addressSource === 'map')
+      let checkoutMap: any = null;
+      let checkoutMarker: any = null;
+      const DEFAULT_CENTER: [number, number] = [-16.4897, -68.1193]; // La Paz, Bolivia
+      const DEFAULT_ZOOM = 14;
+
+      function setMapStatus(msg: string, isError = false) {
+        if (mapStatus) {
+          mapStatus.textContent = msg;
+          mapStatus.className = 'text-sm mb-2 ' + (isError ? 'text-red-600' : 'text-gray-500');
+        }
+      }
+
+      async function reverseGeocode(lat: number, lng: number) {
+        setMapStatus('Obteniendo dirección...');
+        try {
+          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+          const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
+          const data = await res.json();
+          const a = data.address || {};
+          const fullAddress = [a.road, a.house_number, a.suburb, a.neighbourhood].filter(Boolean).join(', ') || data.display_name || '';
+          const city = a.city || a.town || a.village || a.municipality || a.state || '';
+          const district = a.suburb || a.neighbourhood || a.quarter || a.district || '';
+          const addressInput = document.getElementById('address') as HTMLInputElement;
+          const cityInput = document.getElementById('city') as HTMLInputElement;
+          const districtInput = document.getElementById('district') as HTMLInputElement;
+          if (addressInput) addressInput.value = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          if (cityInput) cityInput.value = city;
+          if (districtInput) districtInput.value = district;
+          setMapStatus('Dirección actualizada. Puedes editar los campos si hace falta.');
+        } catch (e) {
+          setMapStatus('No se pudo obtener la dirección. Completa los campos manualmente.', true);
+          const addressInput = document.getElementById('address') as HTMLInputElement;
+          if (addressInput) addressInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        }
+      }
+
+      function updateMarkerPosition(lat: number, lng: number) {
+        if (addressLatInput) addressLatInput.value = String(lat);
+        if (addressLngInput) addressLngInput.value = String(lng);
+        reverseGeocode(lat, lng);
+      }
+
+      function initCheckoutMap() {
+        if (!checkoutMapDiv || checkoutMap) return;
+        const L = (window as any).L;
+        if (!L) {
+          setMapStatus('Cargando mapa...');
+          setTimeout(initCheckoutMap, 300);
+          return;
+        }
+        checkoutMap = L.map('checkout-map').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(checkoutMap);
+        checkoutMap.on('click', (e: any) => {
+          const { lat, lng } = e.latlng;
+          if (checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+          else {
+            checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(checkoutMap);
+            checkoutMarker.on('dragend', () => {
+              const pos = checkoutMarker.getLatLng();
+              updateMarkerPosition(pos.lat, pos.lng);
+            });
+          }
+          updateMarkerPosition(lat, lng);
+        });
+        setTimeout(() => checkoutMap.invalidateSize(), 200);
+        setMapStatus('Haz clic en el mapa o usa "Usar mi ubicación actual" para marcar el punto de entrega.');
+      }
+
+      /** Cuando no hay direcciones guardadas, inicializar mapa y pedir ubicación actual */
+      function applyDefaultAddressSource() {
+        if (userAddresses.length > 0) return;
+        if (!checkoutContent || checkoutContent.classList.contains('hidden')) return;
+        setTimeout(() => {
+          initCheckoutMap();
+          setTimeout(() => useMyLocation(), 600);
+        }, 100);
+      }
+
+      function useMyLocation() {
+        if (!navigator.geolocation) {
+          setMapStatus('Tu navegador no soporta geolocalización.', true);
+          return;
+        }
+        setMapStatus('Solicitando permiso de ubicación...');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const L = (window as any).L;
+            if (!checkoutMap || !L) return;
+            checkoutMap.setView([lat, lng], 16);
+            if (checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+            else {
+              checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(checkoutMap);
+              checkoutMarker.on('dragend', () => {
+                const p = checkoutMarker.getLatLng();
+                updateMarkerPosition(p.lat, p.lng);
+              });
+            }
+            updateMarkerPosition(lat, lng);
+          },
+          (err) => {
+            const msg = err.code === 1 ? 'Permiso de ubicación denegado. Puedes marcar el punto en el mapa.' : 'No se pudo obtener la ubicación. Marca el punto en el mapa.';
+            setMapStatus(msg, true);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      }
 
       // Función para mostrar error
       function showError(message: string) {
@@ -493,6 +637,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           if (checkoutContent) checkoutContent.classList.remove('hidden');
           if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = false;
 
+          // Inicializar mapa (siempre visible para seleccionar ubicación)
+          setTimeout(() => initCheckoutMap(), 300);
+
           // Esperar un poco más para asegurar que Firebase Auth esté listo
           await new Promise(resolve => setTimeout(resolve, 200));
           
@@ -523,8 +670,11 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               } else {
                 console.log('👤 [CHECKOUT] Aún no hay usuario después de esperar');
               }
+              applyDefaultAddressSource();
             }, 500);
           }
+          // Sin dirección guardada: por defecto "Seleccionar en el mapa" con ubicación actual
+          applyDefaultAddressSource();
         } catch (error: any) {
           showError(error.message || 'Error al cargar el carrito');
           if (loadingDiv) loadingDiv.classList.add('hidden');
@@ -585,9 +735,11 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             }
           } else {
             console.log('📍 [CHECKOUT] No se encontraron direcciones o result.data está vacío');
+            applyDefaultAddressSource();
           }
         } catch (error) {
           console.error('📍 [CHECKOUT] Error cargando direcciones:', error);
+          applyDefaultAddressSource();
         }
       }
 
@@ -987,6 +1139,17 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const formData = new FormData(shippingForm);
             const { Timestamp } = await import('firebase/firestore');
             const now = Timestamp.now();
+            const latVal = (formData.get('latitude') as string) || '';
+            const lngVal = (formData.get('longitude') as string) || '';
+            const latitude = latVal ? parseFloat(latVal) : null;
+            const longitude = lngVal ? parseFloat(lngVal) : null;
+
+            console.log('📍 [CHECKOUT] Datos de ubicación antes de crear dirección:', {
+              latVal,
+              lngVal,
+              latitude,
+              longitude
+            });
             
             shippingAddress = {
               id: `temp-${Date.now()}`,
@@ -998,6 +1161,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               district: formData.get('district') as string,
               instructions: (formData.get('instructions') as string) || '',
               isDefault: false,
+              latitude,
+              longitude,
               createdAt: now,
               updatedAt: now
             };
@@ -1276,6 +1441,10 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           }
         });
       });
+
+      if (useMyLocationBtn) {
+        useMyLocationBtn.addEventListener('click', useMyLocation);
+      }
 
       // Inicializar
       await loadCheckout();

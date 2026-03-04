@@ -12,15 +12,16 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
   <PageLoader />
 
   <!-- Contenido principal - visibilidad controlada por CSS (.ready) -->
-  <section id="main-content" class="py-8 lg:py-12 bg-white min-h-screen relative">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+  <section id="main-content" class="py-4 sm:py-6 lg:py-12 bg-white min-h-screen relative">
+    <div class="container mx-auto px-3 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Header: título + ordenar a la derecha -->
-      <div class="mb-6 sm:mb-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-6 mb-4 sm:mb-6">
-          <!-- Título: en móvil título corto; en desktop icono + título + subtítulo -->
-          <div id="page-title-block" class="shrink-0">
-            <!-- Móvil: solo título -->
-            <h1 id="page-title" class="lg:hidden text-xl sm:text-2xl font-bold text-[#5d3fbb]">
+      <div class="mb-3 sm:mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-6 mb-3 sm:mb-6">
+          <!-- Izquierda: título + Volver (solo texto) -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shrink-0 w-full lg:w-auto text-center lg:text-left">
+          <div id="page-title-block" class="shrink-0 w-full lg:w-auto text-center lg:text-left">
+            <!-- Móvil: solo título, compacto y centrado -->
+            <h1 id="page-title" class="lg:hidden text-base sm:text-xl font-bold text-[#5d3fbb]">
               Productos
             </h1>
             <!-- Desktop: icono + título + subtítulo -->
@@ -44,13 +45,32 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
               </p>
             </div>
           </div>
-          <!-- Ordenar por: en móvil solo icono, en desktop dropdown con texto -->
+            <div class="flex items-center justify-center lg:justify-start gap-3 sm:gap-4">
+              <button
+                type="button"
+                id="back-to-categories-btn"
+                class="hidden text-sm text-[#5d3fbb] hover:text-[#6d4fcc] hover:underline font-medium bg-transparent border-0 cursor-pointer p-0"
+                aria-label="Volver a categorías"
+              >
+                ← Volver a categorías
+              </button>
+              <button
+                type="button"
+                id="back-to-brands-btn"
+                class="hidden text-sm text-[#5d3fbb] hover:text-[#6d4fcc] hover:underline font-medium bg-transparent border-0 cursor-pointer p-0"
+                aria-label="Volver a marcas"
+              >
+                ← Volver a marcas
+              </button>
+            </div>
+          </div>
+          <!-- Derecha: Ordenar por -->
           <div id="sort-and-view-controls" class="flex items-center justify-end shrink-0 lg:pt-1 self-end">
             <label for="sort-select" class="sr-only">Ordenar productos</label>
-            <div class="sort-select-wrapper relative w-10 h-10 lg:w-auto lg:h-auto shrink-0">
+            <div class="sort-select-wrapper relative w-9 h-9 sm:w-10 sm:h-10 lg:w-auto lg:h-auto shrink-0">
               <!-- Icono visible en móvil (el select transparente encima recibe el tap) -->
-              <span class="sort-select-icon lg:hidden pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm" aria-hidden="true">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span class="sort-select-icon lg:hidden pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg sm:rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm" aria-hidden="true">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
                 </svg>
               </span>
@@ -79,16 +99,16 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         </div>
       </div>
 
-      <!-- Botón Flotante de Filtros (Solo Móvil) -->
+      <!-- Botón Flotante de Filtros (Solo Móvil) - compacto -->
       <button
         id="mobile-filters-btn"
-        class="lg:hidden fixed bottom-6 right-6 z-40 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center gap-2"
+        class="lg:hidden fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white rounded-full p-3 sm:p-4 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2"
         aria-label="Abrir filtros"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
         </svg>
-        <span class="font-semibold text-sm">Filtros</span>
+        <span class="font-semibold text-xs sm:text-sm">Filtros</span>
         <span id="active-filters-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 items-center justify-center hidden" style="display: none;">0</span>
       </button>
 
@@ -546,7 +566,7 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         
         categoriesGrid.innerHTML = categories.map((category: any) => `
           <div
-            class="category-card group relative rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer aspect-[4/3] min-h-[100px] sm:min-h-[140px] lg:min-h-[160px]"
+            class="category-card group relative rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer aspect-[4/3] min-h-[80px] sm:min-h-[140px] lg:min-h-[160px]"
             data-category-id="${category.id}"
             title="${category.name}"
           >
@@ -566,8 +586,8 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
               </div>
             `}
             <div class="category-card__overlay absolute inset-0 bg-black/40 transition-opacity duration-300" aria-hidden="true"></div>
-            <div class="category-card__label absolute inset-0 flex items-center justify-center p-2 sm:p-3">
-              <h3 class="category-card__name text-xs sm:text-base lg:text-lg font-semibold text-white text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">${category.name}</h3>
+            <div class="category-card__label absolute inset-0 flex items-center justify-center p-1.5 sm:p-3">
+              <h3 class="category-card__name text-[0.65rem] sm:text-base lg:text-lg font-semibold text-white text-center line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">${category.name}</h3>
             </div>
           </div>
         `).join('');
@@ -678,12 +698,15 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
           return;
         }
 
-        // Ocultar categorías, productos y botón de volver a marcas
+        // Ocultar categorías, productos y barra de volver a marcas
         if (categoriesSection) categoriesSection.classList.add('hidden');
         if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
         if (productsGrid) productsGrid.style.display = 'none';
         brandsSection.classList.remove('hidden');
         document.getElementById('main-content')?.classList.remove('view-products');
+        // En header: mostrar "Volver a categorías", ocultar "Volver a marcas"
+        document.getElementById('back-to-categories-btn')?.classList.remove('hidden');
+        document.getElementById('back-to-brands-btn')?.classList.add('hidden');
 
         // Renderizar marcas - imagen grande sin texto (el logo es la imagen)
         brandsGrid.innerHTML = categoryBrands.map((brand: any) => `
@@ -959,8 +982,11 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         if (brandsSection) brandsSection.classList.add('hidden');
         if (loadingState) loadingState.classList.add('hidden');
         
-        // Mostrar botón para volver a marcas
+        // Mostrar barra de resultados (contador)
         if (backToBrandsSection) backToBrandsSection.classList.remove('hidden');
+        // En header: ocultar "Volver a categorías", mostrar "Volver a marcas"
+        document.getElementById('back-to-categories-btn')?.classList.add('hidden');
+        document.getElementById('back-to-brands-btn')?.classList.remove('hidden');
 
         if (brandProducts.length === 0) {
           // Mostrar empty state
@@ -1001,6 +1027,9 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         if (categoriesSection) categoriesSection.classList.remove('hidden');
         if (brandsSection) brandsSection.classList.add('hidden');
         document.getElementById('main-content')?.classList.remove('view-products');
+        // Ocultar enlaces "Volver" del header
+        document.getElementById('back-to-categories-btn')?.classList.add('hidden');
+        document.getElementById('back-to-brands-btn')?.classList.add('hidden');
         
         // Scroll suave a la sección de categorías
         categoriesSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1021,6 +1050,9 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         if (resultsCount) resultsCount.classList.add('hidden');
         if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
         if (emptyState) emptyState.classList.add('hidden');
+        // En header: mostrar "Volver a categorías", ocultar "Volver a marcas"
+        document.getElementById('back-to-categories-btn')?.classList.remove('hidden');
+        document.getElementById('back-to-brands-btn')?.classList.add('hidden');
         document.getElementById('main-content')?.classList.remove('view-products');
 
         // Si se proporciona categoryId, mostrar marcas de esa categoría

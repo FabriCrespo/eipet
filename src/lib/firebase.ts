@@ -1,4 +1,4 @@
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
@@ -13,13 +13,15 @@ const firebaseConfig = {
   measurementId: "G-P6RF641PQH"
 };
 
-// Inicializar Firebase solo si no está ya inicializado
-let app;
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
+// Asegurar que siempre haya una app válida (getApps()[0] puede ser undefined en algunos entornos)
+function getFirebaseApp(): FirebaseApp {
+  const apps = getApps();
+  const existing = apps[0];
+  if (existing) return existing;
+  return initializeApp(firebaseConfig);
 }
+
+const app = getFirebaseApp();
 
 // Inicializar Firestore (client-side)
 export const db: Firestore = getFirestore(app);
