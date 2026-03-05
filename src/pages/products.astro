@@ -14,18 +14,38 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
   <!-- Contenido principal - visibilidad controlada por CSS (.ready) -->
   <section id="main-content" class="py-4 sm:py-6 lg:py-12 bg-white min-h-screen relative">
     <div class="container mx-auto px-3 sm:px-6 lg:px-8 max-w-7xl">
-      <!-- Header: título + ordenar a la derecha -->
+      <!-- Header: volver (izq), título centrado, botón filtros (der). En móvil grid para evitar solapamiento. -->
       <div class="mb-3 sm:mb-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-6 mb-3 sm:mb-6">
-          <!-- Izquierda: título + Volver (solo texto) -->
-          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shrink-0 w-full lg:w-auto text-center lg:text-left">
-          <div id="page-title-block" class="shrink-0 w-full lg:w-auto text-center lg:text-left">
-            <!-- Móvil: solo título, compacto y centrado -->
+        <div class="grid grid-cols-[1fr_auto_1fr] sm:flex sm:flex-row items-center justify-between gap-2 sm:gap-4 lg:gap-6 mb-3 sm:mb-6 min-h-[2.5rem]">
+          <!-- Izquierda: solo enlaces Volver -->
+          <div class="min-w-0 flex items-center justify-start overflow-hidden">
+            <div class="flex items-center gap-2 min-w-0">
+              <button
+                type="button"
+                id="back-to-categories-btn"
+                class="hidden text-sm text-[#5d3fbb] hover:text-[#6d4fcc] hover:underline font-medium bg-transparent border-0 cursor-pointer p-0 text-left whitespace-nowrap"
+                aria-label="Volver"
+              >
+                ← Volver
+              </button>
+              <button
+                type="button"
+                id="back-to-brands-btn"
+                class="hidden text-sm text-[#5d3fbb] hover:text-[#6d4fcc] hover:underline font-medium bg-transparent border-0 cursor-pointer p-0 text-left whitespace-nowrap"
+                aria-label="Volver"
+              >
+                ← Volver
+              </button>
+            </div>
+          </div>
+          <!-- Centro: título siempre centrado (celda fija en grid móvil, sin solapamiento) -->
+          <div id="page-title-block" class="flex flex-col items-center justify-center text-center px-3 sm:px-4 lg:px-2 min-w-0">
+            <!-- Móvil/tablet: solo título centrado -->
             <h1 id="page-title" class="lg:hidden text-base sm:text-xl font-bold text-[#5d3fbb]">
               Productos
             </h1>
-            <!-- Desktop: icono + título + subtítulo -->
-            <div class="hidden lg:block">
+            <!-- Desktop: icono + título + subtítulo centrados -->
+            <div class="hidden lg:flex lg:flex-col lg:items-center lg:text-center">
               <div class="flex items-center gap-3 mb-3">
                 <div class="bg-linear-to-br from-[#ffff11] to-[#ffd700] rounded-xl p-2 shadow-lg">
                   <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
@@ -40,32 +60,13 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
                   Productos
                 </h1>
               </div>
-              <p id="page-subtitle" class="text-gray-600 text-base lg:text-lg ml-11">
+              <p id="page-subtitle" class="text-gray-600 text-base lg:text-lg">
                 Encuentra todo lo que necesitas para tu mascota.
               </p>
             </div>
           </div>
-            <div class="flex items-center justify-center lg:justify-start gap-3 sm:gap-4">
-              <button
-                type="button"
-                id="back-to-categories-btn"
-                class="hidden text-sm text-[#5d3fbb] hover:text-[#6d4fcc] hover:underline font-medium bg-transparent border-0 cursor-pointer p-0"
-                aria-label="Volver a categorías"
-              >
-                ← Volver a categorías
-              </button>
-              <button
-                type="button"
-                id="back-to-brands-btn"
-                class="hidden text-sm text-[#5d3fbb] hover:text-[#6d4fcc] hover:underline font-medium bg-transparent border-0 cursor-pointer p-0"
-                aria-label="Volver a marcas"
-              >
-                ← Volver a marcas
-              </button>
-            </div>
-          </div>
-          <!-- Derecha: Ordenar por -->
-          <div id="sort-and-view-controls" class="flex items-center justify-end shrink-0 lg:pt-1 self-end">
+          <!-- Derecha: Ordenar por / Filtros -->
+          <div id="sort-and-view-controls" class="min-w-0 flex items-center justify-end sm:flex-1 shrink-0 lg:pt-1">
             <label for="sort-select" class="sr-only">Ordenar productos</label>
             <div class="sort-select-wrapper relative w-9 h-9 sm:w-10 sm:h-10 lg:w-auto lg:h-auto shrink-0">
               <!-- Icono visible en móvil (el select transparente encima recibe el tap) -->
@@ -959,7 +960,6 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         const productsGrid = document.getElementById('products-grid');
         const loadingState = document.getElementById('loading-state');
         const emptyState = document.getElementById('empty-state');
-        const resultsCount = document.getElementById('results-count');
         const backToBrandsSection = document.getElementById('back-to-brands-section');
         
         if (!productsGrid) return;
@@ -992,7 +992,6 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
           // Mostrar empty state
           productsGrid.style.display = 'none';
           if (emptyState) emptyState.classList.remove('hidden');
-          if (resultsCount) resultsCount.classList.add('hidden');
           return;
         }
 
@@ -1000,17 +999,6 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         if (emptyState) emptyState.classList.add('hidden');
 
         document.getElementById('main-content')?.classList.add('view-products');
-
-        // Actualizar contador de resultados
-        if (resultsCount) {
-          const resultsNumber = document.getElementById('results-number');
-          const resultsText = document.getElementById('results-text');
-          if (resultsNumber && resultsText) {
-            resultsCount.classList.remove('hidden');
-            resultsNumber.textContent = brandProducts.length.toString();
-            resultsText.textContent = brandProducts.length === 1 ? ' producto encontrado' : ' productos encontrados';
-          }
-        }
 
         // Renderizar productos
         renderProducts(brandProducts);
@@ -1040,14 +1028,12 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         const categoriesSection = document.getElementById('categories-section');
         const brandsSection = document.getElementById('brands-section');
         const productsGrid = document.getElementById('products-grid');
-        const resultsCount = document.getElementById('results-count');
         const backToBrandsSection = document.getElementById('back-to-brands-section');
         const emptyState = document.getElementById('empty-state');
         
         if (categoriesSection) categoriesSection.classList.add('hidden');
         if (brandsSection) brandsSection.classList.remove('hidden');
         if (productsGrid) productsGrid.style.display = 'none';
-        if (resultsCount) resultsCount.classList.add('hidden');
         if (backToBrandsSection) backToBrandsSection.classList.add('hidden');
         if (emptyState) emptyState.classList.add('hidden');
         // En header: mostrar "Volver a categorías", ocultar "Volver a marcas"
@@ -1298,9 +1284,6 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         const grid = document.getElementById('products-grid');
         const loadingState = document.getElementById('loading-state');
         const emptyState = document.getElementById('empty-state');
-        const resultsCount = document.getElementById('results-count');
-        const resultsNumber = document.getElementById('results-number');
-        const resultsText = document.getElementById('results-text');
 
         if (!grid) return;
 
@@ -1310,15 +1293,7 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
         if (products.length === 0) {
           grid.style.display = 'none';
           if (emptyState) emptyState.classList.remove('hidden');
-          if (resultsCount) resultsCount.classList.add('hidden');
           return;
-        }
-
-        // Actualizar contador de resultados
-        if (resultsCount && resultsNumber && resultsText) {
-          resultsCount.classList.remove('hidden');
-          resultsNumber.textContent = products.length.toString();
-          resultsText.textContent = products.length === 1 ? ' producto encontrado' : ' productos encontrados';
         }
 
         // Mostrar grid y ocultar empty state (siempre vista cuadrícula)

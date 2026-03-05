@@ -1,16 +1,7 @@
 ---
-// Barra que se muestra al ver productos: contador de resultados.
-// "Volver a marcas" está en el header de la página (misma fila que Ordenar por).
-// IDs: back-to-brands-section, results-count, results-number, results-text.
+// Sección que se muestra al ver productos (marca seleccionada).
+// "Volver a marcas" está en el header de la página.
+// ID: back-to-brands-section (para mostrar/ocultar al entrar en lista de productos).
 ---
 
-<div id="back-to-brands-section" class="mb-6 hidden">
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
-    <div id="results-count" class="mb-4 sm:mb-0 hidden">
-      <p class="text-sm text-gray-600">
-        <span id="results-number" class="font-semibold text-[#5d3fbb]">0</span>
-        <span id="results-text"> productos encontrados</span>
-      </p>
-    </div>
-  </div>
-</div>
+<div id="back-to-brands-section" class="hidden" aria-hidden="true"></div>
