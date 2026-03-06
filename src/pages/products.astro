@@ -4,6 +4,7 @@ import PageLoader from '../components/PageLoader.astro';
 import ProductsCategoriesSection from '../components/products/ProductsCategoriesSection.astro';
 import ProductsBrandsSection from '../components/products/ProductsBrandsSection.astro';
 import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astro';
+import { SlidersHorizontal } from '@lucide/astro';
 ---
 
 <Layout>
@@ -69,15 +70,35 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
           <div id="sort-and-view-controls" class="min-w-0 flex items-center justify-end sm:flex-1 shrink-0 lg:pt-1">
             <label for="sort-select" class="sr-only">Ordenar productos</label>
             <div class="sort-select-wrapper relative w-9 h-9 sm:w-10 sm:h-10 lg:w-auto lg:h-auto shrink-0">
-              <!-- Icono visible en móvil (el select transparente encima recibe el tap) -->
-              <span class="sort-select-icon lg:hidden pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg sm:rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm" aria-hidden="true">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
-              </span>
+              <!-- Móvil/Tablet: botón + dropdown que abre hacia la izquierda (right: 0) -->
+              <div class="lg:hidden relative flex items-center justify-end">
+                <button
+                  type="button"
+                  id="sort-trigger-mobile"
+                  class="w-full h-full flex items-center justify-center rounded-lg sm:rounded-xl  bg-white text-gray-600  hover:border-[#5d3fbb] hover:text-[#5d3fbb] active:scale-95 transition-all touch-manipulation"
+                  aria-label="Ordenar productos"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="sort-dropdown-mobile"
+                >
+                  <SlidersHorizontal class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                </button>
+                <div
+                  id="sort-dropdown-mobile"
+                  class="absolute right-0 top-full mt-1.5 py-1.5 min-w-[200px] sm:min-w-[220px] max-w-[min(280px,calc(100vw-1.5rem))] bg-white rounded-xl shadow-xl border border-gray-200 hidden z-[60]"
+                  role="listbox"
+                  aria-label="Opciones de orden"
+                >
+                  <button type="button" class="sort-dropdown-option w-full text-left px-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-700 hover:bg-purple-50 hover:text-[#5d3fbb] active:bg-purple-100 transition-colors first:rounded-t-xl last:rounded-b-xl touch-manipulation" data-value="relevant">Más relevantes</button>
+                  <button type="button" class="sort-dropdown-option w-full text-left px-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-700 hover:bg-purple-50 hover:text-[#5d3fbb] active:bg-purple-100 transition-colors first:rounded-t-xl last:rounded-b-xl touch-manipulation" data-value="price-low">Precio: menor a mayor</button>
+                  <button type="button" class="sort-dropdown-option w-full text-left px-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-700 hover:bg-purple-50 hover:text-[#5d3fbb] active:bg-purple-100 transition-colors first:rounded-t-xl last:rounded-b-xl touch-manipulation" data-value="price-high">Precio: mayor a menor</button>
+                  <button type="button" class="sort-dropdown-option w-full text-left px-4 py-3 sm:py-3.5 text-sm sm:text-base text-gray-700 hover:bg-purple-50 hover:text-[#5d3fbb] active:bg-purple-100 transition-colors first:rounded-t-xl last:rounded-b-xl touch-manipulation" data-value="discount">Mayor descuento</button>
+                </div>
+              </div>
+              <!-- Desktop: select nativo -->
               <select
                 id="sort-select"
-                class="sort-select appearance-none absolute inset-0 w-full h-full min-w-0 cursor-pointer rounded-xl border-0 bg-transparent opacity-0 lg:opacity-100 lg:static lg:min-w-[180px] lg:pl-4 lg:pr-9 lg:py-2 lg:h-auto lg:border lg:border-gray-200 lg:bg-white lg:text-gray-700 hover:lg:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:lg:border-[#5d3fbb] transition-all shadow-sm font-medium text-sm"
+                class="hidden lg:block appearance-none w-full min-w-[180px] pl-4 pr-9 py-2.5 h-auto border border-gray-200 rounded-xl bg-white text-gray-700 hover:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all shadow-sm font-medium text-sm cursor-pointer"
                 aria-label="Ordenar productos"
               >
                 <option value="relevant">Más relevantes</option>
@@ -2140,10 +2161,47 @@ import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astr
 
       // Ordenamiento
       const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+      const sortTriggerMobile = document.getElementById('sort-trigger-mobile');
+      const sortDropdownMobile = document.getElementById('sort-dropdown-mobile');
+
+      function applySort(value: string) {
+        if (sortSelect) sortSelect.value = value;
+        sortProducts(value);
+      }
+
       sortSelect?.addEventListener('change', (e) => {
         const value = (e.target as HTMLSelectElement).value;
         sortProducts(value);
-    });
+      });
+
+      // Móvil: abrir/cerrar dropdown de ordenar (abre hacia la izquierda)
+      sortTriggerMobile?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = sortDropdownMobile?.classList.toggle('hidden');
+        sortTriggerMobile?.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      });
+
+      sortDropdownMobile?.querySelectorAll('.sort-dropdown-option').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const value = (btn as HTMLElement).getAttribute('data-value');
+          if (value) {
+            applySort(value);
+            sortDropdownMobile?.classList.add('hidden');
+            sortTriggerMobile?.setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+
+      // Cerrar dropdown al tocar fuera
+      document.addEventListener('click', (e) => {
+        if (sortDropdownMobile?.classList.contains('hidden')) return;
+        const target = e.target as Node;
+        if (sortDropdownMobile && !sortDropdownMobile.contains(target) && !sortTriggerMobile?.contains(target)) {
+          sortDropdownMobile.classList.add('hidden');
+          sortTriggerMobile?.setAttribute('aria-expanded', 'false');
+        }
+      });
 
     // Filtros
     const filterCheckboxes = document.querySelectorAll('input[type="checkbox"]');
