@@ -2243,17 +2243,10 @@ const stats = {
               revenue: p.revenue || 0
             }));
           
-          // Verificar productos del servidor
-          const serverProducts = getJsonData("products-data-json");
-          if (serverProducts.length === 0) {
-            // Si el servidor no tiene productos, renderizar desde el cliente
-            renderProductsTable(productsWithNames);
-            // Actualizar estadísticas con los productos obtenidos
-            updateStats(productsWithNames);
-          } else {
-            // Si hay productos del servidor, también actualizar estadísticas por si acaso
-            updateStats(serverProducts);
-          }
+          // En producción (SSG), los productos del servidor pueden estar cacheados y obsoletos.
+          // SIEMPRE renderizamos la tabla con los datos frescos obtenidos del cliente.
+          renderProductsTable(productsWithNames);
+          updateStats(productsWithNames);
         }
       } catch (error) {
         console.error("Error al obtener datos:", error);
