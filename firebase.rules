@@ -284,6 +284,18 @@ service cloud.firestore {
     }
     
     // ============================================================================
+    // CONFIGURACIÓN DE TIENDA (ENVÍOS, DESCUENTOS, MENSAJES)
+    // ============================================================================
+    
+    match /storeSettings/{docId} {
+      // Cualquiera puede leer la configuración (se usa en checkout para mostrar mensajes dinámicos)
+      allow read: if true;
+      
+      // Solo admin puede crear/actualizar/eliminar configuración de tienda
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================================================
     // CALIFICACIONES (RATINGS/REVIEWS)
     // ============================================================================
     

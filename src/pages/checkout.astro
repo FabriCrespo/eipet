@@ -10,8 +10,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 <Layout title="Checkout - Eipet">
   <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <!-- Breadcrumb -->
-      <nav class="mb-6 flex items-center gap-2 text-sm text-gray-600">
+      <!-- Breadcrumb (solo desktop) -->
+      <nav class="hidden lg:flex mb-6 items-center gap-2 text-sm text-gray-600">
         <a href="/" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Inicio</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -23,8 +23,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         <span class="text-gray-800 font-medium">Checkout</span>
       </nav>
 
-      <!-- Título -->
-      <div class="mb-8">
+      <!-- Título (solo desktop; en móvil el step 1 muestra "Tu carrito") -->
+      <div class="hidden lg:block mb-8">
         <h1 class="text-3xl lg:text-4xl font-bold bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent mb-2">
           Finalizar Compra
         </h1>
@@ -79,7 +79,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
       <!-- Checkout Content -->
       <div id="checkout-content" class="hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <!-- Vista desktop: formulario + resumen -->
+        <div id="checkout-desktop" class="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           <!-- Formulario de Checkout -->
           <div class="lg:col-span-2 space-y-6">
             <!-- Información de Envío -->
@@ -315,9 +316,327 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             </div>
           </div>
         </div>
+
+        <!-- Vista móvil: 3 steps (solo step 1 visible por ahora) -->
+        <div id="checkout-mobile" class="lg:hidden pb-24">
+          <!-- Step 1: Carrito + Envío/Recoger -->
+          <div id="checkout-step-1" class="checkout-mobile-step">
+            <h1 class="text-xl font-bold text-gray-800 text-center mb-6">Tu carrito</h1>
+
+            <!-- Tabs Envío / Recoger en eipet -->
+            <div class="flex rounded-xl overflow-hidden bg-[#5d3fbb] mb-6" role="tablist">
+              <button
+                type="button"
+                id="mobile-tab-envio"
+                class="checkout-delivery-tab checkout-delivery-tab--active flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-[#8b7bc4] text-black font-medium text-sm rounded-l-xl transition-colors"
+                data-delivery="envio"
+                aria-selected="true"
+              >
+                <img src="/images/delivery-man.png" alt="" class="w-5 h-5 object-contain" />
+                Envio
+              </button>
+              <button
+                type="button"
+                id="mobile-tab-recoger"
+                class="checkout-delivery-tab flex-1 flex items-center justify-center py-3.5 px-4 text-[#f2c51f] font-medium text-sm rounded-r-xl transition-colors"
+                data-delivery="recoger"
+                aria-selected="false"
+              >
+                Recoger en eipet
+              </button>
+            </div>
+
+            <!-- Lista de productos del carrito -->
+            <div id="mobile-order-items" class="space-y-3 mb-4">
+              <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Resumen en el contenido scrollable -->
+            <div class="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <div class="flex justify-between text-sm mb-2">
+                <span class="text-gray-600">Resumen productos</span>
+                <span class="font-semibold text-gray-900">
+                  <span id="mobile-subtotal">Bs 0</span>
+                </span>
+              </div>
+              <div class="flex justify-between text-sm mb-2">
+                <span class="text-gray-600">Envio</span>
+                <span id="mobile-shipping" class="font-semibold text-gray-900">Gratis</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal</span>
+                <span id="mobile-subtotal-copy" class="font-semibold text-gray-900">Bs 0</span>
+              </div>
+            </div>
+
+            <p class="text-gray-700 text-center mb-24">
+              <a href="/products" class="text-[#5d3fbb] font-medium hover:underline" data-astro-prefetch>¿Quieres agregar más?</a>
+            </p>
+          </div>
+
+          <!-- Footer móvil fijo: solo Total + botón Pedir y pagar -->
+          <div
+            id="checkout-mobile-footer"
+            class="fixed inset-x-0 bottom-0 z-30 bg-white border-t border-gray-200 px-4 pt-3 pb-4 shadow-[0_-10px_30px_rgba(15,23,42,0.25)] lg:hidden"
+          >
+            <div class="max-w-md mx-auto">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="flex-1">
+                  <p class="text-xs text-gray-500 leading-tight">Total</p>
+                  <p id="mobile-total" class="text-lg font-bold text-gray-900 leading-tight">Bs 0</p>
+                </div>
+                <button
+                  type="button"
+                  id="mobile-pedir-pagar-btn"
+                  class="flex-1 py-3.5 rounded-xl font-semibold text-white bg-[#5d3fbb] hover:bg-[#6d4fcc] active:bg-[#4d2fab] transition-colors text-center"
+                >
+                  Pedir y pagar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: ¿Cómo quieres pagar? -->
+          <div id="checkout-step-2" class="checkout-mobile-step hidden">
+            <h1 class="text-xl font-bold text-gray-800 text-center mb-6">¿Como quieres pagar?</h1>
+
+            <!-- Métodos de pago destacados -->
+            <div class="mb-6">
+              <button
+                type="button"
+                id="mobile-payment-method-btn"
+                class="w-full flex items-center justify-between bg-[#5d3fbb] rounded-xl px-4 py-3 text-white active:scale-[0.99] transition-transform"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-amber-300 leading-tight">Metodos de pago</p>
+                    <p id="mobile-selected-payment-label" class="text-xs text-white leading-tight">Codigo QR</p>
+                  </div>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
+                  <span class="text-xs font-semibold text-[#5d3fbb]">QR</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Datos de entrega -->
+            <div class="space-y-5 mb-6">
+              <h2 class="text-base font-semibold text-gray-900">Datos de entrega</h2>
+
+              <!-- Tipo de entrega -->
+              <div class="flex items-start gap-3">
+                <img src="/images/delivery-man.png" alt="" class="w-5 h-5 mt-1 object-contain" />
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-gray-900">Envio</p>
+                  <p class="text-xs text-gray-500">30 - 59 min</p>
+                </div>
+              </div>
+
+              <!-- Dirección -->
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 mt-0.5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-semibold text-gray-900">Casa</p>
+                    <button type="button" id="mobile-change-address-btn" class="text-xs font-semibold text-[#5d3fbb]">Cambiar</button>
+                  </div>
+                  <p id="mobile-delivery-address" class="text-xs text-gray-600 mt-0.5">
+                    Selecciona una dirección o ubicación
+                  </p>
+                </div>
+              </div>
+
+              <!-- Instrucciones de entrega -->
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 mt-0.5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16h8M8 12h6m2-7H8a2 2 0 00-2 2v12l4-2 4 2 4-2V7a2 2 0 00-2-2z" />
+                </svg>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <p class="text-sm font-semibold text-gray-900">Instrucciones de entrega</p>
+                    <button type="button" id="mobile-edit-instructions-btn" class="text-xs font-semibold text-[#5d3fbb]">Editar</button>
+                  </div>
+                  <p id="mobile-delivery-instructions" class="text-xs text-gray-600 mt-0.5">
+                    Agrega una referencia para el repartidor
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mapa y edición de dirección (se muestra al tocar "Cambiar") -->
+            <div id="mobile-map-section" class="hidden mb-6 space-y-3">
+              <p class="text-xs text-gray-600">
+                Marca en el mapa el punto exacto de entrega y edita los datos si es necesario.
+              </p>
+              <div id="checkout-mobile-map" class="w-full h-52 rounded-xl overflow-hidden border border-gray-200 bg-gray-100"></div>
+              <p class="text-[11px] text-gray-500">
+                Puedes mover el marcador para ajustar la ubicación.
+              </p>
+              <div class="grid grid-cols-1 gap-2 mt-2 text-xs">
+                <input
+                  id="mobile-fullName"
+                  type="text"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                  placeholder="Nombre completo"
+                />
+                <input
+                  id="mobile-phone"
+                  type="tel"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                  placeholder="Teléfono"
+                />
+                <input
+                  id="mobile-address"
+                  type="text"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                  placeholder="Dirección"
+                />
+                <div class="grid grid-cols-2 gap-2">
+                  <input
+                    id="mobile-city"
+                    type="text"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                    placeholder="Ciudad"
+                  />
+                  <input
+                    id="mobile-district"
+                    type="text"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                    placeholder="Zona / Distrito"
+                  />
+                </div>
+                <textarea
+                  id="mobile-instructions-input"
+                  rows="2"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs resize-none"
+                  placeholder="Instrucciones de entrega"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Datos de facturación -->
+            <div class="space-y-3 mb-6">
+              <h2 class="text-base font-semibold text-gray-900">Datos de Facturacion</h2>
+
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 mt-0.5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4m-9 7h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <p id="mobile-billing-name" class="text-sm font-semibold text-gray-900">Sin datos de facturación</p>
+                    <button type="button" id="mobile-change-billing-btn" class="text-xs font-semibold text-[#5d3fbb]">Cambiar</button>
+                  </div>
+                  <p id="mobile-billing-nit" class="text-xs text-gray-600 mt-0.5"></p>
+                  <div id="mobile-billing-edit" class="mt-2 space-y-2 hidden">
+                    <input
+                      id="mobile-billing-name-input"
+                      type="text"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                      placeholder="Razón social / Nombre"
+                    />
+                    <input
+                      id="mobile-billing-nit-input"
+                      type="text"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                      placeholder="NIT / CI"
+                    />
+                    <button
+                      type="button"
+                      id="mobile-billing-save-btn"
+                      class="w-full rounded-lg bg-[#5d3fbb] py-2 text-xs font-semibold text-white"
+                    >
+                      Guardar datos de facturación
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen en step 2 -->
+            <div class="border-t border-gray-200 pt-4 space-y-1 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">productos</span>
+                <span id="mobile-step2-products" class="text-gray-800">Bs 0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Envio</span>
+                <span id="mobile-step2-shipping" class="text-gray-800">Gratis</span>
+              </div>
+              <div class="flex justify-between font-semibold mt-1">
+                <span>Subtotal</span>
+                <span id="mobile-step2-subtotal">Bs 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: reservado -->
+          <div id="checkout-step-3" class="checkout-mobile-step hidden"></div>
+        </div>
       </div>
     </div>
   </section>
+
+  <!-- Modal selección método de pago (móvil) -->
+  <div
+    id="payment-method-modal"
+    class="fixed inset-0 z-40 hidden items-end justify-center bg-black/20 backdrop-blur-sm payment-method-modal-backdrop"
+  >
+    <div class="w-full px-6 pb-6">
+      <div class="max-w-sm mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden payment-method-modal-panel">
+        <div class="px-5 pt-5 pb-3 border-b border-gray-100">
+          <p class="text-center text-sm font-semibold text-gray-900">Método de pago</p>
+        </div>
+        <div class="px-4 py-4 space-y-3">
+          <button
+            type="button"
+            class="payment-method-modal-option w-full flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left hover:border-[#5d3fbb] hover:bg-purple-50 transition-colors"
+            data-method="cash"
+          >
+            <span class="inline-flex w-9 h-9 items-center justify-center rounded-lg border border-[#5d3fbb] bg-white text-[#5d3fbb]">
+              💵
+            </span>
+            <span class="text-sm font-medium text-gray-900">Efectivo</span>
+          </button>
+          <button
+            type="button"
+            class="payment-method-modal-option w-full flex items-center gap-3 rounded-xl border border-[#5d3fbb] bg-purple-50 px-4 py-3 text-left"
+            data-method="qr"
+          >
+            <span class="inline-flex w-9 h-9 items-center justify-center rounded-lg border border-[#5d3fbb] bg-white text-[#5d3fbb]">
+              🔳
+            </span>
+            <span class="text-sm font-medium text-gray-900">Código QR</span>
+          </button>
+          <button
+            type="button"
+            class="payment-method-modal-option w-full flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left hover:border-[#5d3fbb] hover:bg-purple-50 transition-colors"
+            data-method="card"
+          >
+            <span class="inline-flex w-9 h-9 items-center justify-center rounded-lg border border-[#5d3fbb] bg-white text-[#5d3fbb]">
+              💳
+            </span>
+            <span class="text-sm font-medium text-gray-900">Tarjeta de crédito o débito</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          id="payment-method-modal-close"
+          class="w-full py-3 text-center text-xs font-semibold text-gray-500 border-t border-gray-100 hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal de Confirmación de Orden -->
   <OrderConfirmationModal id="order-confirmation-modal" />
@@ -330,6 +649,37 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
     .payment-method-option:has(input:checked) {
       border-color: #5d3fbb;
       background-color: #f3f4f6;
+    }
+
+    /* Mobile checkout step 1 */
+    .checkout-delivery-tab--active {
+      background-color: #8b7bc4 !important;
+    }
+    .checkout-delivery-tab:not(.checkout-delivery-tab--active) {
+      background-color: transparent;
+    }
+    .checkout-mobile-item-card {
+      background-color: #f3f4f6;
+      border-radius: 0.75rem;
+    }
+
+    /* Animación modal métodos de pago (sube desde abajo) */
+    .payment-method-modal-backdrop {
+      align-items: flex-end;
+    }
+
+    .payment-method-modal-panel {
+      transform: translateY(100%);
+      animation: paymentModalSlideUp 220ms ease-out forwards;
+    }
+
+    @keyframes paymentModalSlideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0%);
+      }
     }
   </style>
 
@@ -426,10 +776,46 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mapStatus = document.getElementById('map-status');
       const addressLatInput = document.getElementById('address-lat') as HTMLInputElement;
       const addressLngInput = document.getElementById('address-lng') as HTMLInputElement;
+      const checkoutDesktop = document.getElementById('checkout-desktop');
+      const checkoutMobile = document.getElementById('checkout-mobile');
+      const mobileOrderItems = document.getElementById('mobile-order-items');
+      const mobileSubtotalEl = document.getElementById('mobile-subtotal');
+      const mobileSubtotalCopyEl = document.getElementById('mobile-subtotal-copy');
+      const mobileShippingEl = document.getElementById('mobile-shipping');
+      const mobileTotalEl = document.getElementById('mobile-total');
+      const mobilePedirPagarBtn = document.getElementById('mobile-pedir-pagar-btn');
+      const mobileSelectedPaymentLabel = document.getElementById('mobile-selected-payment-label');
+      const paymentMethodModal = document.getElementById('payment-method-modal');
+      const paymentMethodModalClose = document.getElementById('payment-method-modal-close');
+      const checkoutStep1 = document.getElementById('checkout-step-1');
+      const checkoutStep2 = document.getElementById('checkout-step-2');
+      const mobileMapSection = document.getElementById('mobile-map-section');
+      const mobileStep2Products = document.getElementById('mobile-step2-products');
+      const mobileStep2Shipping = document.getElementById('mobile-step2-shipping');
+      const mobileStep2Subtotal = document.getElementById('mobile-step2-subtotal');
+      const mobileDeliveryAddress = document.getElementById('mobile-delivery-address');
+      const mobileDeliveryInstructions = document.getElementById('mobile-delivery-instructions');
+      const mobileBillingName = document.getElementById('mobile-billing-name');
+      const mobileBillingNit = document.getElementById('mobile-billing-nit');
+      const mobileFullNameInput = document.getElementById('mobile-fullName') as HTMLInputElement | null;
+      const mobilePhoneInput = document.getElementById('mobile-phone') as HTMLInputElement | null;
+      const mobileAddressInput = document.getElementById('mobile-address') as HTMLInputElement | null;
+      const mobileCityInput = document.getElementById('mobile-city') as HTMLInputElement | null;
+      const mobileDistrictInput = document.getElementById('mobile-district') as HTMLInputElement | null;
+      const mobileInstructionsInput = document.getElementById('mobile-instructions-input') as HTMLTextAreaElement | null;
+      const mobileBillingNameInput = document.getElementById('mobile-billing-name-input') as HTMLInputElement | null;
+      const mobileBillingNitInput = document.getElementById('mobile-billing-nit-input') as HTMLInputElement | null;
+
+      let deliveryType: 'envio' | 'recoger' = 'envio';
+      let currentPaymentMethod: 'cash' | 'qr' | 'card' = 'qr';
+      let currentMobileStep: 1 | 2 | 3 = 1;
+      let isMobileView = () => typeof window !== 'undefined' && window.innerWidth < 1024;
 
       // Mapa: Leaflet (se usa cuando addressSource === 'map')
       let checkoutMap: any = null;
       let checkoutMarker: any = null;
+      let mobileMap: any = null;
+      let mobileMarker: any = null;
       const DEFAULT_CENTER: [number, number] = [-16.4897, -68.1193]; // La Paz, Bolivia
       const DEFAULT_ZOOM = 14;
 
@@ -470,6 +856,11 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         reverseGeocode(lat, lng);
       }
 
+      function updateMobileMarkerPosition(lat: number, lng: number) {
+        if (addressLatInput) addressLatInput.value = String(lat);
+        if (addressLngInput) addressLngInput.value = String(lng);
+      }
+
       function initCheckoutMap() {
         if (!checkoutMapDiv || checkoutMap) return;
         const L = (window as any).L;
@@ -496,6 +887,33 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         });
         setTimeout(() => checkoutMap.invalidateSize(), 200);
         setMapStatus('Haz clic en el mapa o usa "Usar mi ubicación actual" para marcar el punto de entrega.');
+      }
+
+      function initMobileMap() {
+        const mobileMapDiv = document.getElementById('checkout-mobile-map');
+        if (!mobileMapDiv || mobileMap) return;
+        const L = (window as any).L;
+        if (!L) {
+          setTimeout(initMobileMap, 300);
+          return;
+        }
+        mobileMap = L.map('checkout-mobile-map').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(mobileMap);
+        mobileMap.on('click', (e: any) => {
+          const { lat, lng } = e.latlng;
+          if (mobileMarker) mobileMarker.setLatLng([lat, lng]);
+          else {
+            mobileMarker = L.marker([lat, lng], { draggable: true }).addTo(mobileMap);
+            mobileMarker.on('dragend', () => {
+              const pos = mobileMarker.getLatLng();
+              updateMobileMarkerPosition(pos.lat, pos.lng);
+            });
+          }
+          updateMobileMarkerPosition(lat, lng);
+        });
+        setTimeout(() => mobileMap.invalidateSize(), 200);
       }
 
       /** Cuando no hay direcciones guardadas, inicializar mapa y pedir ubicación actual */
@@ -628,8 +1046,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             }
           }
 
-          // Renderizar items
+          // Renderizar items (desktop y móvil)
           renderOrderItems();
+          renderMobileStep1Items();
           updateTotals();
 
           // Ocultar loading y mostrar contenido
@@ -637,8 +1056,10 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           if (checkoutContent) checkoutContent.classList.remove('hidden');
           if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = false;
 
-          // Inicializar mapa (siempre visible para seleccionar ubicación)
-          setTimeout(() => initCheckoutMap(), 300);
+          // Inicializar mapa solo en desktop (en móvil step 1 no muestra mapa)
+          if (checkoutDesktop && typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            setTimeout(() => initCheckoutMap(), 300);
+          }
 
           // Esperar un poco más para asegurar que Firebase Auth esté listo
           await new Promise(resolve => setTimeout(resolve, 200));
@@ -906,7 +1327,28 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         });
       }
 
-      // Renderizar items del pedido
+      // Guardar carrito en localStorage (formato compatible con el resto de la app)
+      function saveCartToStorage() {
+        const items = cartItems.map((item) => {
+          const product = productsData.get(item.productId);
+          return {
+            productId: item.productId,
+            quantity: item.quantity || 1,
+            product: product ? {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              brandName: product.brandName
+            } : undefined
+          };
+        });
+        localStorage.setItem('cart', JSON.stringify({ items, lastUpdated: Date.now() }));
+        if ((window as any).updateCartCount) (window as any).updateCartCount();
+        window.dispatchEvent(new CustomEvent('cart-updated'));
+      }
+
+      // Renderizar items del pedido (desktop)
       function renderOrderItems() {
         if (!orderItemsDiv) return;
 
@@ -946,7 +1388,177 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         }).join('');
       }
 
-      // Actualizar totales
+      // Renderizar items del step 1 móvil (carrito con cantidad y eliminar)
+      function renderMobileStep1Items() {
+        if (!mobileOrderItems) return;
+
+        if (cartItems.length === 0) {
+          mobileOrderItems.innerHTML = '<p class="text-gray-500 text-center py-4">No hay productos</p>';
+          updateTotals();
+          return;
+        }
+
+        mobileOrderItems.innerHTML = cartItems.map((item) => {
+          const product = productsData.get(item.productId);
+          if (!product) return '';
+
+          const quantity = item.quantity || 1;
+          const price = product.price || 0;
+          const subtotal = price * quantity;
+          const pid = escapeHtml(item.productId);
+
+          return `
+            <div class="checkout-mobile-item-card p-3 flex gap-3 items-start" data-product-id="${pid}">
+              <div class="w-20 h-20 bg-white rounded-lg overflow-hidden shrink-0 flex items-center justify-center flex-shrink-0">
+                <img 
+                  src="${escapeHtml(product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80')}" 
+                  alt="${escapeHtml(product.name || 'Producto')}"
+                  class="w-full h-full object-contain"
+                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'14\'%3EImagen no disponible%3C/text%3E%3C/svg%3E';"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-gray-900 text-sm line-clamp-2">${escapeHtml(product.name || 'Producto')}</h4>
+                <p class="text-xs text-gray-500">${escapeHtml(product.brandName || 'Sin marca')}</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <button type="button" class="mobile-cart-qty-btn w-8 h-8 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-700 font-medium hover:bg-gray-50" data-action="minus" data-product-id="${pid}" aria-label="Menos">−</button>
+                  <span class="mobile-cart-qty text-sm font-medium min-w-[1.25rem] text-center">${quantity}</span>
+                  <button type="button" class="mobile-cart-qty-btn w-8 h-8 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-700 font-medium hover:bg-gray-50" data-action="plus" data-product-id="${pid}" aria-label="Más">+</button>
+                </div>
+                <div class="mt-2">
+                  <span class="font-semibold text-gray-900 text-sm">Bs. ${formatPrice(subtotal)}</span>
+                  <span class="text-xs text-gray-500 block">Bs. ${formatPrice(price)} c/u</span>
+                </div>
+              </div>
+              <button type="button" class="mobile-cart-remove w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 hover:text-red-600 shrink-0" data-product-id="${pid}" aria-label="Quitar">✕</button>
+            </div>
+          `;
+        }).join('');
+
+        // Delegación de eventos para + / - y eliminar
+        mobileOrderItems.querySelectorAll('.mobile-cart-qty-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLElement;
+            const action = target.getAttribute('data-action');
+            const productId = target.getAttribute('data-product-id');
+            if (!productId || !action) return;
+            const item = cartItems.find((i) => i.productId === productId);
+            if (!item) return;
+            if (action === 'plus') {
+              item.quantity = (item.quantity || 1) + 1;
+              const p = productsData.get(productId);
+              if (p) p.quantity = item.quantity;
+            } else if (action === 'minus' && item.quantity > 1) {
+              item.quantity -= 1;
+              const p = productsData.get(productId);
+              if (p) p.quantity = item.quantity;
+            }
+            saveCartToStorage();
+            renderMobileStep1Items();
+            renderOrderItems();
+            updateTotals();
+          });
+        });
+        mobileOrderItems.querySelectorAll('.mobile-cart-remove').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const productId = (e.currentTarget as HTMLElement).getAttribute('data-product-id');
+            if (!productId) return;
+            cartItems = cartItems.filter((i) => i.productId !== productId);
+            productsData.delete(productId);
+            saveCartToStorage();
+            renderMobileStep1Items();
+            renderOrderItems();
+            updateTotals();
+            if (cartItems.length === 0 && emptyCartDiv && checkoutContent) {
+              checkoutContent.classList.add('hidden');
+              emptyCartDiv.classList.remove('hidden');
+            }
+          });
+        });
+      }
+
+      function getPrimaryAddress(): any | null {
+        if (!userAddresses || userAddresses.length === 0) return null;
+        return userAddresses.find((a: any) => a.isDefault) || userAddresses[0];
+      }
+
+      function updateMobileStep2FromAddress() {
+        const addr = getPrimaryAddress();
+        if (mobileDeliveryAddress) {
+          if (addr) {
+            mobileDeliveryAddress.textContent = [addr.address, addr.district, addr.city].filter(Boolean).join(', ');
+          } else {
+            mobileDeliveryAddress.textContent = 'Selecciona una dirección o ubicación';
+          }
+        }
+        const instructionsText = addr?.instructions || 'Agrega una referencia para el repartidor';
+        if (mobileDeliveryInstructions) {
+          mobileDeliveryInstructions.textContent = instructionsText;
+        }
+        if (mobileFullNameInput) mobileFullNameInput.value = addr?.fullName || '';
+        if (mobilePhoneInput) mobilePhoneInput.value = addr?.phone || '';
+        if (mobileAddressInput) mobileAddressInput.value = addr?.address || '';
+        if (mobileCityInput) mobileCityInput.value = addr?.city || '';
+        if (mobileDistrictInput) mobileDistrictInput.value = addr?.district || '';
+        if (mobileInstructionsInput) mobileInstructionsInput.value = addr?.instructions || '';
+      }
+
+      function updateMobileStep2Totals() {
+        let subtotal = 0;
+        cartItems.forEach((item) => {
+          const product = productsData.get(item.productId);
+          if (product) {
+            const quantity = item.quantity || 1;
+            subtotal += (product.price || 0) * quantity;
+          }
+        });
+        const productsLabel = `Bs ${formatPrice(subtotal)}`;
+        const shipLabel = shippingCost === 0 ? 'Gratis' : `Bs ${formatPrice(shippingCost)}`;
+        const subtotalLabel = `Bs ${formatPrice(subtotal + shippingCost)}`;
+        if (mobileStep2Products) mobileStep2Products.textContent = productsLabel;
+        if (mobileStep2Shipping) mobileStep2Shipping.textContent = shipLabel;
+        if (mobileStep2Subtotal) mobileStep2Subtotal.textContent = subtotalLabel;
+      }
+
+      function setupMobileStep2() {
+        const primaryAddress = getPrimaryAddress();
+
+        // En móvil usamos la dirección principal como fuente de envío
+        if (primaryAddress && primaryAddress.id) {
+          selectedAddressId = primaryAddress.id;
+          useManualAddress = false;
+
+          // Si la dirección ya tiene lat/lng, las sincronizamos con los inputs ocultos
+          if (addressLatInput && typeof primaryAddress.latitude === 'number') {
+            addressLatInput.value = String(primaryAddress.latitude);
+          }
+          if (addressLngInput && typeof primaryAddress.longitude === 'number') {
+            addressLngInput.value = String(primaryAddress.longitude);
+          }
+        }
+
+        updateMobileStep2FromAddress();
+        updateMobileStep2Totals();
+
+        const hasLocation =
+          (addressLatInput && addressLatInput.value && addressLngInput && addressLngInput.value) ||
+          (!!primaryAddress && primaryAddress.latitude && primaryAddress.longitude);
+
+        if (!hasLocation && mobileMapSection) {
+          mobileMapSection.classList.remove('hidden');
+          setTimeout(() => initMobileMap(), 200);
+        }
+
+        // Sincronizar datos de facturación visibles con inputs
+        if (mobileBillingNameInput && mobileBillingName) {
+          mobileBillingNameInput.value = (mobileBillingName as HTMLElement).textContent || '';
+        }
+        if (mobileBillingNitInput && mobileBillingNit) {
+          mobileBillingNitInput.value = (mobileBillingNit as HTMLElement).textContent || '';
+        }
+      }
+
+      // Actualizar totales (desktop y móvil)
       function updateTotals() {
         let subtotal = 0;
 
@@ -971,6 +1583,13 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         } else {
           if (discountRow) discountRow.style.display = 'none';
         }
+
+        // Totales móvil (step 1)
+        const shipLabel = shippingCost === 0 ? 'Gratis' : `Bs. ${formatPrice(shippingCost)}`;
+        if (mobileSubtotalEl) mobileSubtotalEl.textContent = `Bs ${formatPrice(subtotal)}`;
+        if (mobileSubtotalCopyEl) mobileSubtotalCopyEl.textContent = `Bs ${formatPrice(subtotal)}`;
+        if (mobileShippingEl) mobileShippingEl.textContent = shipLabel;
+        if (mobileTotalEl) mobileTotalEl.textContent = `Bs ${formatPrice(total)}`;
       }
 
       // Confirmar pedido
@@ -1051,6 +1670,11 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           paymentMethodType = paymentMethodInput.value;
         }
 
+        // En móvil, step 2 usa el selector visual del modal
+        if (isMobileView() && currentMobileStep >= 2 && currentPaymentMethod) {
+          paymentMethodType = currentPaymentMethod;
+        }
+
         try {
           // Deshabilitar botón y mostrar loading
           (confirmBtn as HTMLButtonElement).disabled = true;
@@ -1112,9 +1736,34 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             }
           }
 
-          // Obtener datos de dirección (de formulario o seleccionada)
+          // Obtener datos de dirección (de formulario, móvil o dirección guardada)
           let shippingAddress: any;
-          if (!useManualAddress && selectedAddressId) {
+
+          // En móvil, si estamos en el step 2 usamos primero los campos de edición móvil
+          if (isMobileView() && currentMobileStep >= 2 && mobileFullNameInput && mobileAddressInput) {
+            const { Timestamp } = await import('firebase/firestore');
+            const now = Timestamp.now();
+            const latVal = addressLatInput?.value || '';
+            const lngVal = addressLngInput?.value || '';
+            const latitude = latVal ? parseFloat(latVal) : null;
+            const longitude = lngVal ? parseFloat(lngVal) : null;
+
+            shippingAddress = {
+              id: selectedAddressId || `temp-${Date.now()}`,
+              name: 'Dirección de Envío',
+              fullName: mobileFullNameInput.value || '',
+              phone: mobilePhoneInput?.value || '',
+              address: mobileAddressInput.value || '',
+              city: mobileCityInput?.value || '',
+              district: mobileDistrictInput?.value || '',
+              instructions: mobileInstructionsInput?.value || '',
+              isDefault: false,
+              latitude,
+              longitude,
+              createdAt: now,
+              updatedAt: now
+            };
+          } else if (!useManualAddress && selectedAddressId) {
             const address = userAddresses.find((a: any) => a.id === selectedAddressId);
             if (address) {
               shippingAddress = {
@@ -1135,7 +1784,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             }
           }
 
-          if (useManualAddress) {
+          if (!shippingAddress && useManualAddress) {
             const formData = new FormData(shippingForm);
             const { Timestamp } = await import('firebase/firestore');
             const now = Timestamp.now();
@@ -1232,6 +1881,18 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             paymentMethod: paymentMethod,
             shippingCost: shippingCost
           };
+          
+          // Datos de facturación desde móvil (opcionales)
+          if (isMobileView() && mobileBillingName && mobileBillingNit) {
+            const billingNameText = (mobileBillingName as HTMLElement).textContent?.trim() || '';
+            const billingNitText = (mobileBillingNit as HTMLElement).textContent?.trim() || '';
+            if (billingNameText || billingNitText) {
+              orderData.billingInfo = {
+                name: billingNameText,
+                nit: billingNitText
+              };
+            }
+          }
           
           // Solo agregar campos de guest si realmente es una orden de invitado
           if (isGuestOrder) {
@@ -1444,6 +2105,123 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
       if (useMyLocationBtn) {
         useMyLocationBtn.addEventListener('click', useMyLocation);
+      }
+
+      // Tabs móvil: Envio / Recoger en eipet
+      const mobileTabEnvio = document.getElementById('mobile-tab-envio');
+      const mobileTabRecoger = document.getElementById('mobile-tab-recoger');
+      if (mobileTabEnvio) {
+        mobileTabEnvio.addEventListener('click', () => {
+          deliveryType = 'envio';
+          mobileTabEnvio.classList.add('checkout-delivery-tab--active');
+          mobileTabRecoger?.classList.remove('checkout-delivery-tab--active');
+        });
+      }
+      if (mobileTabRecoger) {
+        mobileTabRecoger.addEventListener('click', () => {
+          deliveryType = 'recoger';
+          mobileTabRecoger.classList.add('checkout-delivery-tab--active');
+          mobileTabEnvio?.classList.remove('checkout-delivery-tab--active');
+        });
+      }
+
+      // Botones de edición móvil (dirección y facturación)
+      const mobileChangeAddressBtn = document.getElementById('mobile-change-address-btn');
+      if (mobileChangeAddressBtn && mobileMapSection) {
+        mobileChangeAddressBtn.addEventListener('click', () => {
+          mobileMapSection.classList.remove('hidden');
+          setTimeout(() => initMobileMap(), 150);
+          mobileMapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      const mobileChangeBillingBtn = document.getElementById('mobile-change-billing-btn');
+      const mobileBillingEdit = document.getElementById('mobile-billing-edit');
+      const mobileBillingSaveBtn = document.getElementById('mobile-billing-save-btn');
+      if (mobileChangeBillingBtn && mobileBillingEdit) {
+        mobileChangeBillingBtn.addEventListener('click', () => {
+          const isHidden = mobileBillingEdit.classList.contains('hidden');
+          mobileBillingEdit.classList.toggle('hidden', !isHidden);
+          if (isHidden && mobileBillingName && mobileBillingNameInput && mobileBillingNit && mobileBillingNitInput) {
+            mobileBillingNameInput.value = (mobileBillingName as HTMLElement).textContent || '';
+            mobileBillingNitInput.value = (mobileBillingNit as HTMLElement).textContent || '';
+          }
+        });
+      }
+      if (mobileBillingSaveBtn && mobileBillingName && mobileBillingNit && mobileBillingNameInput && mobileBillingNitInput && mobileBillingEdit) {
+        mobileBillingSaveBtn.addEventListener('click', () => {
+          (mobileBillingName as HTMLElement).textContent = mobileBillingNameInput.value || 'Sin datos de facturación';
+          (mobileBillingNit as HTMLElement).textContent = mobileBillingNitInput.value || '';
+          mobileBillingEdit.classList.add('hidden');
+        });
+      }
+
+      // Botón "Pedir y pagar" en móvil: step 1 -> step 2, luego confirmar
+      if (mobilePedirPagarBtn) {
+        mobilePedirPagarBtn.addEventListener('click', () => {
+          if (!isMobileView()) {
+            // En desktop, se comporta como confirmar pedido normal
+            confirmOrder();
+            return;
+          }
+
+          if (currentMobileStep === 1) {
+            if (checkoutStep1) checkoutStep1.classList.add('hidden');
+            if (checkoutStep2) checkoutStep2.classList.remove('hidden');
+            currentMobileStep = 2;
+            mobilePedirPagarBtn.textContent = 'Pagar';
+            setupMobileStep2();
+            document.getElementById('checkout-step-2')?.scrollIntoView({ behavior: 'smooth' });
+          } else if (currentMobileStep === 2) {
+            confirmOrder();
+          }
+        });
+      }
+
+      // Modal de método de pago (móvil)
+      const mobilePaymentMethodBtn = document.getElementById('mobile-payment-method-btn');
+      if (mobilePaymentMethodBtn && paymentMethodModal) {
+        const openPaymentModal = () => {
+          if (!isMobileView()) return;
+          paymentMethodModal.classList.remove('hidden');
+          paymentMethodModal.classList.add('flex');
+        };
+        const closePaymentModal = () => {
+          paymentMethodModal.classList.add('hidden');
+          paymentMethodModal.classList.remove('flex');
+        };
+
+        mobilePaymentMethodBtn.addEventListener('click', openPaymentModal);
+        if (paymentMethodModalClose) {
+          paymentMethodModalClose.addEventListener('click', closePaymentModal);
+        }
+        paymentMethodModal.addEventListener('click', (e) => {
+          if (e.target === paymentMethodModal) {
+            closePaymentModal();
+          }
+        });
+
+        paymentMethodModal.querySelectorAll('.payment-method-modal-option').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const method = (e.currentTarget as HTMLElement).getAttribute('data-method') as 'cash' | 'qr' | 'card' | null;
+            if (!method) return;
+            currentPaymentMethod = method;
+
+            // Actualizar etiqueta en la tarjeta
+            if (mobileSelectedPaymentLabel) {
+              mobileSelectedPaymentLabel.textContent =
+                method === 'cash' ? 'Efectivo' : method === 'qr' ? 'Codigo QR' : 'Tarjeta de crédito o débito';
+            }
+
+            // Marcar visualmente la opción seleccionada
+            paymentMethodModal.querySelectorAll('.payment-method-modal-option').forEach((opt) => {
+              opt.classList.remove('border-[#5d3fbb]', 'bg-purple-50');
+            });
+            (e.currentTarget as HTMLElement).classList.add('border-[#5d3fbb]', 'bg-purple-50');
+
+            closePaymentModal();
+          });
+        });
       }
 
       // Inicializar

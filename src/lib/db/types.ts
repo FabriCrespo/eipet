@@ -351,11 +351,22 @@ export interface Order {
   invoiceNumber?: string; // Número de factura único
   trackingNumber?: string; // Número de seguimiento del envío
   shippingCost?: number; // Costo de envío
+  /** true si el pedido tuvo envío gratis (para métricas) */
+  freeDelivery?: boolean;
+  /** true si la dirección estaba fuera de cobertura (para métricas) */
+  outOfCoverage?: boolean;
+  /** true si el usuario vio el mensaje "Te faltan X Bs" antes de completar (para métricas de conversión) */
+  sawTeFaltanMessage?: boolean;
   // Campos para órdenes de invitados
   isGuest?: boolean; // true si es una orden de invitado
   guestEmail?: string; // Email del invitado (para contacto)
   guestPhone?: string; // Teléfono del invitado
   guestName?: string; // Nombre completo del invitado
+  /** Datos de facturación opcionales asociados a la orden */
+  billingInfo?: {
+    name: string;
+    nit: string;
+  };
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }
@@ -373,6 +384,11 @@ export interface CreateOrderData {
   guestEmail?: string; // Email del invitado (para contacto)
   guestPhone?: string; // Teléfono del invitado
   guestName?: string; // Nombre completo del invitado
+  /** Datos de facturación opcionales asociados a la orden */
+  billingInfo?: {
+    name: string;
+    nit: string;
+  };
 }
 
 export interface UpdateOrderData {
@@ -504,6 +520,32 @@ export interface Discount {
   updatedAt: FirestoreTimestamp;
 }
 
+export interface CreateDiscountData {
+  name: string;
+  type: DiscountTargetType;
+  targetId?: string | null;
+  discountValue: number;
+  discountType: DiscountType;
+  startDate: Date | FirestoreTimestamp;
+  endDate: Date | FirestoreTimestamp;
+  isActive?: boolean;
+  minPurchaseAmount?: number;
+  maxUses?: number;
+}
+
+export interface UpdateDiscountData {
+  name?: string;
+  type?: DiscountTargetType;
+  targetId?: string | null;
+  discountValue?: number;
+  discountType?: DiscountType;
+  startDate?: Date | FirestoreTimestamp;
+  endDate?: Date | FirestoreTimestamp;
+  isActive?: boolean;
+  minPurchaseAmount?: number;
+  maxUses?: number;
+}
+
 // ============================================================================
 // CONFIGURACIONES DE USUARIO
 // ============================================================================
@@ -537,6 +579,36 @@ export interface UpdateUserSettingsData {
   preferences?: Partial<UserSettings['preferences']>;
   communication?: Partial<UserSettings['communication']>;
   privacy?: Partial<UserSettings['privacy']>;
+}
+
+// ============================================================================
+// CONFIGURACIÓN DE ENVÍOS Y DESCUENTOS (TIENDA)
+// ============================================================================
+
+export interface DeliverySettings {
+  id: string;
+  /** Monto mínimo de compra (Bs) para aplicar envío gratis */
+  minPurchaseAmount: number;
+  /** Radio de cobertura en km */
+  coverageRadiusKm: number;
+  /** Si el envío gratis está activo */
+  freeDeliveryEnabled: boolean;
+  /** Mensaje dinámico: "Te faltan {amount} Bs para envío gratis" — {amount} se reemplaza */
+  messageTeFaltan: string;
+  /** Mensaje cuando la dirección está fuera de cobertura */
+  messageFueraCobertura: string;
+  /** Mensaje cuando alcanza el monto mínimo (ej. "¡Felicidades! Tienes envío gratis") */
+  messageEnvioGratis: string;
+  updatedAt: FirestoreTimestamp;
+}
+
+export interface UpdateDeliverySettingsData {
+  minPurchaseAmount?: number;
+  coverageRadiusKm?: number;
+  freeDeliveryEnabled?: boolean;
+  messageTeFaltan?: string;
+  messageFueraCobertura?: string;
+  messageEnvioGratis?: string;
 }
 
 // ============================================================================

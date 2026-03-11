@@ -108,3 +108,18 @@ export {
   runMigration,
 } from './migrate';
 
+// Configuración de tienda (envíos, descuentos, mensajes)
+export {
+  getDeliverySettings,
+  updateDeliverySettings,
+} from './storeSettings';
+
+// Descuentos (cupones / promociones)
+export {
+  getDiscounts,
+  getDiscountById,
+  createDiscount,
+  updateDiscount,
+  deleteDiscount,
+} from './discounts';
+

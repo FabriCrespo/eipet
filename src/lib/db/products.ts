@@ -321,52 +321,56 @@ export async function validateAndAdjustStockMultiple(
 ): Promise<{ success: boolean; errors: string[]; error?: Error }> {
   let errors: string[] = [];
   try {
-    
     // Usar transacción para validar y actualizar stock de todos los productos
     await runTransaction(db, async (transaction) => {
-      // Primero, validar stock de todos los productos
+      // Cache para cumplir la regla de Firestore:
+      // "todas las lecturas antes de todas las escrituras"
+      const productsInTx = new Map<
+        string,
+        { ref: ReturnType<typeof doc>; product: Product; currentStock: number }
+      >();
+
+      // 1) LEER y VALIDAR
       for (const item of items) {
         const productRef = doc(db, COLLECTION_NAME, item.productId);
         const productSnap = await transaction.get(productRef);
-        
+
         if (!productSnap.exists()) {
           errors.push(`Producto ${item.productId} no encontrado`);
           continue;
         }
-        
+
         const product = productSnap.data() as Product;
         const currentStock = product.stock || 0;
-        
+
         if (currentStock < item.quantity) {
           errors.push(
             `${product.name || item.productId}: Stock disponible (${currentStock}) es menor que la cantidad solicitada (${item.quantity})`
           );
         }
+
+        productsInTx.set(item.productId, { ref: productRef, product, currentStock });
       }
-      
+
       // Si hay errores, lanzar excepción para abortar la transacción
       if (errors.length > 0) {
         throw new Error('Stock validation failed');
       }
-      
-      // Si todo está bien, actualizar stock de todos los productos
+
+      // 2) ESCRIBIR (actualizar stock) usando solo los datos ya leídos
       for (const item of items) {
-        const productRef = doc(db, COLLECTION_NAME, item.productId);
-        const productSnap = await transaction.get(productRef);
-        
-        if (productSnap.exists()) {
-          const product = productSnap.data() as Product;
-          const newStock = (product.stock || 0) - item.quantity;
-          
-          if (newStock < 0) {
-            throw new Error(`Stock cannot be negative for product ${item.productId}`);
-          }
-          
-          transaction.update(productRef, {
-            stock: newStock,
-            updatedAt: Timestamp.now(),
-          });
+        const cached = productsInTx.get(item.productId);
+        if (!cached) continue;
+
+        const newStock = cached.currentStock - item.quantity;
+        if (newStock < 0) {
+          throw new Error(`Stock cannot be negative for product ${item.productId}`);
         }
+
+        transaction.update(cached.ref, {
+          stock: newStock,
+          updatedAt: Timestamp.now(),
+        });
       }
     });
     
