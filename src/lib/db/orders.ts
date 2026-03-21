@@ -64,6 +64,7 @@ export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
       if (data.guestPhone) orderData.guestPhone = data.guestPhone;
       if (data.guestName) orderData.guestName = data.guestName;
     }
+    if (data.billingInfo) orderData.billingInfo = data.billingInfo;
 
     console.log('📝 [ORDERS] Creando orden con datos:', {
       userId: orderData.userId,

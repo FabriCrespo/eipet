@@ -474,8 +474,19 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             <!-- Mapa y edición de dirección (se muestra al tocar "Cambiar") -->
             <div id="mobile-map-section" class="hidden mb-6 space-y-3">
               <p class="text-xs text-gray-600">
-                Marca en el mapa el punto exacto de entrega y edita los datos si es necesario.
+                Usa tu ubicación actual o marca en el mapa el punto exacto de entrega.
               </p>
+              <button
+                type="button"
+                id="mobile-use-my-location-btn"
+                class="mb-2 inline-flex items-center gap-2 px-3 py-2 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors text-xs"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                </svg>
+                Usar mi ubicación actual
+              </button>
+              <div id="mobile-map-status" class="text-xs text-gray-500 mb-1"></div>
               <div id="checkout-mobile-map" class="w-full h-52 rounded-xl overflow-hidden border border-gray-200 bg-gray-100"></div>
               <p class="text-[11px] text-gray-500">
                 Puedes mover el marcador para ajustar la ubicación.
@@ -826,8 +837,10 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         }
       }
 
-      async function reverseGeocode(lat: number, lng: number) {
-        setMapStatus('Obteniendo dirección...');
+      async function reverseGeocode(lat: number, lng: number, forMobile = false) {
+        const statusEl = forMobile ? document.getElementById('mobile-map-status') : mapStatus;
+        if (statusEl) statusEl.textContent = 'Obteniendo dirección...';
+        if (!forMobile && mapStatus) setMapStatus('Obteniendo dirección...');
         try {
           const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
           const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
@@ -836,17 +849,34 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           const fullAddress = [a.road, a.house_number, a.suburb, a.neighbourhood].filter(Boolean).join(', ') || data.display_name || '';
           const city = a.city || a.town || a.village || a.municipality || a.state || '';
           const district = a.suburb || a.neighbourhood || a.quarter || a.district || '';
-          const addressInput = document.getElementById('address') as HTMLInputElement;
-          const cityInput = document.getElementById('city') as HTMLInputElement;
-          const districtInput = document.getElementById('district') as HTMLInputElement;
-          if (addressInput) addressInput.value = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          if (cityInput) cityInput.value = city;
-          if (districtInput) districtInput.value = district;
-          setMapStatus('Dirección actualizada. Puedes editar los campos si hace falta.');
+          if (forMobile) {
+            const addrInput = document.getElementById('mobile-address') as HTMLInputElement;
+            const cityInput = document.getElementById('mobile-city') as HTMLInputElement;
+            const distInput = document.getElementById('mobile-district') as HTMLInputElement;
+            if (addrInput) addrInput.value = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (cityInput) cityInput.value = city;
+            if (distInput) distInput.value = district;
+            if (mobileDeliveryAddress) mobileDeliveryAddress.textContent = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (statusEl) statusEl.textContent = 'Dirección actualizada. Puedes editar los campos si hace falta.';
+          } else {
+            const addressInput = document.getElementById('address') as HTMLInputElement;
+            const cityInput = document.getElementById('city') as HTMLInputElement;
+            const districtInput = document.getElementById('district') as HTMLInputElement;
+            if (addressInput) addressInput.value = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (cityInput) cityInput.value = city;
+            if (districtInput) districtInput.value = district;
+            setMapStatus('Dirección actualizada. Puedes editar los campos si hace falta.');
+          }
         } catch (e) {
-          setMapStatus('No se pudo obtener la dirección. Completa los campos manualmente.', true);
-          const addressInput = document.getElementById('address') as HTMLInputElement;
-          if (addressInput) addressInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          if (forMobile) {
+            const addrInput = document.getElementById('mobile-address') as HTMLInputElement;
+            if (addrInput) addrInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (statusEl) statusEl.textContent = 'No se pudo obtener la dirección. Completa los campos manualmente.';
+          } else {
+            setMapStatus('No se pudo obtener la dirección. Completa los campos manualmente.', true);
+            const addressInput = document.getElementById('address') as HTMLInputElement;
+            if (addressInput) addressInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          }
         }
       }
 
@@ -859,6 +889,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       function updateMobileMarkerPosition(lat: number, lng: number) {
         if (addressLatInput) addressLatInput.value = String(lat);
         if (addressLngInput) addressLngInput.value = String(lng);
+        reverseGeocode(lat, lng, true);
       }
 
       function initCheckoutMap() {
@@ -952,6 +983,39 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           (err) => {
             const msg = err.code === 1 ? 'Permiso de ubicación denegado. Puedes marcar el punto en el mapa.' : 'No se pudo obtener la ubicación. Marca el punto en el mapa.';
             setMapStatus(msg, true);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      }
+
+      function useMyLocationMobile() {
+        if (!navigator.geolocation) {
+          const statusEl = document.getElementById('mobile-map-status');
+          if (statusEl) statusEl.textContent = 'Tu navegador no soporta geolocalización.';
+          return;
+        }
+        const statusEl = document.getElementById('mobile-map-status');
+        if (statusEl) statusEl.textContent = 'Solicitando permiso de ubicación...';
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const L = (window as any).L;
+            if (!mobileMap || !L) return;
+            mobileMap.setView([lat, lng], 16);
+            if (mobileMarker) mobileMarker.setLatLng([lat, lng]);
+            else {
+              mobileMarker = L.marker([lat, lng], { draggable: true }).addTo(mobileMap);
+              mobileMarker.on('dragend', () => {
+                const p = mobileMarker.getLatLng();
+                updateMobileMarkerPosition(p.lat, p.lng);
+              });
+            }
+            updateMobileMarkerPosition(lat, lng);
+          },
+          (err) => {
+            const msg = err.code === 1 ? 'Permiso de ubicación denegado. Marca el punto en el mapa.' : 'No se pudo obtener la ubicación. Marca el punto en el mapa.';
+            if (statusEl) statusEl.textContent = msg;
           },
           { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
@@ -1503,6 +1567,22 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (mobileInstructionsInput) mobileInstructionsInput.value = addr?.instructions || '';
       }
 
+      async function fillMobileFieldsFromUserData() {
+        if (!currentUserId) return;
+        try {
+          const { getCurrentUserData } = await import('../lib/auth');
+          const result = await getCurrentUserData();
+          if (result.success && result.user && mobileFullNameInput && mobilePhoneInput) {
+            if (!mobileFullNameInput.value) {
+              mobileFullNameInput.value = `${result.user.firstName || ''} ${result.user.lastName || ''}`.trim();
+            }
+            if (!mobilePhoneInput.value) {
+              mobilePhoneInput.value = result.user.phone || '';
+            }
+          }
+        } catch (_) {}
+      }
+
       function updateMobileStep2Totals() {
         let subtotal = 0;
         cartItems.forEach((item) => {
@@ -1538,6 +1618,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         }
 
         updateMobileStep2FromAddress();
+        fillMobileFieldsFromUserData();
         updateMobileStep2Totals();
 
         const hasLocation =
@@ -1546,7 +1627,10 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
         if (!hasLocation && mobileMapSection) {
           mobileMapSection.classList.remove('hidden');
-          setTimeout(() => initMobileMap(), 200);
+          setTimeout(() => {
+            initMobileMap();
+            useMyLocationMobile();
+          }, 250);
         }
 
         // Sincronizar datos de facturación visibles con inputs
@@ -1886,7 +1970,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           if (isMobileView() && mobileBillingName && mobileBillingNit) {
             const billingNameText = (mobileBillingName as HTMLElement).textContent?.trim() || '';
             const billingNitText = (mobileBillingNit as HTMLElement).textContent?.trim() || '';
-            if (billingNameText || billingNitText) {
+            const isPlaceholder = billingNameText === 'Sin datos de facturación';
+            if ((billingNameText || billingNitText) && !isPlaceholder) {
               orderData.billingInfo = {
                 name: billingNameText,
                 nit: billingNitText
@@ -2127,12 +2212,20 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
       // Botones de edición móvil (dirección y facturación)
       const mobileChangeAddressBtn = document.getElementById('mobile-change-address-btn');
+      const mobileUseMyLocationBtn = document.getElementById('mobile-use-my-location-btn');
       if (mobileChangeAddressBtn && mobileMapSection) {
         mobileChangeAddressBtn.addEventListener('click', () => {
           mobileMapSection.classList.remove('hidden');
-          setTimeout(() => initMobileMap(), 150);
+          setTimeout(() => {
+            initMobileMap();
+            const hasLoc = addressLatInput?.value && addressLngInput?.value;
+            if (!hasLoc) useMyLocationMobile();
+          }, 200);
           mobileMapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
+      }
+      if (mobileUseMyLocationBtn) {
+        mobileUseMyLocationBtn.addEventListener('click', useMyLocationMobile);
       }
 
       const mobileChangeBillingBtn = document.getElementById('mobile-change-billing-btn');
