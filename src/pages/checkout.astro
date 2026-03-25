@@ -118,18 +118,20 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   <p class="text-sm text-gray-600 mb-2">
                     Usa tu ubicación actual o mueve el marcador al punto de entrega. Se pedirá permiso para acceder a tu ubicación.
                   </p>
-                  <button
-                    type="button"
-                    id="use-my-location-btn"
-                    class="mb-3 inline-flex items-center gap-2 px-4 py-2.5 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-xl transition-colors text-sm"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    </svg>
-                    Usar mi ubicación actual
-                  </button>
                   <div id="map-status" class="text-sm text-gray-500 mb-2"></div>
-                  <div id="checkout-map" class="w-full h-72 rounded-xl overflow-hidden border border-gray-200 bg-gray-100"></div>
+                  <div class="relative w-full h-72 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm isolate">
+                    <div id="checkout-map" class="absolute inset-0 z-0 h-full w-full"></div>
+                    <button
+                      type="button"
+                      id="use-my-location-btn"
+                      class="absolute bottom-3 left-3 z-1000 pointer-events-auto inline-flex items-center gap-2 px-3 py-2 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors text-xs shadow-lg"
+                    >
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      </svg>
+                      <span class="text-left leading-tight">Usar mi ubicación actual</span>
+                    </button>
+                  </div>
                   <p class="text-xs text-gray-500 mt-2">Arrastra el marcador para ajustar el punto de entrega.</p>
                   <input type="hidden" id="address-lat" name="latitude" value="" />
                   <input type="hidden" id="address-lng" name="longitude" value="" />
@@ -457,9 +459,20 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <div class="flex-1">
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center justify-between gap-2">
                     <p id="mobile-delivery-type-label" class="text-sm font-semibold text-gray-900">Casa</p>
-                    <button type="button" id="mobile-change-address-btn" class="text-xs font-semibold text-[#5d3fbb]">Actualizar ubicación</button>
+                    <button
+                      type="button"
+                      id="mobile-change-address-btn"
+                      class="flex items-center gap-1 text-xs font-semibold text-[#5d3fbb]"
+                      aria-expanded="false"
+                      aria-controls="mobile-map-section"
+                    >
+                      <span>Cambiar ubicación</span>
+                      <svg id="mobile-change-address-chevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
                   </div>
                   <p id="mobile-delivery-address" class="text-xs text-gray-600 mt-0.5">
                     Se cargará tu dirección al usar el mapa o tu ubicación actual.
@@ -467,16 +480,13 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 </div>
               </div>
 
-              <!-- Instrucciones (resumen editable) -->
+              <!-- Instrucciones (solo lectura; se editan en el formulario del mapa) -->
               <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 mt-0.5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4v-4z" />
                 </svg>
                 <div class="flex-1">
-                  <div class="flex items-center justify-between">
-                    <p class="text-sm font-semibold text-gray-900">Instrucciones de entrega</p>
-                    <button type="button" id="mobile-edit-instructions-btn" class="text-xs font-semibold text-[#5d3fbb]">Editar</button>
-                  </div>
+                  <p class="text-sm font-semibold text-gray-900">Instrucciones de entrega</p>
                   <p id="mobile-delivery-instructions-preview" class="text-xs text-gray-600 mt-0.5">
                     Agrega una referencia para el repartidor.
                   </p>
@@ -484,23 +494,47 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               </div>
             </div>
 
-            <!-- Mapa + formulario (visible al entrar en el paso 2; mismo flujo que la versión web) -->
-            <div id="mobile-map-section" class="mb-6 space-y-3">
+            <!-- Ubicaciones guardadas: debajo del resumen de entrega (fuera del dropdown) -->
+            <div id="mobile-saved-addresses-section" class="hidden mb-4 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+              <p class="text-xs font-semibold text-gray-900">Ubicaciones guardadas</p>
+              <p class="text-[11px] text-gray-500 mt-0.5 mb-2">Selecciona una para el envío</p>
+              <select
+                id="mobile-saved-address-pick"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
+                aria-label="Elegir ubicación guardada"
+              >
+                <option value="">Seleccionar otra ubicación…</option>
+              </select>
+              <div
+                id="mobile-saved-addresses-list"
+                role="listbox"
+                aria-label="Acciones sobre ubicaciones guardadas"
+                class="mt-2 max-h-36 space-y-1 overflow-y-auto pr-0.5"
+              ></div>
+            </div>
+
+            <!-- Mapa + formulario (dropdown al pulsar "Cambiar ubicación") -->
+            <div
+              id="mobile-map-section"
+              class="mobile-address-dropdown-panel mb-6 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3 hidden"
+            >
               <p class="text-xs text-gray-600">
                 Usa tu ubicación actual o marca en el mapa el punto exacto de entrega.
               </p>
-              <button
-                type="button"
-                id="mobile-use-my-location-btn"
-                class="mb-2 inline-flex items-center gap-2 px-3 py-2 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors text-xs"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                </svg>
-                Usar mi ubicación actual
-              </button>
               <div id="mobile-map-status" class="text-xs text-gray-500 mb-1"></div>
-              <div id="checkout-mobile-map" class="w-full h-64 min-h-56 rounded-xl overflow-hidden border border-gray-200 bg-gray-100"></div>
+              <div class="relative w-full h-64 min-h-56 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm isolate">
+                <div id="checkout-mobile-map" class="absolute inset-0 z-0 h-full w-full"></div>
+                <button
+                  type="button"
+                  id="mobile-use-my-location-btn"
+                  class="absolute bottom-2 left-2 right-2 z-1000 pointer-events-auto inline-flex items-center justify-center gap-2 px-3 py-2 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors text-xs shadow-lg"
+                >
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  </svg>
+                  <span class="truncate">Usar mi ubicación actual</span>
+                </button>
+              </div>
               <p class="text-[11px] text-gray-500">
                 Puedes mover el marcador para ajustar la ubicación.
               </p>
@@ -558,10 +592,6 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 >
                   Guardar ubicación
                 </button>
-              </div>
-              <div id="mobile-guest-addresses-section" class="hidden rounded-lg border border-gray-200 bg-gray-50 p-2">
-                <p class="text-[11px] font-semibold text-gray-700 mb-2">Ubicaciones guardadas</p>
-                <div id="mobile-guest-addresses-list" class="space-y-1"></div>
               </div>
             </div>
 
@@ -681,6 +711,16 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
     </div>
   </div>
 
+  <!-- Toast: ubicación guardada (móvil) -->
+  <div
+    id="mobile-address-saved-toast"
+    class="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-1300 -translate-x-1/2 hidden max-w-[min(100%,20rem)] rounded-xl bg-gray-900 px-4 py-3 text-center text-sm font-medium text-white shadow-lg"
+    role="status"
+    aria-live="polite"
+  >
+    Ubicación guardada correctamente
+  </div>
+
   <!-- Modal de Confirmación de Orden -->
   <OrderConfirmationModal id="order-confirmation-modal" />
 
@@ -744,6 +784,25 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       to {
         transform: translateY(0%);
       }
+    }
+
+    .mobile-address-dropdown-panel:not(.hidden) {
+      animation: mobileAddressDropdownOpen 200ms ease-out;
+    }
+
+    @keyframes mobileAddressDropdownOpen {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #mobile-change-address-chevron.mobile-change-address-chevron--open {
+      transform: rotate(180deg);
     }
   </style>
 
@@ -866,8 +925,12 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const addressNameInput = document.getElementById('addressName') as HTMLInputElement | null;
       const mobileAddressLabelInput = document.getElementById('mobile-address-label') as HTMLInputElement | null;
       const mobileSaveAddressBtn = document.getElementById('mobile-save-address-btn');
-      const mobileGuestAddressesSection = document.getElementById('mobile-guest-addresses-section');
-      const mobileGuestAddressesList = document.getElementById('mobile-guest-addresses-list');
+      const mobileSavedAddressesSection = document.getElementById('mobile-saved-addresses-section');
+      const mobileSavedAddressPick = document.getElementById('mobile-saved-address-pick') as HTMLSelectElement | null;
+      const mobileSavedAddressesList = document.getElementById('mobile-saved-addresses-list');
+      const mobileGuestAddressesList = mobileSavedAddressesList;
+      const mobileChangeAddressChevron = document.getElementById('mobile-change-address-chevron');
+      const mobileAddressSavedToast = document.getElementById('mobile-address-saved-toast');
       const mobileFullNameInput = document.getElementById('mobile-fullName') as HTMLInputElement | null;
       const mobilePhoneInput = document.getElementById('mobile-phone') as HTMLInputElement | null;
       const mobileAddressInput = document.getElementById('mobile-address') as HTMLInputElement | null;
@@ -884,6 +947,52 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const GUEST_SHIPPING_STORAGE_KEY = 'eipet_guest_shipping_v1';
       const GUEST_ADDRESSES_STORAGE_KEY = 'eipet_guest_addresses_v1';
       const GUEST_SELECTED_ADDRESS_KEY = 'eipet_guest_selected_address_v1';
+
+      let mobileAddressDropdownMapPrimed = false;
+      let mobileAddressToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+      function showMobileAddressSavedToast() {
+        if (!mobileAddressSavedToast) return;
+        mobileAddressSavedToast.classList.remove('hidden');
+        if (mobileAddressToastTimer) clearTimeout(mobileAddressToastTimer);
+        mobileAddressToastTimer = setTimeout(() => {
+          mobileAddressSavedToast.classList.add('hidden');
+          mobileAddressToastTimer = null;
+        }, 2800);
+      }
+
+      function openMobileAddressDropdown() {
+        if (!mobileMapSection || !mobileChangeAddressBtn) return;
+        if (mobileMapSection.classList.contains('hidden')) {
+          mobileMapSection.classList.remove('hidden');
+          mobileChangeAddressBtn.setAttribute('aria-expanded', 'true');
+          mobileChangeAddressChevron?.classList.add('mobile-change-address-chevron--open');
+          if (!mobileAddressDropdownMapPrimed) {
+            mobileAddressDropdownMapPrimed = true;
+            setTimeout(() => applyMobileStep2MapAndLocation(), 80);
+          } else {
+            setTimeout(() => {
+              initMobileMap();
+              if (mobileMap) mobileMap.invalidateSize();
+            }, 80);
+          }
+        }
+      }
+
+      function toggleMobileAddressDropdown() {
+        if (!mobileMapSection || !mobileChangeAddressBtn) return;
+        if (mobileMapSection.classList.contains('hidden')) {
+          openMobileAddressDropdown();
+        } else {
+          closeMobileAddressDropdown();
+        }
+      }
+
+      function closeMobileAddressDropdown() {
+        if (mobileMapSection) mobileMapSection.classList.add('hidden');
+        mobileChangeAddressBtn?.setAttribute('aria-expanded', 'false');
+        mobileChangeAddressChevron?.classList.remove('mobile-change-address-chevron--open');
+      }
 
       // Mapa: Leaflet (se usa cuando addressSource === 'map')
       let checkoutMap: any = null;
@@ -1020,7 +1129,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         } catch (_) {}
       }
 
-      function applyGuestAddressToMobile(addr: any) {
+      function applySavedAddressToMobile(addr: any) {
         if (!addr) return;
         if (mobileAddressLabelInput) mobileAddressLabelInput.value = addr.name || '';
         if (mobileFullNameInput) mobileFullNameInput.value = addr.fullName || '';
@@ -1029,13 +1138,13 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (mobileCityInput) mobileCityInput.value = addr.city || '';
         if (mobileDistrictInput) mobileDistrictInput.value = addr.district || '';
         if (mobileInstructionsInput) mobileInstructionsInput.value = addr.instructions || '';
-        if (addressLatInput) addressLatInput.value = addr.latitude ? String(addr.latitude) : '';
-        if (addressLngInput) addressLngInput.value = addr.longitude ? String(addr.longitude) : '';
+        if (addressLatInput) addressLatInput.value = addr.latitude != null && addr.latitude !== '' ? String(addr.latitude) : '';
+        if (addressLngInput) addressLngInput.value = addr.longitude != null && addr.longitude !== '' ? String(addr.longitude) : '';
         if (mobileDeliveryAddress) mobileDeliveryAddress.textContent = [addr.address, addr.district, addr.city].filter(Boolean).join(', ');
         if (mobileDeliveryTypeLabel) mobileDeliveryTypeLabel.textContent = resolveTypedAddressLabel();
         updateMobileInstructionsPreview(addr.instructions || '');
-        const lat = parseFloat(String(addr.latitude || ''));
-        const lng = parseFloat(String(addr.longitude || ''));
+        const lat = parseFloat(String(addr.latitude ?? ''));
+        const lng = parseFloat(String(addr.longitude ?? ''));
         if (!isNaN(lat) && !isNaN(lng)) {
           initMobileMap();
           setTimeout(() => placeMobileMarkerAt(lat, lng), 120);
@@ -1043,30 +1152,101 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         saveGuestShippingDraft();
       }
 
-      function renderMobileGuestAddresses() {
-        if (!mobileGuestAddressesSection || !mobileGuestAddressesList) return;
-        const list = loadGuestAddresses();
-        if (list.length === 0) {
-          mobileGuestAddressesSection.classList.add('hidden');
-          mobileGuestAddressesList.innerHTML = '';
+      function prepareMobileAddressFormForNewEntry() {
+        if (mobileAddressLabelInput) mobileAddressLabelInput.value = '';
+        if (mobileAddressInput) mobileAddressInput.value = '';
+        if (mobileCityInput) mobileCityInput.value = '';
+        if (mobileDistrictInput) mobileDistrictInput.value = '';
+        if (mobileInstructionsInput) mobileInstructionsInput.value = '';
+        if (mobileDeliveryTypeLabel) mobileDeliveryTypeLabel.textContent = resolveTypedAddressLabel();
+        if (mobileDeliveryAddress) mobileDeliveryAddress.textContent = 'Selecciona una dirección o ubicación';
+        updateMobileInstructionsPreview('');
+        if (!currentUserId) {
+          setSelectedGuestAddressId('');
+        } else {
+          selectedAddressId = null;
+          useManualAddress = true;
+        }
+        saveGuestShippingDraft();
+        renderMobileSavedAddresses();
+      }
+
+      function encodeSavedPickValue(source: 'user' | 'guest', id: string) {
+        return `${source}|${encodeURIComponent(id)}`;
+      }
+
+      function parseSavedPickValue(v: string): { source: 'user' | 'guest'; id: string } | null {
+        if (!v) return null;
+        const pipe = v.indexOf('|');
+        if (pipe < 1) return null;
+        const source = v.slice(0, pipe) as 'user' | 'guest';
+        if (source !== 'user' && source !== 'guest') return null;
+        try {
+          const id = decodeURIComponent(v.slice(pipe + 1));
+          return { source, id };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function renderMobileSavedAddresses() {
+        if (!mobileSavedAddressesSection || !mobileSavedAddressesList || !mobileSavedAddressPick) return;
+
+        const loggedIn = !!currentUserId;
+        const placeholderLabel = 'Seleccionar otra ubicación…';
+
+        if (loggedIn && userAddresses.length > 0) {
+          const phSel = !selectedAddressId ? ' selected' : '';
+          let opts = `<option value=""${phSel}>${placeholderLabel}</option>`;
+          userAddresses.forEach((address: any) => {
+            const label = [address.name || 'Dirección', address.address, address.district].filter(Boolean).join(' · ');
+            const val = encodeSavedPickValue('user', address.id);
+            const sel = selectedAddressId === address.id ? ' selected' : '';
+            opts += `<option value="${escapeHtml(val)}"${sel}>${escapeHtml(label)}</option>`;
+          });
+          mobileSavedAddressPick.innerHTML = opts;
+          mobileSavedAddressesList.innerHTML = '';
+          mobileSavedAddressesSection.classList.remove('hidden');
           return;
         }
+
+        if (loggedIn) {
+          mobileSavedAddressPick.innerHTML = `<option value="">${placeholderLabel}</option>`;
+          mobileSavedAddressesList.innerHTML = '';
+          mobileSavedAddressesSection.classList.add('hidden');
+          return;
+        }
+
+        const list = loadGuestAddresses();
         const selectedId = getSelectedGuestAddressId();
-        mobileGuestAddressesSection.classList.remove('hidden');
-        mobileGuestAddressesList.innerHTML = list.map((addr: any) => {
-          const title = escapeHtml(addr.name || 'Dirección');
-          const subtitle = escapeHtml([addr.address, addr.district].filter(Boolean).join(', '));
-          const isSelected = selectedId && selectedId === addr.id;
-          return `
-            <div class="flex items-center gap-2 rounded-lg border ${isSelected ? 'border-[#5d3fbb] bg-purple-50' : 'border-gray-200 bg-white'} px-2 py-1.5">
-              <button type="button" class="guest-address-select flex-1 text-left" data-id="${escapeHtml(addr.id)}">
-                <p class="text-xs font-semibold text-gray-900">${title}</p>
-                <p class="text-[11px] text-gray-600 line-clamp-1">${subtitle}</p>
-              </button>
-              <button type="button" class="guest-address-delete text-[11px] text-red-600 font-semibold px-1" data-id="${escapeHtml(addr.id)}">Quitar</button>
-            </div>
-          `;
-        }).join('');
+        if (list.length === 0) {
+          mobileSavedAddressPick.innerHTML = `<option value="">${placeholderLabel}</option>`;
+          mobileSavedAddressesList.innerHTML = '';
+          mobileSavedAddressesSection.classList.add('hidden');
+          return;
+        }
+
+        const phSelGuest = !selectedId ? ' selected' : '';
+        let opts = `<option value=""${phSelGuest}>${placeholderLabel}</option>`;
+        list.forEach((addr: any) => {
+          const label = [addr.name || 'Dirección', addr.address].filter(Boolean).join(' · ');
+          const val = encodeSavedPickValue('guest', addr.id);
+          const sel = selectedId === addr.id ? ' selected' : '';
+          opts += `<option value="${escapeHtml(val)}"${sel}>${escapeHtml(label)}</option>`;
+        });
+        mobileSavedAddressPick.innerHTML = opts;
+
+        mobileSavedAddressesList.innerHTML = list
+          .map(
+            (addr: any) => `
+          <div class="flex items-center justify-between gap-2 rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5">
+            <span class="min-w-0 flex-1 truncate text-[11px] text-gray-700">${escapeHtml(addr.name || 'Dirección')}</span>
+            <button type="button" class="mobile-saved-address-delete shrink-0 rounded px-2 py-0.5 text-[11px] font-semibold text-red-600 hover:bg-red-50" data-source="guest" data-id="${escapeHtml(addr.id)}">Quitar</button>
+          </div>`
+          )
+          .join('');
+
+        mobileSavedAddressesSection.classList.remove('hidden');
       }
 
       async function reverseGeocode(lat: number, lng: number, forMobile = false) {
@@ -1483,6 +1663,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             userAddresses = result.data;
             console.log('📍 [CHECKOUT] userAddresses asignado:', userAddresses);
             renderAddresses();
+            renderMobileSavedAddresses();
             if (savedAddressesSection) {
               savedAddressesSection.classList.remove('hidden');
               console.log('📍 [CHECKOUT] Sección de direcciones mostrada');
@@ -1897,19 +2078,21 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         updateMobileStep2FromAddress();
         if (!primaryAddress) {
           applyGuestShippingDraftToMobile();
-          renderMobileGuestAddresses();
           const selectedId = getSelectedGuestAddressId();
           if (selectedId) {
             const selected = loadGuestAddresses().find((a: any) => a.id === selectedId);
-            if (selected) applyGuestAddressToMobile(selected);
+            if (selected) applySavedAddressToMobile(selected);
           }
         }
         fillMobileFieldsFromUserData();
         updateMobileStep2Totals();
         syncMobilePaymentSummary();
 
-        // Mapa + pin: igual que web — init mapa, luego a 600 ms ubicación guardada o GPS
-        applyMobileStep2MapAndLocation();
+        renderMobileSavedAddresses();
+
+        // Panel de dirección/mapas: cerrado hasta "Cambiar ubicación"
+        mobileAddressDropdownMapPrimed = false;
+        closeMobileAddressDropdown();
 
         // Sincronizar datos de facturación visibles con inputs
         if (mobileBillingNameInput && mobileBillingName) {
@@ -2505,24 +2688,16 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       // Botones de edición móvil (dirección y facturación)
       const mobileChangeAddressBtn = document.getElementById('mobile-change-address-btn');
       const mobileUseMyLocationBtn = document.getElementById('mobile-use-my-location-btn');
-      const mobileEditInstructionsBtn = document.getElementById('mobile-edit-instructions-btn');
       if (mobileChangeAddressBtn && mobileMapSection) {
         mobileChangeAddressBtn.addEventListener('click', () => {
-          mobileMapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          setTimeout(() => {
-            initMobileMap();
-            useMyLocationMobile();
-          }, 150);
+          toggleMobileAddressDropdown();
+          if (!mobileMapSection.classList.contains('hidden')) {
+            mobileMapSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         });
       }
       if (mobileUseMyLocationBtn) {
         mobileUseMyLocationBtn.addEventListener('click', useMyLocationMobile);
-      }
-      if (mobileEditInstructionsBtn && mobileInstructionsInput) {
-        mobileEditInstructionsBtn.addEventListener('click', () => {
-          mobileInstructionsInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setTimeout(() => mobileInstructionsInput.focus(), 150);
-        });
       }
       if (mobileInstructionsInput) {
         mobileInstructionsInput.addEventListener('input', () => {
@@ -2538,7 +2713,6 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       }
       if (mobileSaveAddressBtn) {
         mobileSaveAddressBtn.addEventListener('click', () => {
-          if (currentUserId) return;
           const name = (mobileAddressLabelInput?.value || '').trim();
           const address = (mobileAddressInput?.value || '').trim();
           if (!name || !address) {
@@ -2546,56 +2720,78 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             return;
           }
           hideError();
-          const lat = addressLatInput?.value || '';
-          const lng = addressLngInput?.value || '';
-          const now = Date.now();
-          const list = loadGuestAddresses();
-          const id = `guest-${now}`;
-          const entry = {
-            id,
-            name,
-            fullName: mobileFullNameInput?.value || '',
-            phone: mobilePhoneInput?.value || '',
-            address,
-            city: mobileCityInput?.value || '',
-            district: mobileDistrictInput?.value || '',
-            instructions: mobileInstructionsInput?.value || '',
-            latitude: lat,
-            longitude: lng,
-            updatedAt: now
-          };
-          const deduped = list.filter((a: any) => String(a.name || '').trim().toLowerCase() !== name.toLowerCase());
-          saveGuestAddresses([entry, ...deduped]);
-          setSelectedGuestAddressId(id);
-          renderMobileGuestAddresses();
-          saveGuestShippingDraft();
+          if (!currentUserId) {
+            const lat = addressLatInput?.value || '';
+            const lng = addressLngInput?.value || '';
+            const now = Date.now();
+            const list = loadGuestAddresses();
+            const id = `guest-${now}`;
+            const entry = {
+              id,
+              name,
+              fullName: mobileFullNameInput?.value || '',
+              phone: mobilePhoneInput?.value || '',
+              address,
+              city: mobileCityInput?.value || '',
+              district: mobileDistrictInput?.value || '',
+              instructions: mobileInstructionsInput?.value || '',
+              latitude: lat,
+              longitude: lng,
+              updatedAt: now
+            };
+            const deduped = list.filter((a: any) => String(a.name || '').trim().toLowerCase() !== name.toLowerCase());
+            saveGuestAddresses([entry, ...deduped]);
+            setSelectedGuestAddressId(id);
+            renderMobileSavedAddresses();
+            saveGuestShippingDraft();
+          }
+          closeMobileAddressDropdown();
+          showMobileAddressSavedToast();
         });
       }
-      if (mobileGuestAddressesList) {
-        mobileGuestAddressesList.addEventListener('click', (e) => {
-          const target = e.target as HTMLElement;
-          const selectBtn = target.closest('.guest-address-select') as HTMLElement | null;
-          const deleteBtn = target.closest('.guest-address-delete') as HTMLElement | null;
-          if (selectBtn) {
-            const id = selectBtn.getAttribute('data-id') || '';
-            if (!id) return;
-            const selected = loadGuestAddresses().find((a: any) => a.id === id);
-            if (!selected) return;
-            setSelectedGuestAddressId(id);
-            applyGuestAddressToMobile(selected);
-            renderMobileGuestAddresses();
+      if (mobileSavedAddressPick) {
+        mobileSavedAddressPick.addEventListener('change', () => {
+          const v = mobileSavedAddressPick.value;
+          if (!v) {
+            prepareMobileAddressFormForNewEntry();
+            openMobileAddressDropdown();
+            setTimeout(() => {
+              mobileMapSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              mobileAddressLabelInput?.focus();
+            }, 160);
             return;
           }
-          if (deleteBtn) {
-            const id = deleteBtn.getAttribute('data-id') || '';
-            if (!id) return;
-            const next = loadGuestAddresses().filter((a: any) => a.id !== id);
-            saveGuestAddresses(next);
-            if (getSelectedGuestAddressId() === id) {
-              setSelectedGuestAddressId(next[0]?.id || '');
-            }
-            renderMobileGuestAddresses();
+          const parsed = parseSavedPickValue(v);
+          if (!parsed) return;
+          if (parsed.source === 'user') {
+            const addr = userAddresses.find((a: any) => a.id === parsed.id);
+            if (!addr) return;
+            selectedAddressId = parsed.id;
+            useManualAddress = false;
+            applySavedAddressToMobile(addr);
+            renderMobileSavedAddresses();
+            return;
           }
+          const selected = loadGuestAddresses().find((a: any) => a.id === parsed.id);
+          if (!selected) return;
+          setSelectedGuestAddressId(parsed.id);
+          useManualAddress = true;
+          applySavedAddressToMobile(selected);
+          renderMobileSavedAddresses();
+        });
+      }
+      if (mobileSavedAddressesList) {
+        mobileSavedAddressesList.addEventListener('click', (e) => {
+          const deleteBtn = (e.target as HTMLElement).closest('.mobile-saved-address-delete') as HTMLElement | null;
+          if (!deleteBtn) return;
+          const id = deleteBtn.getAttribute('data-id') || '';
+          if (!id) return;
+          const next = loadGuestAddresses().filter((a: any) => a.id !== id);
+          saveGuestAddresses(next);
+          if (getSelectedGuestAddressId() === id) {
+            setSelectedGuestAddressId(next[0]?.id || '');
+          }
+          renderMobileSavedAddresses();
         });
       }
       [mobileFullNameInput, mobilePhoneInput, mobileAddressInput, mobileCityInput, mobileDistrictInput].forEach((inputEl) => {
