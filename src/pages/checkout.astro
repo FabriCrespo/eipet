@@ -494,25 +494,6 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               </div>
             </div>
 
-            <!-- Ubicaciones guardadas: debajo del resumen de entrega (fuera del dropdown) -->
-            <div id="mobile-saved-addresses-section" class="hidden mb-4 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-              <p class="text-xs font-semibold text-gray-900">Ubicaciones guardadas</p>
-              <p class="text-[11px] text-gray-500 mt-0.5 mb-2">Selecciona una para el envío</p>
-              <select
-                id="mobile-saved-address-pick"
-                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
-                aria-label="Elegir ubicación guardada"
-              >
-                <option value="">Seleccionar otra ubicación…</option>
-              </select>
-              <div
-                id="mobile-saved-addresses-list"
-                role="listbox"
-                aria-label="Acciones sobre ubicaciones guardadas"
-                class="mt-2 max-h-36 space-y-1 overflow-y-auto pr-0.5"
-              ></div>
-            </div>
-
             <!-- Mapa + formulario (dropdown al pulsar "Cambiar ubicación") -->
             <div
               id="mobile-map-section"
@@ -521,6 +502,23 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               <p class="text-xs text-gray-600">
                 Usa tu ubicación actual o marca en el mapa el punto exacto de entrega.
               </p>
+              <div id="mobile-saved-addresses-section" class="hidden rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+                <p class="text-xs font-semibold text-gray-900">Ubicaciones guardadas</p>
+                <p class="text-[11px] text-gray-500 mt-0.5 mb-2">Selecciona una para el envío</p>
+                <select
+                  id="mobile-saved-address-pick"
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-xs text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
+                  aria-label="Elegir ubicación guardada"
+                >
+                  <option value="">Seleccionar otra ubicación…</option>
+                </select>
+                <div
+                  id="mobile-saved-addresses-list"
+                  role="listbox"
+                  aria-label="Acciones sobre ubicaciones guardadas"
+                  class="mt-2 max-h-36 space-y-1 overflow-y-auto pr-0.5"
+                ></div>
+              </div>
               <div id="mobile-map-status" class="text-xs text-gray-500 mb-1"></div>
               <div class="relative w-full h-64 min-h-56 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shadow-sm isolate">
                 <div id="checkout-mobile-map" class="absolute inset-0 z-0 h-full w-full"></div>

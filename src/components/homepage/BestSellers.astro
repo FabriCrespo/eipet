@@ -40,9 +40,40 @@
       <p class="text-gray-500 text-sm">Los productos recién agregados aparecerán aquí</p>
     </div>
 
-    <!-- Grid de productos compacto -->
-    <div id="bestsellers-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
-      <!-- Los productos se renderizarán aquí dinámicamente -->
+    <!-- Carrusel de productos -->
+    <div id="bestsellers-carousel" class="hidden">
+      <div class="relative bestsellers-shell">
+        <div class="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 sm:w-10 bg-linear-to-r from-white/95 to-transparent"></div>
+        <div class="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 sm:w-10 bg-linear-to-l from-white/95 to-transparent"></div>
+        <button
+          id="bestsellers-prev"
+          type="button"
+          class="hidden md:inline-flex absolute left-2 lg:left-0 top-1/2 -translate-y-1/2 lg:-translate-x-3 z-20 h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#5d3fbb] shadow-md ring-1 ring-gray-200 hover:bg-white hover:shadow-lg transition-all"
+          aria-label="Producto anterior"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          id="bestsellers-next"
+          type="button"
+          class="hidden md:inline-flex absolute right-2 lg:right-0 top-1/2 -translate-y-1/2 lg:translate-x-3 z-20 h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#5d3fbb] shadow-md ring-1 ring-gray-200 hover:bg-white hover:shadow-lg transition-all"
+          aria-label="Siguiente producto"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        <div
+          id="bestsellers-track"
+          class="bestsellers-scroll flex gap-3 sm:gap-4 lg:gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 px-0.5"
+          aria-label="Productos recién agregados"
+        >
+          <!-- Las cards se renderizan dinámicamente -->
+        </div>
+      </div>
+      <div id="bestsellers-dots" class="mt-4 flex items-center justify-center gap-2"></div>
     </div>
 
     <!-- CTA para ver todos los productos -->
@@ -71,7 +102,122 @@
     // Elementos del DOM
     const bestsellersLoading = document.getElementById('bestsellers-loading');
     const bestsellersEmpty = document.getElementById('bestsellers-empty');
-    const bestsellersGrid = document.getElementById('bestsellers-grid');
+    const bestsellersCarousel = document.getElementById('bestsellers-carousel');
+    const bestsellersTrack = document.getElementById('bestsellers-track') as HTMLDivElement | null;
+    const bestsellersPrev = document.getElementById('bestsellers-prev') as HTMLButtonElement | null;
+    const bestsellersNext = document.getElementById('bestsellers-next') as HTMLButtonElement | null;
+    const bestsellersDots = document.getElementById('bestsellers-dots');
+
+    let autoPlayTimer: ReturnType<typeof setInterval> | null = null;
+    let scrollRaf = 0;
+    let activeDotIndex = 0;
+    let carouselCards: HTMLElement[] = [];
+    let dotButtons: HTMLButtonElement[] = [];
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+      }
+    }
+
+    function setActiveDot(index: number) {
+      if (index === activeDotIndex || !dotButtons.length) return;
+      const prev = dotButtons[activeDotIndex];
+      const next = dotButtons[index];
+      if (prev) {
+        prev.classList.remove('bg-[#5d3fbb]', 'w-6');
+        prev.classList.add('bg-gray-300', 'w-2.5');
+      }
+      if (next) {
+        next.classList.remove('bg-gray-300', 'w-2.5');
+        next.classList.add('bg-[#5d3fbb]', 'w-6');
+      }
+      activeDotIndex = index;
+    }
+
+    function startAutoPlay() {
+      if (!bestsellersTrack || document.hidden || carouselCards.length <= 1) return;
+      stopAutoPlay();
+      autoPlayTimer = setInterval(() => {
+        if (document.hidden) return;
+        const first = carouselCards[0];
+        if (!first) return;
+        const cardWidth = first.offsetWidth + 16;
+        const maxScroll = bestsellersTrack.scrollWidth - bestsellersTrack.clientWidth - 4;
+        const nextLeft = bestsellersTrack.scrollLeft + cardWidth;
+        bestsellersTrack.scrollTo({
+          left: nextLeft > maxScroll ? 0 : nextLeft,
+          behavior: 'smooth'
+        });
+      }, 4500);
+    }
+
+    function updateDots() {
+      if (!bestsellersTrack || !dotButtons.length || !carouselCards.length) return;
+      const currentIndex = carouselCards.findIndex((card) => {
+        const cardLeft = card.offsetLeft - bestsellersTrack.scrollLeft;
+        return cardLeft >= -card.offsetWidth * 0.35 && cardLeft < card.offsetWidth * 0.65;
+      });
+      setActiveDot(currentIndex >= 0 ? currentIndex : 0);
+    }
+
+    function setupCarousel() {
+      if (!bestsellersTrack || !bestsellersDots) return;
+      carouselCards = Array.from(bestsellersTrack.querySelectorAll('.bestseller-slide')) as HTMLElement[];
+      if (!carouselCards.length) return;
+
+      bestsellersDots.innerHTML = carouselCards
+        .map((_card: HTMLElement, index: number) => `
+          <button
+            type="button"
+            class="h-2.5 rounded-full transition-all ${index === 0 ? 'w-6 bg-[#5d3fbb]' : 'w-2.5 bg-gray-300'}"
+            data-dot-index="${index}"
+            aria-label="Ir al producto ${index + 1}"
+          ></button>
+        `)
+        .join('');
+
+      dotButtons = Array.from(bestsellersDots.querySelectorAll('button')) as HTMLButtonElement[];
+      activeDotIndex = 0;
+
+      dotButtons.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const index = Number((dot as HTMLElement).getAttribute('data-dot-index') || 0);
+          const target = carouselCards[index];
+          if (!target) return;
+          bestsellersTrack.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+          setActiveDot(index);
+        });
+      });
+
+      bestsellersPrev?.addEventListener('click', () => {
+        const first = carouselCards[0];
+        const cardWidth = first ? first.offsetWidth + 16 : 260;
+        bestsellersTrack.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+      });
+
+      bestsellersNext?.addEventListener('click', () => {
+        const first = carouselCards[0];
+        const cardWidth = first ? first.offsetWidth + 16 : 260;
+        bestsellersTrack.scrollBy({ left: cardWidth, behavior: 'smooth' });
+      });
+
+      bestsellersTrack.addEventListener('scroll', () => {
+        if (scrollRaf) return;
+        scrollRaf = window.requestAnimationFrame(() => {
+          updateDots();
+          scrollRaf = 0;
+        });
+      }, { passive: true });
+      bestsellersTrack.addEventListener('mouseenter', stopAutoPlay);
+      bestsellersTrack.addEventListener('mouseleave', startAutoPlay);
+      bestsellersTrack.addEventListener('touchstart', stopAutoPlay, { passive: true });
+      bestsellersTrack.addEventListener('touchend', startAutoPlay, { passive: true });
+
+      setActiveDot(0);
+      startAutoPlay();
+    }
 
     // Función para convertir Timestamp de Firestore a Date
     function toDate(value: any): Date | null {
@@ -86,104 +232,138 @@
       return null;
     }
 
+    function getLatestProducts(source: any[], minCount = 5, maxCount = 10) {
+      const sorted = [...source].sort((a: any, b: any) => {
+        const dateA = toDate(a.createdAt) || toDate(a.updatedAt);
+        const dateB = toDate(b.createdAt) || toDate(b.updatedAt);
+
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      if (sorted.length <= maxCount) return sorted;
+      return sorted.slice(0, Math.max(minCount, Math.min(maxCount, sorted.length)));
+    }
+
     // Función para cargar productos recién agregados
     async function loadBestSellers() {
       try {
         const { getProducts } = await import('../../lib/db/products');
-        
-        // Obtener productos activos
-        const productsResult = await getProducts({ 
-          status: 'active'
+
+        // Primer intento: activos
+        const activeResult = await getProducts({ status: 'active' });
+        console.log('🛍️ [BestSellers] getProducts({ status: "active" }) ->', {
+          count: activeResult?.data?.length || 0,
+          error: activeResult?.error || null,
+          sample: (activeResult?.data || []).slice(0, 3).map((p: any) => ({
+            id: p?.id,
+            name: p?.name,
+            status: p?.status,
+            createdAt: p?.createdAt,
+            updatedAt: p?.updatedAt
+          }))
         });
-        
-        const allProducts = productsResult.data || [];
-        
-        // Ordenar por fecha de creación descendente (más recientes primero)
-        const sortedProducts = allProducts.sort((a: any, b: any) => {
-          const dateA = toDate(a.createdAt);
-          const dateB = toDate(b.createdAt);
-          
-          if (!dateA && !dateB) return 0;
-          if (!dateA) return 1;
-          if (!dateB) return -1;
-          
-          return dateB.getTime() - dateA.getTime();
-        }).slice(0, 5); // Top 5 productos más recientes
+        let allProducts = activeResult.data || [];
+
+        // Fallback: si no trajo nada (índice/permisos/filtro), traer todos y filtrar en cliente
+        if (allProducts.length === 0) {
+          console.warn('🛍️ [BestSellers] No llegaron productos activos. Ejecutando fallback getProducts()...');
+          const fallbackResult = await getProducts();
+          console.log('🛍️ [BestSellers] getProducts() fallback ->', {
+            count: fallbackResult?.data?.length || 0,
+            error: fallbackResult?.error || null,
+            sample: (fallbackResult?.data || []).slice(0, 3).map((p: any) => ({
+              id: p?.id,
+              name: p?.name,
+              status: p?.status,
+              createdAt: p?.createdAt,
+              updatedAt: p?.updatedAt
+            }))
+          });
+          const fallbackProducts = fallbackResult.data || [];
+
+          const activeOnly = fallbackProducts.filter((p: any) => !p?.status || p.status === 'active');
+          console.log('🛍️ [BestSellers] fallback filtrado en cliente ->', {
+            activeOnly: activeOnly.length,
+            fallbackTotal: fallbackProducts.length
+          });
+          allProducts = activeOnly.length > 0 ? activeOnly : fallbackProducts;
+        }
+
+        const sortedProducts = getLatestProducts(allProducts, 5, 10);
+        console.log('🛍️ [BestSellers] productos finales para carrusel ->', {
+          totalBase: allProducts.length,
+          totalSorted: sortedProducts.length,
+          ids: sortedProducts.map((p: any) => p?.id)
+        });
         
         // Ocultar loading
         if (bestsellersLoading) bestsellersLoading.classList.add('hidden');
         
         if (sortedProducts.length === 0) {
           if (bestsellersEmpty) bestsellersEmpty.classList.remove('hidden');
-          if (bestsellersGrid) bestsellersGrid.classList.add('hidden');
+          if (bestsellersCarousel) bestsellersCarousel.classList.add('hidden');
           return;
         }
         
         if (bestsellersEmpty) bestsellersEmpty.classList.add('hidden');
-        if (bestsellersGrid) {
-          bestsellersGrid.classList.remove('hidden');
-          
-          // Renderizar productos
-          bestsellersGrid.innerHTML = sortedProducts.map((product: any, index: number) => {
-            const isNew = index === 0; // El primero es el más reciente
+        if (bestsellersCarousel && bestsellersTrack) {
+          bestsellersCarousel.classList.remove('hidden');
+
+          // Renderizar cards con estilo similar a products.astro
+          bestsellersTrack.innerHTML = sortedProducts.map((product: any, index: number) => {
+            const isNew = index === 0;
             const hasDiscount = product.discount > 0;
-            const discountPercent = hasDiscount ? Math.round(product.discount) : 0;
-            const badgeClass = isNew 
-              ? 'bg-[#ffff11] text-[#5d3fbb]' 
-              : hasDiscount 
-                ? 'bg-red-500 text-white' 
-                : '';
-            const badgeText = isNew 
-              ? 'Nuevo' 
-              : hasDiscount 
-                ? `-${discountPercent}%` 
-                : '';
-            const showBadge = isNew || hasDiscount;
-            
+            const badge = isNew ? 'Nuevo' : (hasDiscount ? `-${Math.round(product.discount)}%` : '');
+            const badgeClass = isNew ? 'bg-[#ffff11] text-[#5d3fbb]' : 'bg-red-500 text-white';
+            const brandText = product.brandName || product.brand || 'Sin marca';
+            const safeImage = product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80';
+
             return `
-              <a 
-                href="/product?id=${product.id}" 
-                class="product-card group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col border border-gray-100/50 hover:border-[#5d3fbb]/30 animate-fade-in-up"
-                style="animation-delay: ${(index + 1) * 0.1}s;"
+              <a
+                href="/product?id=${product.id}"
+                class="bestseller-slide product-card group snap-start shrink-0 w-[78%] sm:w-[46%] lg:w-[31%] xl:w-[24%] bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100/70 hover:border-[#5d3fbb]/30 flex flex-col animate-fade-in-up"
+                style="animation-delay: ${(index + 1) * 0.08}s;"
                 data-astro-prefetch
               >
-                <div class="relative h-32 sm:h-40 lg:h-44 bg-gray-100 overflow-hidden">
-                  ${showBadge ? `
-                  <div class="absolute top-2 left-2 z-20">
-                    <span class="${badgeClass} px-2 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-lg">
-                      ${badgeText}
-                    </span>
-                  </div>
+                <div class="relative h-40 sm:h-48 lg:h-52 bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center p-3 sm:p-4">
+                  ${badge ? `
+                    <div class="absolute top-2 left-2 z-10 ${badgeClass} px-2 py-1 rounded text-[10px] sm:text-xs font-bold shadow-md">
+                      ${badge}
+                    </div>
                   ` : ''}
-                  <img 
-                    src="${product.image || 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'}" 
-                    alt="${product.name}" 
-                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    onerror="this.src='https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'"
+                  ${product.weight ? `
+                    <div class="absolute bottom-2 left-2 z-10 bg-[#5d3fbb] text-white px-2 py-1 rounded text-[10px] sm:text-xs font-bold shadow-md">
+                      ${product.weight}
+                    </div>
+                  ` : ''}
+                  <img
+                    src="${safeImage}"
+                    alt="${product.name}"
+                    class="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80';"
                   />
-                  <div class="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
-                <div class="p-3 sm:p-4 flex flex-col grow">
-                  <h3 class="font-bold text-sm sm:text-base text-gray-900 mb-1 group-hover:text-[#5d3fbb] transition-colors duration-300 line-clamp-1">${product.name}</h3>
-                  <p class="text-xs text-gray-600 mb-2 line-clamp-2 min-h-10">${product.weight || product.brand || ''}</p>
-                  <div class="mb-3 flex items-center ${hasDiscount ? 'gap-1.5' : ''}">
-                    <p class="text-lg sm:text-xl font-extrabold text-[#5d3fbb]">Bs. ${formatCurrency(product.price)}</p>
+                <div class="p-3 sm:p-4 bg-linear-to-b from-white to-purple-50/30 flex flex-col grow">
+                  <p class="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 line-clamp-1">${brandText}</p>
+                  <h3 class="font-bold text-sm sm:text-base text-gray-800 mb-2 line-clamp-2 min-h-10">${product.name}</h3>
+                  <div class="mt-auto flex items-center gap-2 flex-wrap">
+                    <p class="text-lg sm:text-xl font-bold text-[#5d3fbb]">Bs. ${formatCurrency(product.price || 0)}</p>
                     ${hasDiscount && product.originalPrice ? `
-                    <p class="text-xs text-gray-400 line-through">Bs. ${formatCurrency(product.originalPrice)}</p>
+                      <p class="text-xs sm:text-sm text-gray-400 line-through">Bs. ${formatCurrency(product.originalPrice)}</p>
                     ` : ''}
-                  </div>
-                  <div class="mt-auto pt-2 border-t border-gray-100">
-                    <span class="text-xs sm:text-sm font-semibold text-[#5d3fbb] group-hover:text-[#6d4fcc] transition-colors duration-300 flex items-center justify-center gap-1.5">
-                      Ver más
-                      <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
                   </div>
                 </div>
               </a>
             `;
           }).join('');
+
+          setupCarousel();
         }
         
       } catch (error) {
@@ -199,6 +379,16 @@
 
     // Cargar productos al iniciar
     await loadBestSellers();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => stopAutoPlay());
   })();
 </script>
 
@@ -235,14 +425,35 @@
     animation: pulse-slow 8s ease-in-out infinite;
   }
 
+  .bestsellers-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .bestsellers-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Efectos hover mejorados */
   .product-card {
-    will-change: transform;
     transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   .product-card:hover {
     transform: translateY(-6px) scale(1.02);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in-up,
+    .animate-pulse-slow,
+    .product-card,
+    .bestsellers-scroll {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* Line clamp */
