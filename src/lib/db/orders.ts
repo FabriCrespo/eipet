@@ -65,6 +65,9 @@ export async function createOrder(data: CreateOrderData): Promise<WriteResult> {
       if (data.guestName) orderData.guestName = data.guestName;
     }
     if (data.billingInfo) orderData.billingInfo = data.billingInfo;
+    if (data.freeDelivery === true) orderData.freeDelivery = true;
+    if (data.outOfCoverage === true) orderData.outOfCoverage = true;
+    if (data.sawTeFaltanMessage === true) orderData.sawTeFaltanMessage = true;
 
     console.log('📝 [ORDERS] Creando orden con datos:', {
       userId: orderData.userId,

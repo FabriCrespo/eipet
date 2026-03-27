@@ -312,6 +312,8 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <script>
+    import { showAdminToast } from '../../lib/ui/adminSonnerToast';
+
     (function () {
       const metricsLoading = document.getElementById('metrics-loading');
       const metricsGrid = document.getElementById('metrics-grid');
@@ -461,11 +463,11 @@ import Layout from '../../layouts/Layout.astro';
             messageEnvioGratis: msgGratis || undefined,
           });
           if (res.error) throw res.error;
-          alert('Configuración de envío guardada.');
+          showAdminToast('Configuración de envío guardada.', 'success');
           closeDeliveryModal();
           loadDeliveryList();
         } catch (err: any) {
-          alert(err?.message || 'Error al guardar.');
+          showAdminToast(err?.message || 'Error al guardar.', 'error');
         } finally {
           if (submitBtn) submitBtn.disabled = false;
         }
@@ -479,11 +481,11 @@ import Layout from '../../layouts/Layout.astro';
           const { deleteDeliverySettings } = await import('../../lib/db/storeSettings');
           const res = await deleteDeliverySettings();
           if (res.error) throw res.error;
-          alert('Configuración restablecida a valores por defecto.');
+          showAdminToast('Configuración restablecida a valores por defecto.', 'success');
           closeDeleteDeliveryModal();
           loadDeliveryList();
         } catch (err: any) {
-          alert(err?.message || 'Error al eliminar.');
+          showAdminToast(err?.message || 'Error al eliminar.', 'error');
         } finally {
           btn.disabled = false;
         }
@@ -681,7 +683,7 @@ import Layout from '../../layouts/Layout.astro';
               maxUses: maxUses ? Number(maxUses) : undefined,
             });
             if (res.error) throw res.error;
-            alert('Descuento actualizado.');
+            showAdminToast('Descuento actualizado.', 'success');
           } else {
             const { createDiscount } = await import('../../lib/db/discounts');
             const res = await createDiscount({
@@ -690,12 +692,12 @@ import Layout from '../../layouts/Layout.astro';
               maxUses: maxUses ? Number(maxUses) : undefined,
             });
             if (res.error) throw res.error;
-            alert('Descuento creado.');
+            showAdminToast('Descuento creado.', 'success');
           }
           closeDiscountModal();
           loadDiscounts();
         } catch (err: any) {
-          alert(err?.message || 'Error al guardar.');
+          showAdminToast(err?.message || 'Error al guardar.', 'error');
         } finally {
           if (submitBtn) submitBtn.disabled = false;
         }
@@ -711,10 +713,11 @@ import Layout from '../../layouts/Layout.astro';
           const { deleteDiscount } = await import('../../lib/db/discounts');
           const res = await deleteDiscount(id);
           if (res.error) throw res.error;
+          showAdminToast('Descuento eliminado.', 'success');
           closeDeleteDiscountModal();
           loadDiscounts();
         } catch (err: any) {
-          alert(err?.message || 'Error al eliminar.');
+          showAdminToast(err?.message || 'Error al eliminar.', 'error');
         } finally {
           btn.disabled = false;
         }

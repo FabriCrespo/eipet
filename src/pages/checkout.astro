@@ -133,6 +133,12 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                     </button>
                   </div>
                   <p class="text-xs text-gray-500 mt-2">Arrastra el marcador para ajustar el punto de entrega.</p>
+                  <p id="map-coverage-note-desktop" class="text-xs text-[#5d3fbb]/90 mt-2 font-medium"></p>
+                  <div
+                    id="checkout-envio-gratis-msg-desktop"
+                    class="hidden mt-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 text-sm font-semibold text-green-900"
+                    role="status"
+                  ></div>
                   <input type="hidden" id="address-lat" name="latitude" value="" />
                   <input type="hidden" id="address-lng" name="longitude" value="" />
                 </div>
@@ -266,16 +272,67 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               </div>
               
               <div id="payment-methods-options" class="space-y-3">
-                <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#5d3fbb]/50 transition-all payment-method-option" data-method="cash">
-                  <input type="radio" name="paymentMethod" value="cash" class="w-5 h-5 text-[#5d3fbb] focus:ring-[#5d3fbb]" checked />
-                  <div class="flex-1">
-                    <div class="font-semibold text-gray-900">Pago Contra Entrega</div>
-                    <div class="text-sm text-gray-600">Paga cuando recibas tu pedido</div>
+                <button
+                  type="button"
+                  id="desktop-payment-method-btn"
+                  class="w-full flex items-center justify-between bg-[#5d3fbb] rounded-xl px-4 py-3 text-white active:scale-[0.99] transition-transform"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-black/20 flex items-center justify-center">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    </div>
+                    <div class="text-left">
+                      <p class="text-sm font-semibold text-amber-300 leading-tight">Métodos de pago</p>
+                      <p id="desktop-selected-payment-label" class="text-xs text-white leading-tight">Codigo QR</p>
+                    </div>
                   </div>
-                  <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </label>
+                  <div class="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
+                    <span id="desktop-selected-payment-short" class="text-xs font-semibold text-[#5d3fbb]">QR</span>
+                  </div>
+                </button>
+                <div class="hidden">
+                  <input type="radio" name="paymentMethod" value="cash" />
+                  <input type="radio" name="paymentMethod" value="qr" checked />
+                  <input type="radio" name="paymentMethod" value="card" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Datos de Facturación -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+              <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l2 2 4-4m-9 7h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Datos de Facturación
+              </h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="billingName" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Razón social / Nombre
+                  </label>
+                  <input
+                    type="text"
+                    id="billingName"
+                    name="billingName"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                    placeholder="Ej: Juan Pérez"
+                  />
+                </div>
+                <div>
+                  <label for="billingNit" class="block text-sm font-semibold text-gray-700 mb-2">
+                    NIT / CI
+                  </label>
+                  <input
+                    type="text"
+                    id="billingNit"
+                    name="billingNit"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 focus:border-[#5d3fbb] transition-all"
+                    placeholder="Ej: 1234567"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -300,6 +357,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   <span class="text-gray-600">Envío</span>
                   <span id="shipping-cost" class="font-semibold text-gray-900">Bs. 0.00</span>
                 </div>
+                <p id="shipping-hint-desktop" class="checkout-shipping-hint hidden text-xs leading-snug mt-1 rounded-lg px-2 py-1.5 bg-gray-50 border border-gray-100"></p>
                 <div class="flex justify-between text-sm" id="discount-row" style="display: none;">
                   <span class="text-gray-600">Descuento</span>
                   <span id="discount" class="font-semibold text-green-600">-Bs. 0.00</span>
@@ -378,6 +436,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 <span class="text-gray-600">Envio</span>
                 <span id="mobile-shipping" class="font-semibold text-gray-900">Gratis</span>
               </div>
+              <p id="shipping-hint-mobile-step1" class="checkout-shipping-hint hidden text-xs leading-snug mb-2 rounded-lg px-2 py-1.5 bg-gray-50 border border-gray-100"></p>
               <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Subtotal</span>
                 <span id="mobile-subtotal-copy" class="font-semibold text-gray-900">Bs 0</span>
@@ -536,6 +595,12 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               <p class="text-[11px] text-gray-500">
                 Puedes mover el marcador para ajustar la ubicación.
               </p>
+              <p id="map-coverage-note-mobile" class="text-[11px] text-[#5d3fbb]/90 mt-2 font-medium"></p>
+              <div
+                id="checkout-envio-gratis-msg-mobile"
+                class="hidden mt-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-[11px] font-semibold text-green-900 leading-snug"
+                role="status"
+              ></div>
               <div class="grid grid-cols-1 gap-2 mt-2 text-xs">
                 <input
                   id="mobile-address-label"
@@ -642,6 +707,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 <span class="text-gray-600">Envio</span>
                 <span id="mobile-step2-shipping" class="text-gray-800">Gratis</span>
               </div>
+              <p id="shipping-hint-mobile-step2" class="checkout-shipping-hint hidden text-xs leading-snug mt-2 rounded-lg px-2 py-1.5 bg-gray-50 border border-gray-100"></p>
               <div class="flex justify-between font-semibold mt-1">
                 <span>Subtotal</span>
                 <span id="mobile-step2-subtotal">Bs 0</span>
@@ -766,6 +832,42 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       z-index: 1;
     }
 
+    /* Marcador fijo tienda Eipet: icono de tienda (no el pin liso morado) */
+    :global(.eipet-store-map-marker) {
+      background: transparent !important;
+      border: none !important;
+    }
+    :global(.eipet-store-map-marker__pin) {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2));
+    }
+    :global(.eipet-store-map-marker__bubble) {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #fff;
+      border: 2px solid #5d3fbb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    :global(.eipet-store-map-marker__bubble svg) {
+      display: block;
+    }
+    :global(.eipet-store-map-marker__tail) {
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-top: 10px solid #fff;
+      margin-top: -2px;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
+    }
+
     :global(#checkout-map .leaflet-pane),
     :global(#checkout-mobile-map .leaflet-pane),
     :global(#checkout-map .leaflet-top),
@@ -806,6 +908,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
   <script>
     (async () => {
+      // Declarar antes de cualquier await: si Firebase dispara callbacks pronto, evita TDZ (ReferenceError: userAddresses is not defined).
+      let userAddresses: any[] = [];
+
       // Verificar autenticación (solo requerida al confirmar, no para ver el checkout)
       const { getCurrentUser, onAuthStateChange } = await import('../lib/auth');
       
@@ -814,7 +919,21 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       let cartItems: any[] = [];
       let productsData: Map<string, any> = new Map();
       let shippingCost = 0;
-      let userAddresses: any[] = [];
+      const PAID_SHIPPING_FALLBACK_BS = 15;
+      const DEFAULT_DELIVERY_CLIENT = {
+        minPurchaseAmount: 200,
+        coverageRadiusKm: 5,
+        freeDeliveryEnabled: true,
+        messageTeFaltan: 'Te faltan {amount} Bs para envío gratis',
+        messageFueraCobertura: 'Tu dirección está fuera de nuestra zona de cobertura.',
+        messageEnvioGratis: '¡Felicidades! Tienes envío gratis',
+      };
+      let deliverySettings: typeof DEFAULT_DELIVERY_CLIENT = { ...DEFAULT_DELIVERY_CLIENT };
+      let checkoutCoverageCircle: any = null;
+      let mobileCoverageCircle: any = null;
+      let lastOutOfCoverage = false;
+      let lastFreeDeliveryPromo = false;
+      let userSawTeFaltanMessage = false;
       let userPaymentMethods: any[] = [];
       let selectedAddressId: string | null = null;
       let selectedPaymentMethodId: string | null = null;
@@ -907,6 +1026,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mobilePedirPagarBtn = document.getElementById('mobile-pedir-pagar-btn');
       const mobileSelectedPaymentLabel = document.getElementById('mobile-selected-payment-label');
       const mobileSelectedPaymentShort = document.getElementById('mobile-selected-payment-short');
+      const desktopSelectedPaymentLabel = document.getElementById('desktop-selected-payment-label');
+      const desktopSelectedPaymentShort = document.getElementById('desktop-selected-payment-short');
+      const desktopPaymentMethodBtn = document.getElementById('desktop-payment-method-btn');
       const paymentMethodModal = document.getElementById('payment-method-modal');
       const paymentMethodModalClose = document.getElementById('payment-method-modal-close');
       const checkoutStep1 = document.getElementById('checkout-step-1');
@@ -937,6 +1059,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mobileInstructionsInput = document.getElementById('mobile-instructions-input') as HTMLTextAreaElement | null;
       const mobileBillingNameInput = document.getElementById('mobile-billing-name-input') as HTMLInputElement | null;
       const mobileBillingNitInput = document.getElementById('mobile-billing-nit-input') as HTMLInputElement | null;
+      const billingNameInput = document.getElementById('billingName') as HTMLInputElement | null;
+      const billingNitInput = document.getElementById('billingNit') as HTMLInputElement | null;
 
       let deliveryType: 'envio' | 'recoger' = 'envio';
       let currentPaymentMethod: 'cash' | 'qr' | 'card' = 'qr';
@@ -998,7 +1122,221 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       let mobileMap: any = null;
       let mobileMarker: any = null;
       const DEFAULT_CENTER: [number, number] = [-16.4897, -68.1193]; // La Paz, Bolivia
+      /** Tienda física Eipet (17°46'44.9"S 63°10'35.0"W) */
+      const STORE_EIPET_LAT_LNG: [number, number] = [-17.779127, -63.176396];
       const DEFAULT_ZOOM = 14;
+
+      function addEipetStoreMarker(map: any, L: any) {
+        if (!map || !L) return;
+        /* Icono de casa (Material); se lee bien en mapa y distingue del pin azul de entrega */
+        const storeSvg =
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
+          '<path fill="#5d3fbb" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>' +
+          '</svg>';
+        const icon = L.divIcon({
+          className: 'eipet-store-map-marker',
+          html:
+            '<div class="eipet-store-map-marker__pin" aria-hidden="true">' +
+            '<div class="eipet-store-map-marker__bubble">' +
+            storeSvg +
+            '</div>' +
+            '<div class="eipet-store-map-marker__tail"></div>' +
+            '</div>',
+          iconSize: [40, 46],
+          iconAnchor: [20, 46],
+          popupAnchor: [0, -42],
+        });
+        L.marker(STORE_EIPET_LAT_LNG, { icon, interactive: true, zIndexOffset: 150 })
+          .bindPopup(
+            '<strong>Tienda Eipet</strong><br><small style="opacity:0.85;font-size:11px">Recogida en tienda</small>'
+          )
+          .addTo(map);
+      }
+
+      /** Encuadra tienda + punto de entrega (si están lejos, aleja zoom para ver ambos). */
+      function fitMapToStoreAndDelivery(map: any, L: any, deliveryLat: number, deliveryLng: number) {
+        if (!map || !L || typeof deliveryLat !== 'number' || typeof deliveryLng !== 'number') return;
+        if (isNaN(deliveryLat) || isNaN(deliveryLng)) return;
+        const bounds = L.latLngBounds([STORE_EIPET_LAT_LNG, [deliveryLat, deliveryLng]]);
+        map.fitBounds(bounds, { padding: [44, 44], maxZoom: 16, animate: true });
+        setTimeout(() => map.invalidateSize(), 350);
+      }
+
+      function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+        const R = 6371;
+        const toRad = (d: number) => (d * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+
+      function mergeDeliveryFromRemote(raw: any) {
+        const r = raw && typeof raw === 'object' ? raw : {};
+        deliverySettings = {
+          minPurchaseAmount: Number(r.minPurchaseAmount ?? DEFAULT_DELIVERY_CLIENT.minPurchaseAmount),
+          coverageRadiusKm: Number(r.coverageRadiusKm ?? DEFAULT_DELIVERY_CLIENT.coverageRadiusKm),
+          freeDeliveryEnabled: r.freeDeliveryEnabled !== false,
+          messageTeFaltan: String(r.messageTeFaltan || DEFAULT_DELIVERY_CLIENT.messageTeFaltan),
+          messageFueraCobertura: String(r.messageFueraCobertura || DEFAULT_DELIVERY_CLIENT.messageFueraCobertura),
+          messageEnvioGratis: String(r.messageEnvioGratis || DEFAULT_DELIVERY_CLIENT.messageEnvioGratis),
+        };
+        updateMapCoverageNotes();
+        syncCoverageCircles();
+      }
+
+      function updateMapCoverageNotes() {
+        const km = deliverySettings.coverageRadiusKm ?? 5;
+        const txt = `El área violeta en el mapa es la cobertura de envío gratis (${km} km desde la tienda Eipet).`;
+        const d = document.getElementById('map-coverage-note-desktop');
+        const m = document.getElementById('map-coverage-note-mobile');
+        if (d) d.textContent = txt;
+        if (m) m.textContent = txt;
+      }
+
+      function syncCoverageCircles() {
+        const L = (window as any).L;
+        const km = Math.max(0, deliverySettings.coverageRadiusKm ?? 5);
+        const radiusM = km * 1000;
+        const opts = {
+          radius: radiusM,
+          color: '#5d3fbb',
+          weight: 2,
+          opacity: 0.45,
+          fillColor: '#5d3fbb',
+          fillOpacity: 0.08,
+        };
+        if (checkoutMap && L) {
+          if (checkoutCoverageCircle) {
+            checkoutMap.removeLayer(checkoutCoverageCircle);
+            checkoutCoverageCircle = null;
+          }
+          checkoutCoverageCircle = L.circle(STORE_EIPET_LAT_LNG, opts).addTo(checkoutMap);
+          if (typeof checkoutCoverageCircle.bringToBack === 'function') checkoutCoverageCircle.bringToBack();
+        }
+        if (mobileMap && L) {
+          if (mobileCoverageCircle) {
+            mobileMap.removeLayer(mobileCoverageCircle);
+            mobileCoverageCircle = null;
+          }
+          mobileCoverageCircle = L.circle(STORE_EIPET_LAT_LNG, opts).addTo(mobileMap);
+          if (typeof mobileCoverageCircle.bringToBack === 'function') mobileCoverageCircle.bringToBack();
+        }
+      }
+
+      /** Mensaje de envío gratis (admin) solo si hay ubicación en cobertura + mínimo; ocultar en cualquier otro caso. */
+      function setCheckoutEnvioGratisBanner(show: boolean, text: string) {
+        const d = document.getElementById('checkout-envio-gratis-msg-desktop');
+        const m = document.getElementById('checkout-envio-gratis-msg-mobile');
+        [d, m].forEach((el) => {
+          if (!el) return;
+          if (!show || !String(text).trim()) {
+            el.textContent = '';
+            el.classList.add('hidden');
+            return;
+          }
+          el.textContent = String(text).trim();
+          el.classList.remove('hidden');
+        });
+      }
+
+      function setShippingHints(text: string, kind: 'success' | 'warning' | 'info' | 'neutral') {
+        const base = 'checkout-shipping-hint text-xs leading-snug rounded-lg px-2 py-1.5 border mt-1';
+        const cls =
+          kind === 'success'
+            ? `${base} bg-green-50 border-green-100 text-green-800`
+            : kind === 'warning'
+              ? `${base} bg-amber-50 border-amber-100 text-amber-900`
+              : kind === 'info'
+                ? `${base} bg-blue-50 border-blue-100 text-blue-900`
+                : `${base} bg-gray-50 border-gray-100 text-gray-700`;
+        ['shipping-hint-desktop', 'shipping-hint-mobile-step1', 'shipping-hint-mobile-step2'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (!text) {
+            el.textContent = '';
+            el.className = `${base} hidden`;
+            return;
+          }
+          el.textContent = text;
+          el.className = cls;
+        });
+      }
+
+      function computeCartSubtotal(): number {
+        let sub = 0;
+        cartItems.forEach((item) => {
+          const product = productsData.get(item.productId);
+          if (product) sub += (product.price || 0) * (item.quantity || 1);
+        });
+        return sub;
+      }
+
+      function recalculateShipping() {
+        const subtotal = computeCartSubtotal();
+        const min = deliverySettings.minPurchaseAmount ?? 200;
+        const km = deliverySettings.coverageRadiusKm ?? 5;
+        const enabled = deliverySettings.freeDeliveryEnabled !== false;
+        const msgTe = deliverySettings.messageTeFaltan || DEFAULT_DELIVERY_CLIENT.messageTeFaltan;
+        const msgFuera = deliverySettings.messageFueraCobertura || DEFAULT_DELIVERY_CLIENT.messageFueraCobertura;
+        const msgGratis = deliverySettings.messageEnvioGratis || DEFAULT_DELIVERY_CLIENT.messageEnvioGratis;
+
+        lastOutOfCoverage = false;
+        lastFreeDeliveryPromo = false;
+
+        if (deliveryType === 'recoger') {
+          shippingCost = 0;
+          setCheckoutEnvioGratisBanner(false, '');
+          setShippingHints('Recoges en tienda — sin costo de envío a domicilio.', 'neutral');
+          return;
+        }
+
+        if (!enabled) {
+          shippingCost = PAID_SHIPPING_FALLBACK_BS;
+          setCheckoutEnvioGratisBanner(false, '');
+          setShippingHints('El envío gratis no está habilitado en este momento.', 'neutral');
+          return;
+        }
+
+        const lat = parseFloat(String(addressLatInput?.value || '').trim());
+        const lng = parseFloat(String(addressLngInput?.value || '').trim());
+        const hasCoords = !isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0);
+
+        if (!hasCoords) {
+          shippingCost = PAID_SHIPPING_FALLBACK_BS;
+          setCheckoutEnvioGratisBanner(false, '');
+          setShippingHints('Marca tu ubicación en el mapa para calcular si aplica envío gratis.', 'info');
+          return;
+        }
+
+        const dist = haversineKm(STORE_EIPET_LAT_LNG[0], STORE_EIPET_LAT_LNG[1], lat, lng);
+        if (dist > km) {
+          shippingCost = PAID_SHIPPING_FALLBACK_BS;
+          lastOutOfCoverage = true;
+          setCheckoutEnvioGratisBanner(false, '');
+          setShippingHints(msgFuera, 'warning');
+          return;
+        }
+
+        if (subtotal >= min) {
+          shippingCost = 0;
+          lastFreeDeliveryPromo = true;
+          setCheckoutEnvioGratisBanner(true, msgGratis);
+          setShippingHints('Envío a domicilio sin costo en esta zona.', 'success');
+          return;
+        }
+
+        shippingCost = PAID_SHIPPING_FALLBACK_BS;
+        const falta = Math.max(0, min - subtotal);
+        const amt = formatPrice(falta);
+        const teFaltanText = msgTe.replace(/\{amount\}/g, amt);
+        userSawTeFaltanMessage = true;
+        setCheckoutEnvioGratisBanner(false, '');
+        setShippingHints(teFaltanText, 'info');
+      }
 
       function setMapStatus(msg: string, isError = false) {
         if (mapStatus) {
@@ -1017,6 +1355,20 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         const data = getPaymentLabelAndBadge(method);
         if (mobileSelectedPaymentLabel) mobileSelectedPaymentLabel.textContent = data.label;
         if (mobileSelectedPaymentShort) mobileSelectedPaymentShort.textContent = data.badge;
+        if (desktopSelectedPaymentLabel) desktopSelectedPaymentLabel.textContent = data.label;
+        if (desktopSelectedPaymentShort) desktopSelectedPaymentShort.textContent = data.badge;
+      }
+
+      function setManualPaymentMethod(method: 'cash' | 'qr' | 'card') {
+        currentPaymentMethod = method;
+        useManualPayment = true;
+        selectedPaymentMethodId = null;
+        const targetInput = document.querySelector(`input[name="paymentMethod"][value="${method}"]`) as HTMLInputElement | null;
+        if (targetInput) targetInput.checked = true;
+        document.querySelectorAll('input[name="selectedPaymentMethod"]').forEach((input: any) => {
+          input.checked = false;
+        });
+        syncMobilePaymentSummary(method);
       }
 
       function resolveAddressTypeLabel(addr: any): string {
@@ -1247,46 +1599,109 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         mobileSavedAddressesSection.classList.remove('hidden');
       }
 
+      /**
+       * Geocodificación inversa: Nominatim primero; si falla (CORS/503), respaldo solo con BigDataCloud (CORS OK).
+       * No usar Photon/komoot desde el navegador.
+       */
       async function reverseGeocode(lat: number, lng: number, forMobile = false) {
         const statusEl = forMobile ? document.getElementById('mobile-map-status') : mapStatus;
         if (statusEl) statusEl.textContent = 'Obteniendo dirección...';
         if (!forMobile && mapStatus) setMapStatus('Obteniendo dirección...');
-        try {
-          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-          const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
-          const data = await res.json();
-          const a = data.address || {};
-          const fullAddress = [a.road, a.house_number, a.suburb, a.neighbourhood].filter(Boolean).join(', ') || data.display_name || '';
-          const city = a.city || a.town || a.village || a.municipality || a.state || '';
-          const district = a.suburb || a.neighbourhood || a.quarter || a.district || '';
+
+        const coordStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+        async function tryNominatim(): Promise<{
+          fullAddress: string;
+          city: string;
+          district: string;
+        } | null> {
+          try {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+            const res = await fetch(url, {
+              headers: { 'Accept-Language': 'es', Accept: 'application/json' },
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (data.error) return null;
+            const a = data.address || {};
+            const fullAddress =
+              [a.road, a.house_number, a.suburb, a.neighbourhood].filter(Boolean).join(', ') ||
+              data.display_name ||
+              '';
+            const city = a.city || a.town || a.village || a.municipality || a.state || '';
+            const district = a.suburb || a.neighbourhood || a.quarter || a.district || '';
+            if (!fullAddress && !city) return null;
+            return { fullAddress, city, district };
+          } catch {
+            return null;
+          }
+        }
+
+        async function tryBigDataCloud(): Promise<{
+          fullAddress: string;
+          city: string;
+          district: string;
+        } | null> {
+          try {
+            const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&localityLanguage=es`;
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!res.ok) return null;
+            const data = await res.json();
+            const city =
+              data.city ||
+              data.locality ||
+              (typeof data.principalSubdivision === 'string' ? data.principalSubdivision : '') ||
+              '';
+            const locality = typeof data.locality === 'string' ? data.locality : '';
+            const district =
+              locality && city && locality !== city
+                ? locality
+                : (data.suburb as string) || (data.neighbourhood as string) || '';
+            let fullAddress = '';
+            if (locality && city) fullAddress = locality === city ? city : `${locality}, ${city}`;
+            else fullAddress = city || locality || '';
+            if (!fullAddress && !city) return null;
+            return { fullAddress: fullAddress || city, city: city || locality, district };
+          } catch {
+            return null;
+          }
+        }
+
+        let parts = await tryNominatim();
+        if (!parts) parts = await tryBigDataCloud();
+
+        if (parts) {
+          const line = parts.fullAddress.trim() || parts.city.trim() || coordStr;
           if (forMobile) {
             const addrInput = document.getElementById('mobile-address') as HTMLInputElement;
             const cityInput = document.getElementById('mobile-city') as HTMLInputElement;
             const distInput = document.getElementById('mobile-district') as HTMLInputElement;
-            if (addrInput) addrInput.value = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            if (cityInput) cityInput.value = city;
-            if (distInput) distInput.value = district;
-            if (mobileDeliveryAddress) mobileDeliveryAddress.textContent = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            if (addrInput) addrInput.value = line;
+            if (cityInput) cityInput.value = parts.city;
+            if (distInput) distInput.value = parts.district;
+            if (mobileDeliveryAddress) mobileDeliveryAddress.textContent = line;
             if (statusEl) statusEl.textContent = 'Dirección actualizada. Puedes editar los campos si hace falta.';
           } else {
             const addressInput = document.getElementById('address') as HTMLInputElement;
             const cityInput = document.getElementById('city') as HTMLInputElement;
             const districtInput = document.getElementById('district') as HTMLInputElement;
-            if (addressInput) addressInput.value = fullAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            if (cityInput) cityInput.value = city;
-            if (districtInput) districtInput.value = district;
+            if (addressInput) addressInput.value = line;
+            if (cityInput) cityInput.value = parts.city;
+            if (districtInput) districtInput.value = parts.district;
             setMapStatus('Dirección actualizada. Puedes editar los campos si hace falta.');
           }
-        } catch (e) {
-          if (forMobile) {
-            const addrInput = document.getElementById('mobile-address') as HTMLInputElement;
-            if (addrInput) addrInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            if (statusEl) statusEl.textContent = 'No se pudo obtener la dirección. Completa los campos manualmente.';
-          } else {
-            setMapStatus('No se pudo obtener la dirección. Completa los campos manualmente.', true);
-            const addressInput = document.getElementById('address') as HTMLInputElement;
-            if (addressInput) addressInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          }
+          return;
+        }
+
+        if (forMobile) {
+          const addrInput = document.getElementById('mobile-address') as HTMLInputElement;
+          if (addrInput) addrInput.value = coordStr;
+          if (mobileDeliveryAddress) mobileDeliveryAddress.textContent = coordStr;
+          if (statusEl) statusEl.textContent = 'No se pudo obtener la dirección. Completa los campos manualmente.';
+        } else {
+          setMapStatus('No se pudo obtener la dirección. Completa los campos manualmente.', true);
+          const addressInput = document.getElementById('address') as HTMLInputElement;
+          if (addressInput) addressInput.value = coordStr;
         }
       }
 
@@ -1294,6 +1709,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (addressLatInput) addressLatInput.value = String(lat);
         if (addressLngInput) addressLngInput.value = String(lng);
         reverseGeocode(lat, lng);
+        updateTotals();
       }
 
       function updateMobileMarkerPosition(lat: number, lng: number) {
@@ -1301,6 +1717,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (addressLngInput) addressLngInput.value = String(lng);
         reverseGeocode(lat, lng, true);
         saveGuestShippingDraft();
+        updateTotals();
       }
 
       function initCheckoutMap() {
@@ -1315,20 +1732,26 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap'
         }).addTo(checkoutMap);
+        syncCoverageCircles();
+        addEipetStoreMarker(checkoutMap, L);
         checkoutMap.on('click', (e: any) => {
           const { lat, lng } = e.latlng;
           if (checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
           else {
-            checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(checkoutMap);
+            checkoutMarker = L.marker([lat, lng], { draggable: true, zIndexOffset: 600 }).addTo(checkoutMap);
             checkoutMarker.on('dragend', () => {
               const pos = checkoutMarker.getLatLng();
               updateMarkerPosition(pos.lat, pos.lng);
+              fitMapToStoreAndDelivery(checkoutMap, L, pos.lat, pos.lng);
             });
           }
           updateMarkerPosition(lat, lng);
+          fitMapToStoreAndDelivery(checkoutMap, L, lat, lng);
         });
         setTimeout(() => checkoutMap.invalidateSize(), 200);
-        setMapStatus('Haz clic en el mapa o usa "Usar mi ubicación actual" para marcar el punto de entrega.');
+        setMapStatus(
+          'El icono de tienda es Eipet; el pin azul es tu entrega. Clic o GPS para colocar la entrega.'
+        );
       }
 
       function initMobileMap() {
@@ -1343,17 +1766,21 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap'
         }).addTo(mobileMap);
+        syncCoverageCircles();
+        addEipetStoreMarker(mobileMap, L);
         mobileMap.on('click', (e: any) => {
           const { lat, lng } = e.latlng;
           if (mobileMarker) mobileMarker.setLatLng([lat, lng]);
           else {
-            mobileMarker = L.marker([lat, lng], { draggable: true }).addTo(mobileMap);
+            mobileMarker = L.marker([lat, lng], { draggable: true, zIndexOffset: 600 }).addTo(mobileMap);
             mobileMarker.on('dragend', () => {
               const pos = mobileMarker.getLatLng();
               updateMobileMarkerPosition(pos.lat, pos.lng);
+              fitMapToStoreAndDelivery(mobileMap, L, pos.lat, pos.lng);
             });
           }
           updateMobileMarkerPosition(lat, lng);
+          fitMapToStoreAndDelivery(mobileMap, L, lat, lng);
         });
         setTimeout(() => mobileMap.invalidateSize(), 200);
       }
@@ -1362,17 +1789,17 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       function placeMobileMarkerAt(lat: number, lng: number) {
         const L = (window as any).L;
         if (!mobileMap || !L) return;
-        mobileMap.setView([lat, lng], 16);
         if (mobileMarker) mobileMarker.setLatLng([lat, lng]);
         else {
-          mobileMarker = L.marker([lat, lng], { draggable: true }).addTo(mobileMap);
+          mobileMarker = L.marker([lat, lng], { draggable: true, zIndexOffset: 600 }).addTo(mobileMap);
           mobileMarker.on('dragend', () => {
             const p = mobileMarker.getLatLng();
             updateMobileMarkerPosition(p.lat, p.lng);
+            fitMapToStoreAndDelivery(mobileMap, L, p.lat, p.lng);
           });
         }
         updateMobileMarkerPosition(lat, lng);
-        setTimeout(() => mobileMap.invalidateSize(), 150);
+        fitMapToStoreAndDelivery(mobileMap, L, lat, lng);
       }
 
       /** Al entrar al paso 2: mismo ritmo que web (init mapa → 600 ms → pin con GPS o coords guardadas) */
@@ -1416,16 +1843,17 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const lng = pos.coords.longitude;
             const L = (window as any).L;
             if (!checkoutMap || !L) return;
-            checkoutMap.setView([lat, lng], 16);
             if (checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
             else {
-              checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(checkoutMap);
+              checkoutMarker = L.marker([lat, lng], { draggable: true, zIndexOffset: 600 }).addTo(checkoutMap);
               checkoutMarker.on('dragend', () => {
                 const p = checkoutMarker.getLatLng();
                 updateMarkerPosition(p.lat, p.lng);
+                fitMapToStoreAndDelivery(checkoutMap, L, p.lat, p.lng);
               });
             }
             updateMarkerPosition(lat, lng);
+            fitMapToStoreAndDelivery(checkoutMap, L, lat, lng);
           },
           (err) => {
             const msg = err.code === 1 ? 'Permiso de ubicación denegado. Puedes marcar el punto en el mapa.' : 'No se pudo obtener la ubicación. Marca el punto en el mapa.';
@@ -1449,16 +1877,17 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const lng = pos.coords.longitude;
             const L = (window as any).L;
             if (!mobileMap || !L) return;
-            mobileMap.setView([lat, lng], 16);
             if (mobileMarker) mobileMarker.setLatLng([lat, lng]);
             else {
-              mobileMarker = L.marker([lat, lng], { draggable: true }).addTo(mobileMap);
+              mobileMarker = L.marker([lat, lng], { draggable: true, zIndexOffset: 600 }).addTo(mobileMap);
               mobileMarker.on('dragend', () => {
                 const p = mobileMarker.getLatLng();
                 updateMobileMarkerPosition(p.lat, p.lng);
+                fitMapToStoreAndDelivery(mobileMap, L, p.lat, p.lng);
               });
             }
             updateMobileMarkerPosition(lat, lng);
+            fitMapToStoreAndDelivery(mobileMap, L, lat, lng);
           },
           (err) => {
             const msg = err.code === 1 ? 'Permiso de ubicación denegado. Marca el punto en el mapa.' : 'No se pudo obtener la ubicación. Marca el punto en el mapa.';
@@ -1555,6 +1984,14 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 });
               }
             }
+          }
+
+          try {
+            const { getDeliverySettings } = await import('../lib/db/storeSettings');
+            const res = await getDeliverySettings();
+            mergeDeliveryFromRemote(res.data || {});
+          } catch (_) {
+            mergeDeliveryFromRemote({});
           }
 
           // Renderizar items (desktop y móvil)
@@ -1740,6 +2177,15 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (cityInput) cityInput.value = address.city || '';
         if (districtInput) districtInput.value = address.district || '';
         if (instructionsInput) instructionsInput.value = address.instructions || '';
+        if (addressLatInput && address.latitude != null && address.latitude !== '') {
+          const la = Number(address.latitude);
+          if (!isNaN(la)) addressLatInput.value = String(la);
+        }
+        if (addressLngInput && address.longitude != null && address.longitude !== '') {
+          const lo = Number(address.longitude);
+          if (!isNaN(lo)) addressLngInput.value = String(lo);
+        }
+        updateTotals();
       }
 
       // Cargar métodos de pago del usuario
@@ -2083,7 +2529,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           }
         }
         fillMobileFieldsFromUserData();
-        updateMobileStep2Totals();
+        updateTotals();
         syncMobilePaymentSummary();
 
         renderMobileSavedAddresses();
@@ -2103,6 +2549,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
       // Actualizar totales (desktop y móvil)
       function updateTotals() {
+        recalculateShipping();
+
         let subtotal = 0;
 
         cartItems.forEach((item) => {
@@ -2117,7 +2565,10 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         const total = subtotal - discount + shippingCost;
 
         if (subtotalSpan) subtotalSpan.textContent = `Bs. ${formatPrice(subtotal)}`;
-        if (shippingCostSpan) shippingCostSpan.textContent = `Bs. ${formatPrice(shippingCost)}`;
+        if (shippingCostSpan) {
+          shippingCostSpan.textContent =
+            shippingCost === 0 ? 'Gratis' : `Bs. ${formatPrice(shippingCost)}`;
+        }
         if (totalSpan) totalSpan.textContent = `Bs. ${formatPrice(total)}`;
 
         if (discount > 0) {
@@ -2133,6 +2584,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (mobileSubtotalCopyEl) mobileSubtotalCopyEl.textContent = `Bs ${formatPrice(subtotal)}`;
         if (mobileShippingEl) mobileShippingEl.textContent = shipLabel;
         if (mobileTotalEl) mobileTotalEl.textContent = `Bs ${formatPrice(total)}`;
+
+        updateMobileStep2Totals();
       }
 
       // Confirmar pedido
@@ -2227,7 +2680,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         }
 
         // En móvil, step 2 usa el selector visual del modal
-        if (isMobileView() && currentMobileStep >= 2 && currentPaymentMethod) {
+        if (useManualPayment && currentPaymentMethod) {
           paymentMethodType = currentPaymentMethod;
         }
 
@@ -2393,12 +2846,14 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             
             paymentMethod = {
               id: `temp-${Date.now()}`,
-              type: paymentMethodType as 'card' | 'cash',
+              type: paymentMethodType as 'card' | 'cash' | 'qr',
               isDefault: false,
               createdAt: now,
               updatedAt: now
             };
           }
+
+          recalculateShipping();
 
           // Calcular totales
           let subtotal = 0;
@@ -2436,20 +2891,25 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             discount: discount,
             shippingAddress: shippingAddress,
             paymentMethod: paymentMethod,
-            shippingCost: shippingCost
+            shippingCost: shippingCost,
+            freeDelivery: lastFreeDeliveryPromo,
+            outOfCoverage: deliveryType === 'envio' ? lastOutOfCoverage : false,
+            sawTeFaltanMessage: userSawTeFaltanMessage
           };
           
-          // Datos de facturación desde móvil (opcionales)
-          if (isMobileView() && mobileBillingName && mobileBillingNit) {
-            const billingNameText = (mobileBillingName as HTMLElement).textContent?.trim() || '';
-            const billingNitText = (mobileBillingNit as HTMLElement).textContent?.trim() || '';
-            const isPlaceholder = billingNameText === 'Sin datos de facturación';
-            if ((billingNameText || billingNitText) && !isPlaceholder) {
-              orderData.billingInfo = {
-                name: billingNameText,
-                nit: billingNitText
-              };
-            }
+          // Datos de facturación (opcionales)
+          const billingNameText = isMobileView()
+            ? ((mobileBillingName as HTMLElement | null)?.textContent?.trim() || '')
+            : ((billingNameInput?.value || '').trim());
+          const billingNitText = isMobileView()
+            ? ((mobileBillingNit as HTMLElement | null)?.textContent?.trim() || '')
+            : ((billingNitInput?.value || '').trim());
+          const isPlaceholder = billingNameText === 'Sin datos de facturación';
+          if ((billingNameText || billingNitText) && !isPlaceholder) {
+            orderData.billingInfo = {
+              name: billingNameText,
+              nit: billingNitText
+            };
           }
           
           // Solo agregar campos de guest si realmente es una orden de invitado
@@ -2636,9 +3096,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           document.querySelectorAll('input[name="selectedPaymentMethod"]').forEach((input: any) => {
             input.checked = false;
           });
-          // Seleccionar pago contra entrega por defecto
-          const cashOption = document.querySelector('input[name="paymentMethod"][value="cash"]') as HTMLInputElement;
-          if (cashOption) cashOption.checked = true;
+          // Seleccionar pago por defecto para modalidad manual
+          setManualPaymentMethod(currentPaymentMethod || 'qr');
         });
       }
 
@@ -2647,16 +3106,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         option.addEventListener('click', () => {
           const input = option.querySelector('input[type="radio"]') as HTMLInputElement;
           if (input && !input.disabled) {
-            input.checked = true;
-            useManualPayment = true;
-            selectedPaymentMethodId = null;
-            document.querySelectorAll('.payment-method-option').forEach((opt) => {
-              opt.classList.remove('border-[#5d3fbb]', 'bg-purple-50');
-            });
-            option.classList.add('border-[#5d3fbb]', 'bg-purple-50');
-            document.querySelectorAll('input[name="selectedPaymentMethod"]').forEach((input: any) => {
-              input.checked = false;
-            });
+            setManualPaymentMethod(input.value as 'cash' | 'qr' | 'card');
           }
         });
       });
@@ -2673,6 +3123,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           deliveryType = 'envio';
           mobileTabEnvio.classList.add('checkout-delivery-tab--active');
           mobileTabRecoger?.classList.remove('checkout-delivery-tab--active');
+          updateTotals();
         });
       }
       if (mobileTabRecoger) {
@@ -2680,6 +3131,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           deliveryType = 'recoger';
           mobileTabRecoger.classList.add('checkout-delivery-tab--active');
           mobileTabEnvio?.classList.remove('checkout-delivery-tab--active');
+          updateTotals();
         });
       }
 
@@ -2844,9 +3296,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
       // Modal de método de pago (móvil)
       const mobilePaymentMethodBtn = document.getElementById('mobile-payment-method-btn');
-      if (mobilePaymentMethodBtn && paymentMethodModal) {
+      if ((mobilePaymentMethodBtn || desktopPaymentMethodBtn) && paymentMethodModal) {
         const openPaymentModal = () => {
-          if (!isMobileView()) return;
           paymentMethodModal.classList.remove('hidden');
           paymentMethodModal.classList.add('flex');
         };
@@ -2855,7 +3306,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           paymentMethodModal.classList.remove('flex');
         };
 
-        mobilePaymentMethodBtn.addEventListener('click', openPaymentModal);
+        mobilePaymentMethodBtn?.addEventListener('click', openPaymentModal);
+        desktopPaymentMethodBtn?.addEventListener('click', openPaymentModal);
         if (paymentMethodModalClose) {
           paymentMethodModalClose.addEventListener('click', closePaymentModal);
         }
@@ -2869,10 +3321,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           btn.addEventListener('click', (e) => {
             const method = (e.currentTarget as HTMLElement).getAttribute('data-method') as 'cash' | 'qr' | 'card' | null;
             if (!method) return;
-            currentPaymentMethod = method;
-
-            // Actualizar etiqueta en la tarjeta
-            syncMobilePaymentSummary(method);
+            setManualPaymentMethod(method);
 
             // Marcar visualmente la opción seleccionada
             paymentMethodModal.querySelectorAll('.payment-method-modal-option').forEach((opt) => {

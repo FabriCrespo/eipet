@@ -389,6 +389,10 @@ export interface CreateOrderData {
     name: string;
     nit: string;
   };
+  /** Métricas envío gratis (opcional) */
+  freeDelivery?: boolean;
+  outOfCoverage?: boolean;
+  sawTeFaltanMessage?: boolean;
 }
 
 export interface UpdateOrderData {

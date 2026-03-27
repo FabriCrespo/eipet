@@ -2421,8 +2421,23 @@ import { SlidersHorizontal } from '@lucide/astro';
         const favoriteModalBtn = productModalContent.querySelector('.favorite-modal-btn');
 
         addToCartBtn?.addEventListener('click', () => {
-          console.log('Agregar al carrito:', product.id);
-          // Aquí puedes agregar la lógica para agregar al carrito
+          const addToCartFn = (window as any).addToCart;
+          if (addToCartFn && typeof addToCartFn === 'function') {
+            const brandName =
+              product.brandName ||
+              (product.brand && allBrandsData.find((b: any) => String(b.id) === String(product.brand))?.name);
+            addToCartFn(
+              {
+                id: String(product.id),
+                name: product.name,
+                price: product.price,
+                image: product.image || '',
+                brandName,
+                stock: product.stock,
+              },
+              1
+            );
+          }
         });
 
         favoriteModalBtn?.addEventListener('click', async () => {
