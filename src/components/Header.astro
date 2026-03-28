@@ -697,6 +697,21 @@ import "../styles/global.css";
       </div>
     </nav>
   </div>
+
+  <!-- Toast: mensaje de envío (misma config que admin/descuentos) al agregar al carrito -->
+  <div
+    id="add-to-cart-delivery-toast"
+    class="pointer-events-none fixed left-1/2 top-[max(5.25rem,calc(env(safe-area-inset-top,0px)+4.25rem))] z-[3000] hidden w-[min(100%,22rem)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 px-3"
+    role="status"
+    aria-live="polite"
+  >
+    <div
+      id="add-to-cart-delivery-toast-inner"
+      class="pointer-events-auto rounded-2xl border px-4 py-3.5 text-center shadow-[0_12px_40px_-12px_rgba(93,63,187,0.35)]"
+    >
+      <p id="add-to-cart-delivery-toast-text" class="text-sm font-bold leading-snug"></p>
+    </div>
+  </div>
 </header>
 
 <script>

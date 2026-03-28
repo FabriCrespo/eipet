@@ -571,9 +571,48 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               </div>
             </div>
 
-            <p class="text-gray-700 text-center mb-24">
-              <a href="/products" class="text-[#5d3fbb] font-medium hover:underline" data-astro-prefetch>¿Quieres agregar más?</a>
-            </p>
+            <div class="mb-24">
+              <p class="text-gray-700 text-center mb-4">
+                <a href="/products" class="text-[#5d3fbb] font-medium hover:underline" data-astro-prefetch>¿Quieres agregar más?</a>
+              </p>
+
+              <!-- Carrusel sugerencias (móvil step 1) -->
+              <div id="checkout-suggestions-wrap" class="hidden">
+                <div
+                  class="checkout-suggestions-shell rounded-2xl border border-[#5d3fbb]/10 bg-linear-to-br from-violet-50/95 via-white to-[#f8f5ff] p-4 shadow-[0_12px_40px_-16px_rgba(93,63,187,0.28),inset_0_1px_0_0_rgba(255,255,255,0.9)]"
+                >
+                  <div class="mb-3 flex items-center justify-center gap-2">
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-[#5d3fbb]/10"
+                      aria-hidden="true"
+                    >
+                      <svg class="h-5 w-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+                        />
+                      </svg>
+                    </span>
+                    <div class="min-w-0 text-left">
+                      <h3 class="text-sm font-bold leading-tight text-gray-900">También te puede interesar</h3>
+                      <p class="text-[11px] text-gray-500">Añade al carrito sin salir del checkout</p>
+                    </div>
+                  </div>
+                  <div class="checkout-suggestions-fade relative -mx-0.5 overflow-hidden rounded-xl">
+                    <div
+                      id="checkout-suggestions-track"
+                      class="checkout-suggestions-track py-0.5"
+                      role="region"
+                      aria-label="Productos sugeridos"
+                    >
+                      <!-- JS: marquee duplicado -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Footer móvil fijo: solo Total + botón Pedir y pagar -->
@@ -1183,6 +1222,74 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       transform: rotate(180deg);
     }
 
+    /* Carrusel sugerencias: marquee + desvanecido en bordes */
+    .checkout-suggestions-fade {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        #000 6%,
+        #000 94%,
+        transparent 100%
+      );
+      mask-image: linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%);
+    }
+    /*
+     * :global(...) — el listado se inyecta con innerHTML; sin esto Astro no aplica el scope
+     * y el carrusel se ve en columna (bloques apilados) en lugar de fila horizontal.
+     */
+    :global(#checkout-suggestions-track) {
+      overflow: hidden;
+      width: 100%;
+      min-height: 0;
+    }
+    :global(.checkout-suggestions-marquee) {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: 0;
+      width: max-content;
+      will-change: transform;
+      animation: checkoutSuggestionsMarquee 44s linear infinite;
+    }
+    :global(.checkout-suggestions-marquee:hover),
+    :global(.checkout-suggestions-marquee:focus-within) {
+      animation-play-state: paused;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      :global(.checkout-suggestions-marquee) {
+        animation: none;
+        transform: none;
+      }
+      .checkout-suggestions-fade {
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+    }
+    @keyframes checkoutSuggestionsMarquee {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(-50%);
+      }
+    }
+    :global(.checkout-suggestions-marquee-inner) {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      align-items: stretch;
+      gap: 0.875rem;
+      padding: 0.125rem 0;
+    }
+    :global(.checkout-suggestion-card) {
+      flex: 0 0 auto;
+      width: 12.25rem;
+      min-width: 12.25rem;
+      max-width: 12.25rem;
+    }
+
     /*
      * Recogida móvil: date/time nativos (evita desborde y “placeholder” invisible de datetime-local).
      * 16px mínimo reduce zoom accidental en iOS al enfocar.
@@ -1198,6 +1305,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       cursor: pointer;
       opacity: 0.75;
     }
+
   </style>
 
   <script>
@@ -1211,6 +1319,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       let currentUser: any = null;
       let currentUserId: string | null = null;
       let cartItems: any[] = [];
+      /** Productos para el carrusel “También te puede interesar” (móvil step 1) */
+      let checkoutSuggestionPool: any[] = [];
       let productsData: Map<string, any> = new Map();
       let shippingCost = 0;
       const PAID_SHIPPING_FALLBACK_BS = 15;
@@ -2479,6 +2589,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           }
           // Sin dirección guardada: por defecto "Seleccionar en el mapa" con ubicación actual
           applyDefaultAddressSource();
+          void loadCheckoutSuggestions();
         } catch (error: any) {
           showError(error.message || 'Error al cargar el carrito');
           if (loadingDiv) loadingDiv.classList.add('hidden');
@@ -2504,6 +2615,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           if (checkoutContent) checkoutContent.classList.add('hidden');
           if (emptyCartDiv) emptyCartDiv.classList.remove('hidden');
           if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = true;
+          const suggWrap = document.getElementById('checkout-suggestions-wrap');
+          if (suggWrap) suggWrap.classList.add('hidden');
           renderOrderItems();
           renderMobileStep1Items();
           updateTotals();
@@ -2567,6 +2680,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         renderMobileStep1Items();
         updateTotals();
         applyCheckoutDeliveryModeUI();
+        renderCheckoutSuggestions();
 
         if (checkoutContent) checkoutContent.classList.remove('hidden');
         if (emptyCartDiv) emptyCartDiv.classList.add('hidden');
@@ -2829,6 +2943,143 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         localStorage.setItem('cart', JSON.stringify({ items, lastUpdated: Date.now() }));
         if ((window as any).updateCartCount) (window as any).updateCartCount();
         window.dispatchEvent(new CustomEvent('cart-updated'));
+      }
+
+      function renderCheckoutSuggestions() {
+        const wrap = document.getElementById('checkout-suggestions-wrap');
+        const track = document.getElementById('checkout-suggestions-track');
+        if (!wrap || !track) return;
+        const inCart = new Set(cartItems.map((i) => i.productId));
+        const toShow = checkoutSuggestionPool
+          .filter((p) => p && p.id && !inCart.has(p.id))
+          .slice(0, 5);
+        if (toShow.length === 0) {
+          wrap.classList.add('hidden');
+          track.innerHTML = '';
+          return;
+        }
+        wrap.classList.remove('hidden');
+
+        const cardsHtml = toShow
+          .map((product: any) => {
+            const pid = escapeHtml(product.id);
+            const name = escapeHtml(product.name || 'Producto');
+            const brandName = escapeHtml(product.brandName || 'Sin marca');
+            const imgSrc = escapeHtml(
+              product.image ||
+                'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&q=80'
+            );
+            const price = formatPrice(product.price || 0);
+            return `
+            <article class="checkout-suggestion-card group flex flex-col overflow-hidden rounded-2xl border border-white/90 bg-white shadow-[0_6px_20px_-4px_rgba(93,63,187,0.15)] ring-1 ring-[#5d3fbb]/[0.07] transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-8px_rgba(93,63,187,0.28)] hover:ring-[#5d3fbb]/20">
+              <div class="relative aspect-[4/3] w-full overflow-hidden bg-linear-to-b from-violet-100/80 to-white">
+                <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-white/90 via-transparent to-transparent opacity-80"></div>
+                <img
+                  src="${imgSrc}"
+                  alt="${name}"
+                  class="relative z-0 h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.04]"
+                  loading="lazy"
+                  decoding="async"
+                  onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect width=\\'200\\' height=\\'200\\' fill=\\'%23f3f4f6\\'/%3E%3C/svg%3E';"
+                />
+              </div>
+              <div class="flex flex-1 flex-col p-3 pt-2">
+                <h3 class="line-clamp-2 min-h-[2.35rem] text-[13px] font-bold leading-snug tracking-tight text-gray-900">${name}</h3>
+                <p class="mt-0.5 truncate text-[11px] font-medium text-gray-500">${brandName}</p>
+                <div class="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-2.5">
+                  <div>
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Precio</span>
+                    <p class="text-base font-extrabold tabular-nums text-[#5d3fbb]">Bs. ${price}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="checkout-suggestion-add-btn inline-flex shrink-0 items-center gap-1 rounded-xl bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-[#5d3fbb]/25 transition hover:from-[#6d4fcc] hover:to-[#7d5fdd] hover:shadow-lg active:scale-[0.97]"
+                    data-product-id="${pid}"
+                  >
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar
+                  </button>
+                </div>
+              </div>
+            </article>
+          `;
+          })
+          .join('');
+
+        /* Dos tiras iguales: translateX(-50%) en la animación cierra el bucle sin salto */
+        track.innerHTML = `
+          <div class="checkout-suggestions-marquee">
+            <div class="checkout-suggestions-marquee-inner">${cardsHtml}</div>
+            <div class="checkout-suggestions-marquee-inner" aria-hidden="true">${cardsHtml}</div>
+          </div>
+        `;
+
+        track.querySelectorAll('.checkout-suggestion-add-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            const id = (e.currentTarget as HTMLElement).getAttribute('data-product-id');
+            if (id) addProductFromSuggestion(id);
+          });
+        });
+      }
+
+      function addProductFromSuggestion(productId: string) {
+        const product =
+          checkoutSuggestionPool.find((p) => p.id === productId) || productsData.get(productId);
+        if (!product || !product.id) return;
+
+        const existing = cartItems.find((i) => i.productId === productId);
+        if (existing) {
+          existing.quantity = (existing.quantity || 1) + 1;
+          const p = productsData.get(productId);
+          if (p) p.quantity = existing.quantity;
+        } else {
+          cartItems.push({ productId, quantity: 1 });
+          productsData.set(productId, {
+            ...product,
+            brandName: product.brandName || 'Sin marca',
+            quantity: 1,
+          });
+        }
+        hideError();
+        saveCartToStorage();
+        renderMobileStep1Items();
+        renderOrderItems();
+        updateTotals();
+        renderCheckoutSuggestions();
+      }
+
+      async function loadCheckoutSuggestions() {
+        try {
+          const { getProducts } = await import('../lib/db/products');
+          const { getBrands } = await import('../lib/db/brands');
+          let productsResult = await getProducts({ status: 'active', limit: 24 });
+          if (!productsResult.data?.length || productsResult.error) {
+            const allProductsResult = await getProducts({ limit: 30 });
+            if (allProductsResult.data?.length) {
+              productsResult = {
+                data: allProductsResult.data.filter((p: any) => !p.status || p.status === 'active'),
+                error: allProductsResult.error,
+              };
+            }
+          }
+          const list = productsResult.data || [];
+          const brandsResult = await getBrands();
+          const brandsMap = new Map<string, any>();
+          if (brandsResult.data) {
+            brandsResult.data.forEach((b: any) => brandsMap.set(b.id, b));
+          }
+          checkoutSuggestionPool = list.map((p: any) => ({
+            ...p,
+            brandName:
+              p.brand && brandsMap.has(p.brand) ? brandsMap.get(p.brand).name : 'Sin marca',
+          }));
+          renderCheckoutSuggestions();
+        } catch (_) {
+          checkoutSuggestionPool = [];
+          renderCheckoutSuggestions();
+        }
       }
 
       // Renderizar items del pedido (desktop)

@@ -293,6 +293,57 @@ export function setCartProductQuantity(productId: string, quantity: number): boo
   return true;
 }
 
+let addToCartDeliveryToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Toast con `messageTeFaltan` / `messageEnvioGratis` de Firestore (misma UI que admin/descuentos). */
+async function showAddToCartDeliveryToast(): Promise<void> {
+  const wrap = document.getElementById("add-to-cart-delivery-toast");
+  const inner = document.getElementById("add-to-cart-delivery-toast-inner");
+  const textEl = document.getElementById("add-to-cart-delivery-toast-text");
+  if (!wrap || !inner || !textEl) return;
+
+  try {
+    const data = await getDeliverySettingsCached();
+    if (!data || data.freeDeliveryEnabled === false) return;
+    const min = Number(data.minPurchaseAmount ?? 0);
+    if (min <= 0) return;
+
+    const sub = getSubtotal();
+    const templateTe =
+      typeof data.messageTeFaltan === "string" && data.messageTeFaltan.trim()
+        ? data.messageTeFaltan
+        : "Te faltan {amount} Bs para envío gratis";
+    const msgGratis =
+      typeof data.messageEnvioGratis === "string" && data.messageEnvioGratis.trim()
+        ? data.messageEnvioGratis
+        : "¡Felicidades! Tienes envío gratis";
+
+    let body: string;
+    if (sub < min) {
+      const falta = Math.max(0, min - sub);
+      body = applyCartDeliveryTemplate(templateTe, formatBsAmount(falta));
+      inner.className =
+        "pointer-events-auto rounded-2xl border border-amber-200/90 bg-linear-to-br from-amber-50 to-orange-50/95 px-4 py-3.5 text-center shadow-[0_12px_40px_-12px_rgba(234,88,12,0.35)]";
+      textEl.className = "text-sm font-bold leading-snug text-[#c2410c]";
+    } else {
+      body = applyOptionalNamePlaceholder(msgGratis);
+      inner.className =
+        "pointer-events-auto rounded-2xl border border-emerald-200/90 bg-linear-to-br from-emerald-50 to-green-50/95 px-4 py-3.5 text-center shadow-[0_12px_40px_-12px_rgba(16,185,129,0.3)]";
+      textEl.className = "text-sm font-bold leading-snug text-emerald-800";
+    }
+
+    textEl.textContent = body;
+    wrap.classList.remove("hidden");
+    if (addToCartDeliveryToastTimer) clearTimeout(addToCartDeliveryToastTimer);
+    addToCartDeliveryToastTimer = setTimeout(() => {
+      wrap.classList.add("hidden");
+      addToCartDeliveryToastTimer = null;
+    }, 4800);
+  } catch {
+    /* silencioso */
+  }
+}
+
 export function addToCart(product: CartProduct, qty = 1): boolean {
   const item = cartState.items.find((i) => i.productId === product.id);
   if (item) {
@@ -312,6 +363,7 @@ export function addToCart(product: CartProduct, qty = 1): boolean {
   renderItems();
   updateCount();
   window.dispatchEvent(new CustomEvent("cart-updated", { detail: { productId: product.id, action: "added" } }));
+  void showAddToCartDeliveryToast();
   return true;
 }
 
@@ -350,6 +402,15 @@ async function loadProductData(): Promise<void> {
   }
 }
 
+/** Recarga el carrito del header desde `localStorage` (misma pestaña: checkout, productos, etc.). */
+async function syncCartFromStorage(): Promise<void> {
+  loadCart();
+  await loadProductData();
+  renderItems();
+  updateCount();
+  void updateCartDeliveryMessage();
+}
+
 function openDropdown(): void {
   if (!els.cartDropdown) return;
   window.dispatchEvent(new CustomEvent("eipet-close-user-menu"));
@@ -382,6 +443,11 @@ export async function initCart(): Promise<void> {
   });
   els.closeCartBtn?.addEventListener("click", (e) => { e.stopPropagation(); closeDropdown(); });
 
+  /** Evita que el clic en +/− cierre el panel: tras re-render el target queda fuera del árbol y `contains` falla en document. */
+  els.cartDropdown?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
   document.addEventListener("click", (e) => {
     const t = e.target as HTMLElement;
     if (els.cartDropdown && !els.cartDropdown.contains(t) && t !== els.cartBtn && !els.cartBtn?.contains(t)) closeDropdown();
@@ -412,4 +478,14 @@ export async function initCart(): Promise<void> {
   (window as any).addToCart = addToCart;
   (window as any).setCartProductQuantity = setCartProductQuantity;
   (window as any).getCartState = () => cartState;
+  (window as any).updateCartCount = () => {
+    void syncCartFromStorage();
+  };
+
+  if (!(window as any).__eipetCartUpdatedListener) {
+    (window as any).__eipetCartUpdatedListener = true;
+    window.addEventListener("cart-updated", () => {
+      void syncCartFromStorage();
+    });
+  }
 }
