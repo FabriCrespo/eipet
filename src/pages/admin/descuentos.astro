@@ -11,7 +11,7 @@ import Layout from '../../layouts/Layout.astro';
           Descuentos y envío
         </h1>
         <p class="text-gray-600">
-          Configura el monto mínimo, la cobertura y los mensajes dinámicos. Revisa las métricas de envío gratis y conversión.
+          Configura envío gratis y promociones por marca o por producto (los precios del catálogo se actualizan al guardar). Revisa las métricas de envío y conversión.
         </p>
       </div>
 
@@ -45,7 +45,7 @@ import Layout from '../../layouts/Layout.astro';
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-gray-900">Lista de descuentos</h2>
-            <p class="text-sm text-gray-600">Cupones y promociones activos. Editar o eliminar.</p>
+            <p class="text-sm text-gray-600">Define alcance (tienda, marcas o productos), guarda y se actualizan precios en catálogo. Al aplicar, se guardan también los IDs de marca y producto para la página de ofertas (<code class="text-xs bg-gray-100 px-1 rounded">/products?filter=discount</code>). Editar o eliminar.</p>
           </div>
           <button
             type="button"
@@ -61,11 +61,11 @@ import Layout from '../../layouts/Layout.astro';
         <div class="p-6">
           <div id="discounts-loading" class="text-center py-8 text-gray-500">Cargando descuentos...</div>
           <div id="discounts-list-wrap" class="hidden overflow-x-auto">
-            <table class="w-full min-w-[640px]">
+            <table class="w-full min-w-[720px]">
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Nombre</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Tipo</th>
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Alcance</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Valor</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Vigencia</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Estado</th>
@@ -163,7 +163,7 @@ import Layout from '../../layouts/Layout.astro';
 
   <!-- Modal Crear/Editar Descuento -->
   <div id="discount-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <div class="p-6 border-b border-gray-200 flex justify-between items-center">
         <h3 id="discount-modal-title" class="text-xl font-bold text-gray-900">Nuevo descuento</h3>
         <button type="button" id="discount-modal-close" class="text-gray-400 hover:text-gray-600 p-1">
@@ -176,30 +176,53 @@ import Layout from '../../layouts/Layout.astro';
           <label for="discount-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
           <input type="text" id="discount-name" required class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="Ej. Verano 20%" />
         </div>
+        <div>
+          <label for="discount-type" class="block text-sm font-medium text-gray-700 mb-1">¿A quién aplica?</label>
+          <select id="discount-type" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none">
+            <option value="global">Toda la tienda (todos los productos)</option>
+            <option value="brand">Por marca(s)</option>
+            <option value="product">Por producto(s)</option>
+            <option value="category">Por categoría (legacy)</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-1">Al guardar se actualizan los precios en catálogo según el alcance elegido. Tras aplicar, Firestore guarda <strong>listingBrandIds</strong> y <strong>listingProductIds</strong> para mostrar marcas y productos en ofertas en la tienda.</p>
+        </div>
+
+        <div id="discount-scope-global-hint" class="rounded-xl border border-purple-100 bg-purple-50/70 px-4 py-3 text-sm text-gray-700">
+          Se aplicará el descuento a <strong>todos los productos</strong> del catálogo.
+        </div>
+
+        <div id="discount-scope-brands-wrap" class="hidden space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Marcas en promoción</label>
+          <p class="text-xs text-gray-500">Marca una o varias; el descuento afecta todos los productos de esas marcas.</p>
+          <div id="discount-brands-loading" class="text-sm text-gray-500 py-2">Cargando marcas…</div>
+          <div id="discount-brands-list" class="hidden max-h-52 overflow-y-auto rounded-xl border-2 border-gray-200 divide-y divide-gray-100"></div>
+        </div>
+
+        <div id="discount-scope-products-wrap" class="hidden space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Productos en promoción</label>
+          <input type="search" id="discount-product-search" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="Buscar por nombre…" autocomplete="off" />
+          <div id="discount-products-loading" class="text-sm text-gray-500 py-2">Cargando productos…</div>
+          <div id="discount-products-list" class="hidden max-h-56 overflow-y-auto rounded-xl border-2 border-gray-200 divide-y divide-gray-100"></div>
+        </div>
+
+        <div id="discount-scope-category-wrap" class="hidden space-y-2">
+          <label for="discount-category-slug" class="block text-sm font-medium text-gray-700">Slug de categoría</label>
+          <input type="text" id="discount-category-slug" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="ej. dog, cat" />
+          <p class="text-xs text-gray-500">Preferible usar marcas o productos; esto es compatibilidad con datos antiguos.</p>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="discount-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-            <select id="discount-type" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none">
-              <option value="global">Global</option>
-              <option value="category">Categoría</option>
-              <option value="product">Producto</option>
-            </select>
-          </div>
           <div>
             <label for="discount-value" class="block text-sm font-medium text-gray-700 mb-1">Valor</label>
             <input type="number" id="discount-value" required min="0" step="0.01" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="0" />
           </div>
-        </div>
-        <div>
-          <label for="discount-type-value" class="block text-sm font-medium text-gray-700 mb-1">Tipo de valor</label>
-          <select id="discount-type-value" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none">
-            <option value="percentage">Porcentaje (%)</option>
-            <option value="fixed">Monto fijo (Bs)</option>
-          </select>
-        </div>
-        <div>
-          <label for="discount-target-id" class="block text-sm font-medium text-gray-700 mb-1">ID objetivo (opcional)</label>
-          <input type="text" id="discount-target-id" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="ID producto o categoría si aplica" />
+          <div>
+            <label for="discount-type-value" class="block text-sm font-medium text-gray-700 mb-1">Tipo de valor</label>
+            <select id="discount-type-value" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none">
+              <option value="percentage">Porcentaje (%)</option>
+              <option value="fixed">Monto fijo (Bs)</option>
+            </select>
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -227,7 +250,7 @@ import Layout from '../../layouts/Layout.astro';
         </div>
         <div class="flex gap-3 pt-4">
           <button type="button" id="discount-form-cancel" class="flex-1 px-4 py-2.5 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">Cancelar</button>
-          <button type="submit" id="discount-form-submit" class="flex-1 px-4 py-2.5 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700">Guardar</button>
+          <button type="submit" id="discount-form-submit" class="flex-1 px-4 py-2.5 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700">Guardar y aplicar</button>
         </div>
       </form>
     </div>
@@ -274,16 +297,25 @@ import Layout from '../../layouts/Layout.astro';
           <input type="checkbox" id="dl-free-enabled" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500" />
           <label for="dl-free-enabled" class="text-sm font-medium text-gray-700">Envío gratis habilitado</label>
         </div>
+        <div class="rounded-xl border border-purple-100 bg-purple-50/60 p-3 space-y-1">
+          <p class="text-sm font-semibold text-gray-900">Mensajes y notificaciones</p>
+          <p class="text-xs text-gray-600 leading-relaxed">
+            Se guardan en la configuración de la tienda y los cambias desde aquí. Usa <code class="text-purple-700 bg-white/80 px-1 rounded">{'{amount}'}</code> (monto que falta) y opcionalmente <code class="text-purple-700 bg-white/80 px-1 rounded">{'{name}'}</code> (primer nombre si el cliente inició sesión) en los mensajes del carrito.
+          </p>
+        </div>
         <div>
-          <label for="dl-message-te-faltan" class="block text-sm font-medium text-gray-700 mb-1">Mensaje "Te faltan X Bs"</label>
+          <label for="dl-message-te-faltan" class="block text-sm font-medium text-gray-700 mb-1">Mensaje «Te faltan X Bs»</label>
+          <p class="text-xs text-gray-500 mb-1.5">Panel del carrito (icono): texto naranja si el subtotal aún no alcanza el mínimo.</p>
           <input type="text" id="dl-message-te-faltan" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="Te faltan {amount} Bs para envío gratis" />
         </div>
         <div>
           <label for="dl-message-fuera" class="block text-sm font-medium text-gray-700 mb-1">Mensaje fuera de cobertura</label>
+          <p class="text-xs text-gray-500 mb-1.5">Checkout: cuando el punto de entrega queda fuera del radio (km) desde la tienda.</p>
           <input type="text" id="dl-message-fuera" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="Tu dirección está fuera de cobertura." />
         </div>
         <div>
           <label for="dl-message-gratis" class="block text-sm font-medium text-gray-700 mb-1">Mensaje envío gratis</label>
+          <p class="text-xs text-gray-500 mb-1.5">Panel del carrito (verde) cuando el subtotal ya cumple el mínimo; en checkout (banner junto al mapa) cuando además la ubicación está en cobertura.</p>
           <input type="text" id="dl-message-gratis" class="w-full px-4 py-2 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none" placeholder="¡Felicidades! Tienes envío gratis" />
         </div>
         <div class="flex gap-3 pt-4">
@@ -517,6 +549,9 @@ import Layout from '../../layouts/Layout.astro';
       const deleteDiscountCancel = document.getElementById('delete-discount-cancel');
       const deleteDiscountConfirm = document.getElementById('delete-discount-confirm');
 
+      const brandSelection = new Set<string>();
+      const productSelection = new Set<string>();
+
       function formatDiscountDate(v: any): string {
         if (!v) return '-';
         const d = v?.toDate ? v.toDate() : new Date(v);
@@ -530,6 +565,16 @@ import Layout from '../../layouts/Layout.astro';
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       }
 
+      function discountScopeLabel(d: any): string {
+        const t = d.type;
+        const nTargets = (d.targetIds && d.targetIds.length) || (d.targetId ? 1 : 0);
+        if (t === 'global') return 'Toda la tienda';
+        if (t === 'brand') return nTargets ? `${nTargets} marca(s)` : 'Sin marcas';
+        if (t === 'product') return nTargets ? `${nTargets} producto(s)` : 'Sin productos';
+        if (t === 'category') return 'Categoría';
+        return String(t || '—');
+      }
+
       function renderDiscountsList(list: any[]) {
         if (!discountsTbody || !discountsLoading || !discountsListWrap || !discountsEmpty) return;
         discountsLoading.classList.add('hidden');
@@ -541,14 +586,13 @@ import Layout from '../../layouts/Layout.astro';
         }
         discountsEmpty.classList.add('hidden');
         discountsListWrap.classList.remove('hidden');
-        const typeLabels: Record<string, string> = { global: 'Global', category: 'Categoría', product: 'Producto' };
         discountsTbody.innerHTML = list.map((d: any) => {
           const valor = d.discountType === 'percentage' ? (d.discountValue || 0) + '%' : 'Bs. ' + (d.discountValue || 0);
           const usos = d.maxUses != null ? (d.currentUses || 0) + ' / ' + d.maxUses : (d.currentUses || 0) + ' / ∞';
           return `
             <tr class="border-b border-gray-100 hover:bg-gray-50">
               <td class="py-3 px-4 font-medium text-gray-900">${escapeHtml(d.name || '')}</td>
-              <td class="py-3 px-4 text-sm text-gray-700">${typeLabels[d.type] || d.type}</td>
+              <td class="py-3 px-4 text-sm text-gray-700">${escapeHtml(discountScopeLabel(d))}</td>
               <td class="py-3 px-4 text-sm font-semibold text-purple-600">${valor}</td>
               <td class="py-3 px-4 text-sm text-gray-600">${formatDiscountDate(d.startDate)} - ${formatDiscountDate(d.endDate)}</td>
               <td class="py-3 px-4">
@@ -595,8 +639,99 @@ import Layout from '../../layouts/Layout.astro';
         }
       }
 
+      function updateDiscountScopeVisibility() {
+        const type = (document.getElementById('discount-type') as HTMLSelectElement)?.value || 'global';
+        document.getElementById('discount-scope-global-hint')?.classList.toggle('hidden', type !== 'global');
+        document.getElementById('discount-scope-brands-wrap')?.classList.toggle('hidden', type !== 'brand');
+        document.getElementById('discount-scope-products-wrap')?.classList.toggle('hidden', type !== 'product');
+        document.getElementById('discount-scope-category-wrap')?.classList.toggle('hidden', type !== 'category');
+      }
+
+      function getSelectedTargetIds(): string[] {
+        const type = (document.getElementById('discount-type') as HTMLSelectElement).value;
+        if (type === 'brand') return [...brandSelection];
+        if (type === 'product') return [...productSelection];
+        return [];
+      }
+
+      async function ensureBrandsRendered(selectedIds: string[]) {
+        const loading = document.getElementById('discount-brands-loading');
+        const list = document.getElementById('discount-brands-list');
+        if (!loading || !list) return;
+        selectedIds.forEach((id) => brandSelection.add(id));
+        loading.classList.remove('hidden');
+        list.classList.add('hidden');
+        const { getBrands } = await import('../../lib/db/brands');
+        const { data } = await getBrands();
+        const brands = (data || []).map((b: any) => ({ id: b.id, name: b.name }));
+        const sel = brandSelection;
+        list.innerHTML = brands
+          .map(
+            (b: { id: string; name: string }) => `
+          <label class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer">
+            <input type="checkbox" value="${escapeHtml(b.id)}" class="discount-brand-cb w-4 h-4 rounded text-purple-600" ${sel.has(b.id) ? 'checked' : ''} />
+            <span class="text-sm text-gray-800">${escapeHtml(b.name)}</span>
+          </label>`
+          )
+          .join('');
+        loading.classList.add('hidden');
+        list.classList.remove('hidden');
+      }
+
+      async function ensureProductsRendered(selectedIds: string[], searchQ: string) {
+        const loading = document.getElementById('discount-products-loading');
+        const plist = document.getElementById('discount-products-list');
+        if (!loading || !plist) return;
+        selectedIds.forEach((id) => productSelection.add(id));
+        loading.classList.remove('hidden');
+        plist.classList.add('hidden');
+        const { getProducts } = await import('../../lib/db/products');
+        const { data } = await getProducts({});
+        const all = (data || []).map((p: any) => ({ id: p.id, name: p.name || p.id }));
+        const q = searchQ.trim().toLowerCase();
+        const filtered = q ? all.filter((p: { name: string }) => p.name.toLowerCase().includes(q)) : all;
+        const sel = productSelection;
+        plist.innerHTML = filtered
+          .map(
+            (p: { id: string; name: string }) => `
+          <label class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer">
+            <input type="checkbox" value="${escapeHtml(p.id)}" class="discount-product-cb w-4 h-4 rounded text-purple-600" ${sel.has(p.id) ? 'checked' : ''} />
+            <span class="text-sm text-gray-800">${escapeHtml(p.name)}</span>
+          </label>`
+          )
+          .join('');
+        loading.classList.add('hidden');
+        plist.classList.remove('hidden');
+      }
+
+      discountModal?.addEventListener('change', (ev) => {
+        const t = ev.target as HTMLInputElement;
+        if (t?.type !== 'checkbox') return;
+        if (t.classList.contains('discount-brand-cb')) {
+          if (t.checked) brandSelection.add(t.value);
+          else brandSelection.delete(t.value);
+        }
+        if (t.classList.contains('discount-product-cb')) {
+          if (t.checked) productSelection.add(t.value);
+          else productSelection.delete(t.value);
+        }
+      });
+
+      async function refreshDiscountPickers(selectedIds: string[]) {
+        const type = (document.getElementById('discount-type') as HTMLSelectElement).value;
+        updateDiscountScopeVisibility();
+        if (type === 'brand') await ensureBrandsRendered(selectedIds);
+        if (type === 'product') {
+          const search = (document.getElementById('discount-product-search') as HTMLInputElement)?.value || '';
+          await ensureProductsRendered(selectedIds, search);
+        }
+      }
+
       function openDiscountModal(editId?: string) {
         if (!discountModal || !discountForm) return;
+        const typeSel = document.getElementById('discount-type') as HTMLSelectElement;
+        const catSlug = document.getElementById('discount-category-slug') as HTMLInputElement;
+
         if (editId) {
           discountModalTitle!.textContent = 'Editar descuento';
           discountIdInput.value = editId;
@@ -605,25 +740,46 @@ import Layout from '../../layouts/Layout.astro';
             const { data: d } = await getDiscountById(editId);
             if (d) {
               (document.getElementById('discount-name') as HTMLInputElement).value = d.name || '';
-              (document.getElementById('discount-type') as HTMLSelectElement).value = d.type || 'global';
+              typeSel.value = ['global', 'brand', 'product', 'category'].includes(d.type) ? d.type : 'global';
               (document.getElementById('discount-value') as HTMLInputElement).value = String(d.discountValue ?? '');
               (document.getElementById('discount-type-value') as HTMLSelectElement).value = d.discountType || 'percentage';
-              (document.getElementById('discount-target-id') as HTMLInputElement).value = d.targetId || '';
               (document.getElementById('discount-start') as HTMLInputElement).value = toDateInputValue(d.startDate);
               (document.getElementById('discount-end') as HTMLInputElement).value = toDateInputValue(d.endDate);
               (document.getElementById('discount-min-purchase') as HTMLInputElement).value = d.minPurchaseAmount != null ? String(d.minPurchaseAmount) : '';
               (document.getElementById('discount-max-uses') as HTMLInputElement).value = d.maxUses != null ? String(d.maxUses) : '';
               (document.getElementById('discount-active') as HTMLInputElement).checked = d.isActive !== false;
+              if (catSlug) catSlug.value = d.targetId || '';
+
+              const tids =
+                d.targetIds && d.targetIds.length > 0
+                  ? [...d.targetIds]
+                  : d.targetId
+                    ? [d.targetId]
+                    : [];
+              brandSelection.clear();
+              productSelection.clear();
+              if (d.type === 'brand') tids.forEach((x) => brandSelection.add(x));
+              if (d.type === 'product') tids.forEach((x) => productSelection.add(x));
+              updateDiscountScopeVisibility();
+              await refreshDiscountPickers(tids);
             }
           })();
         } else {
           discountModalTitle!.textContent = 'Nuevo descuento';
           discountIdInput.value = '';
           discountForm.reset();
+          brandSelection.clear();
+          productSelection.clear();
           (document.getElementById('discount-active') as HTMLInputElement).checked = true;
           const today = new Date().toISOString().slice(0, 10);
           (document.getElementById('discount-start') as HTMLInputElement).value = today;
           (document.getElementById('discount-end') as HTMLInputElement).value = today;
+          if (catSlug) catSlug.value = '';
+          typeSel.value = 'global';
+          updateDiscountScopeVisibility();
+          (async () => {
+            await refreshDiscountPickers([]);
+          })();
         }
         discountModal.classList.remove('hidden');
         discountModal.classList.add('flex');
@@ -656,14 +812,24 @@ import Layout from '../../layouts/Layout.astro';
       newDiscountBtn?.addEventListener('click', () => openDiscountModal());
       discountModalClose?.addEventListener('click', closeDiscountModal);
       discountFormCancel?.addEventListener('click', closeDiscountModal);
+
+      document.getElementById('discount-type')?.addEventListener('change', () => {
+        brandSelection.clear();
+        productSelection.clear();
+        refreshDiscountPickers([]);
+      });
+
+      document.getElementById('discount-product-search')?.addEventListener('input', () => {
+        refreshDiscountPickers([...productSelection]);
+      });
+
       discountForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = discountIdInput.value.trim();
         const name = (document.getElementById('discount-name') as HTMLInputElement).value.trim();
         const type = (document.getElementById('discount-type') as HTMLSelectElement).value as any;
         const discountValue = Number((document.getElementById('discount-value') as HTMLInputElement).value) || 0;
-        const discountType = (document.getElementById('discount-type-value') as HTMLSelectElement).value as any;
-        const targetId = (document.getElementById('discount-target-id') as HTMLInputElement).value.trim() || null;
+        const discountTypeVal = (document.getElementById('discount-type-value') as HTMLSelectElement).value as any;
         const startDate = (document.getElementById('discount-start') as HTMLInputElement).value;
         const endDate = (document.getElementById('discount-end') as HTMLInputElement).value;
         const minPurchaseAmount = (document.getElementById('discount-min-purchase') as HTMLInputElement).value;
@@ -672,28 +838,85 @@ import Layout from '../../layouts/Layout.astro';
         const start = startDate ? new Date(startDate) : new Date();
         const end = endDate ? new Date(endDate) : new Date();
 
+        let targetIds: string[] | null = null;
+        let targetId: string | null = null;
+        if (type === 'brand' || type === 'product') {
+          targetIds = getSelectedTargetIds();
+          targetId = targetIds.length === 1 ? targetIds[0] : null;
+          if (targetIds.length === 0) {
+            showAdminToast('Selecciona al menos una marca o un producto.', 'error');
+            return;
+          }
+        } else if (type === 'category') {
+          const slug = (document.getElementById('discount-category-slug') as HTMLInputElement).value.trim();
+          if (!slug) {
+            showAdminToast('Indica el slug de categoría.', 'error');
+            return;
+          }
+          targetId = slug;
+          targetIds = null;
+        } else {
+          targetIds = null;
+          targetId = null;
+        }
+
         const submitBtn = document.getElementById('discount-form-submit') as HTMLButtonElement;
         if (submitBtn) submitBtn.disabled = true;
         try {
+          const { updateDiscount, createDiscount, applyDiscountToProducts } = await import('../../lib/db/discounts');
+          let discountDocId = id;
+
           if (id) {
-            const { updateDiscount } = await import('../../lib/db/discounts');
             const res = await updateDiscount(id, {
-              name, type, targetId, discountValue, discountType, startDate: start, endDate: end, isActive,
+              name,
+              type,
+              targetId,
+              targetIds,
+              discountValue,
+              discountType: discountTypeVal,
+              startDate: start,
+              endDate: end,
+              isActive,
               minPurchaseAmount: minPurchaseAmount ? Number(minPurchaseAmount) : undefined,
               maxUses: maxUses ? Number(maxUses) : undefined,
             });
             if (res.error) throw res.error;
-            showAdminToast('Descuento actualizado.', 'success');
           } else {
-            const { createDiscount } = await import('../../lib/db/discounts');
             const res = await createDiscount({
-              name, type, targetId, discountValue, discountType, startDate: start, endDate: end, isActive,
+              name,
+              type,
+              targetId,
+              targetIds,
+              discountValue,
+              discountType: discountTypeVal,
+              startDate: start,
+              endDate: end,
+              isActive,
               minPurchaseAmount: minPurchaseAmount ? Number(minPurchaseAmount) : undefined,
               maxUses: maxUses ? Number(maxUses) : undefined,
             });
             if (res.error) throw res.error;
-            showAdminToast('Descuento creado.', 'success');
+            discountDocId = res.id || '';
           }
+
+          if (!discountDocId) throw new Error('ID de descuento no disponible');
+
+          const applyRes = await applyDiscountToProducts(discountDocId);
+          if (!applyRes.success) {
+            const msg = applyRes.error?.message || '';
+            const listingSaved = msg.includes('Se guardaron igualmente');
+            showAdminToast(
+              listingSaved ? msg : 'Configuración guardada, pero no se pudo aplicar a productos: ' + msg,
+              listingSaved ? 'info' : 'error'
+            );
+          } else {
+            const n = applyRes.appliedCount ?? 0;
+            showAdminToast(
+              id ? `Descuento actualizado. Precios aplicados en ${n} producto(s).` : `Descuento creado. Precios aplicados en ${n} producto(s).`,
+              'success'
+            );
+          }
+
           closeDiscountModal();
           loadDiscounts();
         } catch (err: any) {

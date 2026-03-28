@@ -48,7 +48,7 @@ const activeReturns: any[] = [];
           </li>
           <li class="flex items-start gap-2 text-sm text-gray-700">
             <span class="text-gray-400 mt-1">•</span>
-            <span>Dentro de 30 días desde la entrega</span>
+            <span>Solicitud dentro de las <strong>48 horas</strong> desde la entrega</span>
           </li>
         </ul>
       </div>
@@ -78,7 +78,7 @@ const activeReturns: any[] = [];
           </li>
           <li class="flex items-start gap-2 text-sm text-gray-700">
             <span class="text-gray-400 mt-1">•</span>
-            <span>Productos en oferta o liquidación</span>
+            <span>Compras en oferta o liquidación indicadas como tales</span>
           </li>
         </ul>
       </div>
@@ -202,10 +202,12 @@ const activeReturns: any[] = [];
 
       const reasonMap: Record<string, string> = {
         defective: 'Producto defectuoso',
-        wrong_item: 'Pedido incorrecto',
-        damaged: 'Producto dañado',
+        wrong_item: 'Producto incorrecto',
+        damaged: 'Dañado durante el envío',
         not_as_described: 'No coincide con la descripción',
         other: 'Otra razón',
+        expired: 'Producto vencido',
+        company_error: 'Error atribuible a la empresa',
       };
 
       // Obtener datos de los returns y orders

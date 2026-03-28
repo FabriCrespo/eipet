@@ -43,6 +43,16 @@ export async function getProducts(filters?: ProductFilters): Promise<QueryResult
     const productsRef = collection(db, COLLECTION_NAME);
     const constraints: QueryConstraint[] = [];
 
+    // Filtro por marca (ID en campo brand)
+    if (filters?.brand) {
+      const brands = Array.isArray(filters.brand) ? filters.brand : [filters.brand];
+      if (brands.length === 1) {
+        constraints.push(where('brand', '==', brands[0]));
+      } else if (brands.length > 1) {
+        constraints.push(where('brand', 'in', brands));
+      }
+    }
+
     // Filtro por categoría (puede ser string o array)
     if (filters?.category) {
       if (Array.isArray(filters.category)) {
@@ -143,6 +153,38 @@ export async function getProducts(filters?: ProductFilters): Promise<QueryResult
     if (errorCode !== 'permission-denied' && errorCode !== 'failed-precondition') {
       console.error('Error getting products:', error);
     }
+    return { data: [], error: error as Error };
+  }
+}
+
+function chunkIds<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    out.push(arr.slice(i, i + size));
+  }
+  return out;
+}
+
+/**
+ * Productos cuyo campo `brand` (ID de /brands) está en la lista. Firestore limita `in` a 10 valores.
+ */
+export async function getProductsByBrandIds(brandIds: string[]): Promise<QueryResult<Product>> {
+  try {
+    if (!db) return { data: [], error: new Error('Firestore no inicializado') };
+    const unique = [...new Set(brandIds.filter(Boolean))];
+    if (unique.length === 0) return { data: [] };
+    const productsRef = collection(db, COLLECTION_NAME);
+    const byId = new Map<string, Product>();
+    for (const chunk of chunkIds(unique, 10)) {
+      const q = query(productsRef, where('brand', 'in', chunk));
+      const snap = await getDocs(q);
+      snap.docs.forEach((docSnap) => {
+        byId.set(docSnap.id, { id: docSnap.id, ...docSnap.data() } as Product);
+      });
+    }
+    return { data: Array.from(byId.values()) };
+  } catch (error) {
+    console.error('Error getProductsByBrandIds:', error);
     return { data: [], error: error as Error };
   }
 }

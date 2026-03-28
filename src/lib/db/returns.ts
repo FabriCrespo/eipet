@@ -29,24 +29,67 @@ import type {
 } from './types';
 import { getOrderById } from './orders';
 import { getProductById } from './products';
+import {
+  isEligibleReturnReason,
+  isReturnWindowOpen,
+  RETURN_TOAST,
+} from '../returnsPolicy';
 
 const COLLECTION_NAME = 'returns';
 
 /**
- * Crear una nueva devolución
+ * Crear una nueva devoluci?n
  */
 export async function createReturn(data: CreateReturnData): Promise<WriteResult> {
   try {
-    // Obtener información del pedido y producto
+    if (!db) return { success: false, error: new Error('Base de datos no disponible') };
+
     const orderResult = await getOrderById(data.orderId);
     if (!orderResult.data) {
       return { success: false, error: new Error('Pedido no encontrado') };
     }
 
     const order = orderResult.data;
-    const orderItem = order.items.find((item: any) => item.productId === data.productId);
+    if (order.status !== 'delivered') {
+      return { success: false, error: new Error(RETURN_TOAST.notEligible) };
+    }
+
+    if (!isReturnWindowOpen(order)) {
+      return { success: false, error: new Error(RETURN_TOAST.timeExpired) };
+    }
+
+    const orderItem = order.items.find(
+      (item: { id?: string; productId: string }) =>
+        item.productId === data.productId && (data.orderItemId ? item.id === data.orderItemId : true)
+    );
     if (!orderItem) {
       return { success: false, error: new Error('Item del pedido no encontrado') };
+    }
+
+    if (orderItem.purchaseHadPromotion === true) {
+      return { success: false, error: new Error(RETURN_TOAST.notEligible) };
+    }
+
+    if (!isEligibleReturnReason(data.reason)) {
+      return { success: false, error: new Error(RETURN_TOAST.notEligible) };
+    }
+
+    if (!data.declaresUnopenedOriginalPackaging) {
+      return { success: false, error: new Error(RETURN_TOAST.notEligible) };
+    }
+
+    const existing = await getUserReturns(data.userId);
+    const list = existing.data || [];
+    const activeStatuses = ['pending', 'approved', 'processing'];
+    const dup = list.some(
+      (r) =>
+        r.orderId === data.orderId &&
+        r.productId === data.productId &&
+        r.orderItemId === data.orderItemId &&
+        activeStatuses.includes(r.status)
+    );
+    if (dup) {
+      return { success: false, error: new Error(RETURN_TOAST.duplicateActive) };
     }
 
     const productResult = await getProductById(data.productId);
@@ -58,24 +101,25 @@ export async function createReturn(data: CreateReturnData): Promise<WriteResult>
         date: new Intl.DateTimeFormat('es-ES', {
           day: 'numeric',
           month: 'long',
-          year: 'numeric'
+          year: 'numeric',
         }).format(now.toDate()),
         time: new Intl.DateTimeFormat('es-ES', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         }).format(now.toDate()),
         status: 'Solicitud creada',
-        completed: true
+        completed: true,
       },
       {
         date: '',
         time: '',
-        status: 'En revisión',
-        completed: false
-      }
+        status: 'En revisi?n',
+        completed: false,
+      },
     ];
 
-    // Crear el objeto sin el campo id (Firestore lo genera automáticamente)
+    const companyFault = data.reason === 'company_error';
+
     const returnData = {
       userId: data.userId,
       orderId: data.orderId,
@@ -91,6 +135,8 @@ export async function createReturn(data: CreateReturnData): Promise<WriteResult>
       refundMethod: order.paymentMethod?.type === 'card' ? 'card' : 'transfer',
       shippingAddress: data.shippingAddress,
       timeline: initialTimeline,
+      declaresUnopenedOriginalPackaging: true,
+      companyFault,
       createdAt: now,
       updatedAt: now,
     };
@@ -108,6 +154,7 @@ export async function createReturn(data: CreateReturnData): Promise<WriteResult>
  */
 export async function getUserReturns(userId: string): Promise<QueryResult<Return>> {
   try {
+    if (!db) return { data: [], error: new Error('Base de datos no disponible') };
     const returnsRef = collection(db, COLLECTION_NAME);
     const q = query(
       returnsRef,
@@ -129,7 +176,7 @@ export async function getUserReturns(userId: string): Promise<QueryResult<Return
 }
 
 /**
- * Obtener una devolución por ID
+ * Obtener una devoluci?n por ID
  */
 export async function getReturnById(returnId: string): Promise<SingleResult<Return>> {
   try {
@@ -153,7 +200,7 @@ export async function getReturnById(returnId: string): Promise<SingleResult<Retu
 }
 
 /**
- * Actualizar el estado de una devolución
+ * Actualizar el estado de una devoluci?n
  */
 export async function updateReturnStatus(
   returnId: string,
@@ -164,7 +211,7 @@ export async function updateReturnStatus(
     const returnSnap = await getDoc(returnRef);
 
     if (!returnSnap.exists()) {
-      return { success: false, error: new Error('Devolución no encontrada') };
+      return { success: false, error: new Error('Devoluci?n no encontrada') };
     }
 
     const currentReturn = returnSnap.data() as Return;
@@ -173,7 +220,7 @@ export async function updateReturnStatus(
     // Actualizar timeline
     const updatedTimeline = [...(currentReturn.timeline || [])];
     const statusMap: Record<ReturnStatus, string> = {
-      'pending': 'En revisión',
+      'pending': 'En revisi?n',
       'approved': 'Aprobada',
       'rejected': 'Rechazada',
       'processing': 'Procesando',
@@ -200,11 +247,11 @@ export async function updateReturnStatus(
       };
     }
 
-    // Agregar nuevo paso si no es el último estado
+    // Agregar nuevo paso si no es el ?ltimo estado
     if (status !== 'completed' && status !== 'rejected' && status !== 'cancelled') {
       const nextStatusMap: Record<ReturnStatus, string> = {
-        'pending': 'En revisión',
-        'approved': 'Aprobación pendiente',
+        'pending': 'En revisi?n',
+        'approved': 'Aprobaci?n pendiente',
         'processing': 'Reembolso procesado',
         'cancelled': 'Cancelada',
         'rejected': 'Rechazada',
@@ -233,7 +280,7 @@ export async function updateReturnStatus(
 }
 
 /**
- * Actualizar una devolución (campos generales)
+ * Actualizar una devoluci?n (campos generales)
  */
 export async function updateReturn(
   returnId: string,
@@ -301,7 +348,7 @@ export async function getAllReturns(): Promise<QueryResult<Return>> {
 }
 
 /**
- * Eliminar una devolución
+ * Eliminar una devoluci?n
  */
 export async function deleteReturn(returnId: string): Promise<WriteResult> {
   try {

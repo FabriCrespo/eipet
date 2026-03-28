@@ -1,6 +1,7 @@
 /** Conversión de datos Firebase al formato de la UI */
 
 import { formatDate } from './utils';
+import { isReturnWindowOpen } from '../../../lib/returnsPolicy';
 
 export interface OrderStatusInfo {
   status: string;
@@ -69,9 +70,12 @@ const STATUS_MAP: Record<string, OrderStatusInfo> = {
   }
 };
 
-function getAvailableActions(status: string): string[] {
+function getAvailableActions(status: string, returnWindowOpen: boolean): string[] {
   const actions: string[] = ['verDetalles', 'factura'];
-  if (status === 'delivered') actions.push('calificar', 'devolver');
+  if (status === 'delivered') {
+    actions.push('calificar');
+    if (returnWindowOpen) actions.push('devolver');
+  }
   return actions;
 }
 
@@ -99,6 +103,7 @@ interface FirebaseOrder {
   trackingNumber?: string;
   createdAt?: unknown;
   updatedAt?: unknown;
+  deliveredAt?: unknown;
   invoiceNumber?: string;
 }
 
@@ -131,6 +136,8 @@ export function convertFirebaseOrderToComponent(firebaseOrder: FirebaseOrder): C
     ? formatDate(firebaseOrder.updatedAt ?? firebaseOrder.createdAt)
     : 'Pendiente de calcular';
 
+  const returnWindowOpen = isReturnWindowOpen(firebaseOrder);
+
   return {
     id: firebaseOrder.id ?? '',
     date: formatDate(firebaseOrder.createdAt),
@@ -140,7 +147,7 @@ export function convertFirebaseOrderToComponent(firebaseOrder: FirebaseOrder): C
     total: firebaseOrder.total ?? 0,
     productsCount: items.length,
     productImages,
-    showActions: getAvailableActions(status),
+    showActions: getAvailableActions(status, returnWindowOpen),
     progressStep: statusInfo.progressStep,
     products,
     shipping: {

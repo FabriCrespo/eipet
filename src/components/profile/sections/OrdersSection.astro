@@ -206,36 +206,65 @@ const statusOptions = ['Todos los estados', 'Pendientes', 'Procesando', 'En cami
         </div>
       </div>
 
-      <!-- Razón de devolución -->
+      <!-- Razón de devolución (solo motivos con cobertura) -->
       <div class="mb-5">
         <label for="return-reason" class="block text-sm font-semibold text-gray-900 mb-2">
-          Razón de la devolución <span class="text-red-500">*</span>
+          Motivo <span class="text-red-500">*</span>
         </label>
         <select
           id="return-reason"
           class="w-full px-4 py-2.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all"
           required
         >
-          <option value="">Selecciona una razón</option>
-          <option value="defective">Producto defectuoso</option>
-          <option value="wrong_item">Pedido incorrecto</option>
-          <option value="damaged">Producto dañado</option>
-          <option value="not_as_described">No coincide con la descripción</option>
-          <option value="other">Otra razón</option>
+          <option value="">Selecciona un motivo</option>
+          <option value="wrong_item">Producto incorrecto</option>
+          <option value="damaged">Dañado durante el envío</option>
+          <option value="expired">Producto vencido</option>
+          <option value="company_error">Error atribuible a la empresa</option>
         </select>
       </div>
 
       <!-- Descripción -->
-      <div class="mb-5">
+      <div class="mb-4">
         <label for="return-description" class="block text-sm font-semibold text-gray-900 mb-2">
-          Descripción detallada <span class="text-red-500">*</span>
+          Descripción <span class="text-red-500">*</span>
         </label>
         <textarea
           id="return-description"
-          placeholder="Describe el problema o razón de la devolución..."
-          class="w-full h-32 px-4 py-3 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all duration-200 resize-none"
+          placeholder="Cuéntanos qué pasó con empatía; revisaremos tu caso con cuidado."
+          class="w-full h-28 px-4 py-3 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all duration-200 resize-none"
           required
         ></textarea>
+      </div>
+
+      <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700 space-y-2">
+        <p class="font-semibold text-gray-900">Declaración (obligatoria)</p>
+        <label class="flex items-start gap-2 cursor-pointer">
+          <input type="checkbox" id="return-declare-original" class="mt-0.5 rounded border-gray-300 text-[#5d3fbb] focus:ring-[#5d3fbb]" />
+          <span>Confirmo que el producto está <strong>sin abrir</strong>, <strong>sin signos de uso</strong> y en su <strong>empaque original</strong>, según lo permitido por la política.</span>
+        </label>
+      </div>
+
+      <div class="mb-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3 text-xs text-gray-800 space-y-2">
+        <p class="font-semibold text-[#5d3fbb]">Si tu solicitud es aprobada podrás elegir</p>
+        <ul class="list-disc pl-4 space-y-1">
+          <li><strong>Cambio inmediato</strong> por el mismo producto, sin costo adicional.</li>
+          <li><strong>Cambio por otro producto</strong>: el monto se usa como crédito (diferencia a favor o en contra según corresponda).</li>
+          <li><strong>Reembolso</strong> al mismo método de pago (estimado 5 a 10 días hábiles).</li>
+        </ul>
+        <p class="text-gray-600 pt-1">Costos de envío: si el error es de la empresa, la empresa los asume; en otros casos pueden aplicar al cliente según política.</p>
+      </div>
+
+      <div class="mb-5 flex flex-col sm:flex-row gap-2">
+        <button
+          type="button"
+          id="return-whatsapp-btn"
+          class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg border border-green-600 text-green-700 bg-white hover:bg-green-50 transition-colors"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </button>
+        <p class="flex-1 text-xs text-gray-600 flex items-center">También puedes gestionar tu caso <strong class="mx-1">presencialmente</strong> en tienda.</p>
       </div>
       
       <!-- Botones de acción -->

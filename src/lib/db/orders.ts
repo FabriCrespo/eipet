@@ -174,11 +174,22 @@ export async function getOrderById(orderId: string): Promise<SingleResult<Order>
  */
 export async function updateOrderStatus(orderId: string, status: OrderStatus): Promise<WriteResult> {
   try {
+    if (!db) return { success: false, error: new Error('Base de datos no disponible') };
     const orderRef = doc(db, COLLECTION_NAME, orderId);
-    await updateDoc(orderRef, {
+    const snap = await getDoc(orderRef);
+    if (!snap.exists()) {
+      return { success: false, error: new Error('Pedido no encontrado') };
+    }
+    const now = Timestamp.now();
+    const data = snap.data() as { deliveredAt?: Timestamp };
+    const payload: Record<string, unknown> = {
       status,
-      updatedAt: Timestamp.now(),
-    });
+      updatedAt: now,
+    };
+    if (status === 'delivered' && !data.deliveredAt) {
+      payload.deliveredAt = now;
+    }
+    await updateDoc(orderRef, payload);
     return { success: true, id: orderId };
   } catch (error) {
     console.error('Error updating order status:', error);

@@ -14,6 +14,9 @@ function getCartEls() {
     closeCartBtn: document.getElementById("close-cart-btn"),
     viewCartBtn: document.getElementById("view-cart-btn"),
     checkoutBtn: document.getElementById("checkout-btn"),
+    cartDeliveryWrap: document.getElementById("cart-delivery-msg-wrap"),
+    cartDeliveryTeFaltan: document.getElementById("cart-delivery-msg-te-faltan"),
+    cartDeliveryGratis: document.getElementById("cart-delivery-msg-gratis"),
   };
 }
 
@@ -47,6 +50,46 @@ function formatBsAmount(n: number): string {
   return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+/** Primer nombre desde localStorage (perfil) para plantillas con {name}. */
+function getCartUserFirstName(): string {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return "";
+    const u = JSON.parse(raw) as { firstName?: string; name?: string; displayName?: string };
+    const rawName = String(u.firstName || u.name || u.displayName || "").trim();
+    if (!rawName) return "";
+    return rawName.split(/\s+/)[0] || "";
+  } catch {
+    return "";
+  }
+}
+
+function applyCartDeliveryTemplate(template: string, faltaFormatted: string): string {
+  let t = String(template).replace(/\{amount\}/g, faltaFormatted);
+  const first = getCartUserFirstName();
+  if (first) {
+    t = t.replace(/\{name\}/gi, first);
+  } else {
+    t = t
+      .replace(/\{name\}/gi, "")
+      .replace(/^\s*,\s*/u, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+  return t;
+}
+
+function applyOptionalNamePlaceholder(text: string): string {
+  const first = getCartUserFirstName();
+  let t = String(text);
+  if (first) return t.replace(/\{name\}/gi, first);
+  return t
+    .replace(/\{name\}/gi, "")
+    .replace(/^\s*,\s*/u, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 let deliverySettingsCache: { data: any; at: number } | null = null;
 const DELIVERY_CACHE_MS = 60_000;
 
@@ -60,105 +103,57 @@ async function getDeliverySettingsCached(): Promise<any> {
   return res.data;
 }
 
-const TOAST_VISIBLE_MS = 2600;
-const TOAST_EXIT_ANIM_MS = 320;
+/** Mensajes de envío (admin) debajo del título del carrito: naranja si falta monto, verde si ya alcanza el mínimo para la promo. */
+async function updateCartDeliveryMessage(): Promise<void> {
+  const wrap = els.cartDeliveryWrap;
+  const te = els.cartDeliveryTeFaltan;
+  const gr = els.cartDeliveryGratis;
+  if (!wrap || !te || !gr) return;
 
-function ensureCartDeliveryToastStyles(): void {
-  if (document.getElementById("eipet-cart-delivery-toast-style")) return;
-  const s = document.createElement("style");
-  s.id = "eipet-cart-delivery-toast-style";
-  s.textContent = `
-    #eipet-cart-delivery-toast {
-      position: fixed;
-      left: 50%;
-      top: max(0.75rem, env(safe-area-inset-top, 0px));
-      z-index: 2000;
-      width: min(100% - 2rem, 22rem);
-      margin: 0;
-      padding: 0.7rem 1rem;
-      border-radius: 0.875rem;
-      border: 1px solid rgba(93, 63, 187, 0.2);
-      background: linear-gradient(145deg, #ffffff 0%, #f5f3ff 55%, #faf8ff 100%);
-      box-shadow: 0 12px 36px rgba(93, 63, 187, 0.18), 0 4px 12px rgba(15, 23, 42, 0.06);
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: #1e1b4b;
-      line-height: 1.35;
-      text-align: center;
-      pointer-events: none;
-      transform: translate3d(-50%, -130%, 0) scale(0.96);
-      opacity: 0;
-      transition:
-        transform 0.38s cubic-bezier(0.34, 1.35, 0.64, 1),
-        opacity 0.28s ease;
-      will-change: transform, opacity;
-    }
-    #eipet-cart-delivery-toast.eipet-cart-toast--in {
-      transform: translate3d(-50%, 0, 0) scale(1);
-      opacity: 1;
-    }
-    #eipet-cart-delivery-toast.eipet-cart-toast--out {
-      transform: translate3d(-50%, -18px, 0) scale(0.98);
-      opacity: 0;
-      transition:
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.22s ease;
-    }
-  `;
-  document.head.appendChild(s);
-}
-
-function showCartToast(message: string): void {
-  ensureCartDeliveryToastStyles();
-  let el = document.getElementById("eipet-cart-delivery-toast");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "eipet-cart-delivery-toast";
-    el.setAttribute("role", "status");
-    el.setAttribute("aria-live", "polite");
-    document.body.appendChild(el);
+  if (cartState.items.length === 0) {
+    wrap.classList.add("hidden");
+    te.classList.add("hidden");
+    gr.classList.add("hidden");
+    te.textContent = "";
+    gr.textContent = "";
+    return;
   }
 
-  const timers = showCartToast as unknown as {
-    _hide?: ReturnType<typeof setTimeout>;
-    _cleanup?: ReturnType<typeof setTimeout>;
-  };
-  if (timers._hide) clearTimeout(timers._hide);
-  if (timers._cleanup) clearTimeout(timers._cleanup);
-
-  el.textContent = message;
-  el.classList.remove("eipet-cart-toast--in", "eipet-cart-toast--out");
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      el?.classList.add("eipet-cart-toast--in");
-    });
-  });
-
-  timers._hide = setTimeout(() => {
-    el?.classList.remove("eipet-cart-toast--in");
-    el?.classList.add("eipet-cart-toast--out");
-    timers._cleanup = setTimeout(() => {
-      el?.classList.remove("eipet-cart-toast--out");
-    }, TOAST_EXIT_ANIM_MS);
-  }, TOAST_VISIBLE_MS);
-}
-
-/** Tras agregar o subir cantidad: solo aviso "Te faltan {amount}..." si aún no alcanza el mínimo (el mensaje de envío gratis va solo en checkout con ubicación en cobertura). */
-async function notifyTeFaltanEnvioGratis(): Promise<void> {
   try {
     const data = await getDeliverySettingsCached();
-    if (!data || data.freeDeliveryEnabled === false) return;
+    if (!data || data.freeDeliveryEnabled === false) {
+      wrap.classList.add("hidden");
+      te.classList.add("hidden");
+      gr.classList.add("hidden");
+      return;
+    }
     const min = Number(data.minPurchaseAmount ?? 0);
-    if (min <= 0) return;
+    if (min <= 0) {
+      wrap.classList.add("hidden");
+      te.classList.add("hidden");
+      gr.classList.add("hidden");
+      return;
+    }
     const sub = getSubtotal();
-    if (sub >= min) return;
-    const falta = Math.max(0, min - sub);
-    const template = data.messageTeFaltan || "Te faltan {amount} Bs para envío gratis";
-    const text = String(template).replace(/\{amount\}/g, formatBsAmount(falta));
-    showCartToast(text);
+    const templateTe = data.messageTeFaltan || "Te faltan {amount} Bs para envío gratis";
+    const msgGratis = data.messageEnvioGratis || "¡Felicidades! Tienes envío gratis";
+
+    if (sub < min) {
+      const falta = Math.max(0, min - sub);
+      te.textContent = applyCartDeliveryTemplate(templateTe, formatBsAmount(falta));
+      te.classList.remove("hidden");
+      gr.classList.add("hidden");
+      wrap.classList.remove("hidden");
+    } else {
+      gr.textContent = applyOptionalNamePlaceholder(msgGratis);
+      gr.classList.remove("hidden");
+      te.classList.add("hidden");
+      wrap.classList.remove("hidden");
+    }
   } catch {
-    /* silencioso */
+    wrap.classList.add("hidden");
+    te.classList.add("hidden");
+    gr.classList.add("hidden");
   }
 }
 
@@ -193,6 +188,7 @@ function renderItems(): void {
     els.cartItems.classList.add("hidden");
     els.cartEmpty.classList.remove("hidden");
     els.cartFooter.classList.add("hidden");
+    void updateCartDeliveryMessage();
     return;
   }
 
@@ -230,6 +226,7 @@ function renderItems(): void {
     })
     .join("");
   updateTotals();
+  void updateCartDeliveryMessage();
 }
 
 let delegationDone = false;
@@ -265,7 +262,6 @@ function changeQty(pid: string, delta: number): void {
   renderItems();
   updateCount();
   window.dispatchEvent(new CustomEvent("cart-updated"));
-  if (delta > 0) void notifyTeFaltanEnvioGratis();
 }
 
 function remove(pid: string): void {
@@ -274,6 +270,27 @@ function remove(pid: string): void {
   renderItems();
   updateCount();
   window.dispatchEvent(new CustomEvent("cart-updated"));
+}
+
+/** Si el producto ya está en el carrito, fija la cantidad absoluta (p. ej. sincronizar +/- en tarjetas de producto). */
+export function setCartProductQuantity(productId: string, quantity: number): boolean {
+  const item = cartState.items.find((i) => i.productId === productId);
+  if (!item) return false;
+  const q = Math.max(0, Math.floor(quantity));
+  if (q <= 0) {
+    remove(productId);
+    return true;
+  }
+  if (item.product?.stock != null && q > item.product.stock) {
+    alert(`Stock insuficiente. Disponible: ${item.product.stock}`);
+    return false;
+  }
+  item.quantity = q;
+  saveCart();
+  renderItems();
+  updateCount();
+  window.dispatchEvent(new CustomEvent("cart-updated"));
+  return true;
 }
 
 export function addToCart(product: CartProduct, qty = 1): boolean {
@@ -295,7 +312,6 @@ export function addToCart(product: CartProduct, qty = 1): boolean {
   renderItems();
   updateCount();
   window.dispatchEvent(new CustomEvent("cart-updated", { detail: { productId: product.id, action: "added" } }));
-  void notifyTeFaltanEnvioGratis();
   return true;
 }
 
@@ -379,10 +395,16 @@ export async function initCart(): Promise<void> {
   if (!(window as any).__cartInit) {
     (window as any).__cartInit = true;
     window.addEventListener("storage", (e) => {
-      if (e.key === "cart") { loadCart(); renderItems(); updateCount(); }
+      if (e.key === "cart") {
+        loadCart();
+        renderItems();
+        updateCount();
+        void updateCartDeliveryMessage();
+      }
     });
   }
 
   (window as any).addToCart = addToCart;
+  (window as any).setCartProductQuantity = setCartProductQuantity;
   (window as any).getCartState = () => cartState;
 }

@@ -244,7 +244,9 @@ export type DiscountType = 'percentage' | 'fixed';
 export interface Product {
   id: string;
   name: string;
-  brand: string;
+  brand: string; // ID de documento en /brands
+  /** ID del documento en /discounts que aplicó el precio promocional (solo uso interno admin) */
+  discountSourceId?: string | null;
   category: ProductCategorySlug; // Usa slug de la categoría (puede ser dinámico)
   type: ProductTypeSlug; // Usa slug del tipo (puede ser dinámico)
   price: number; // Precio actual (con descuento aplicado)
@@ -289,6 +291,7 @@ export interface CreateProductData {
 export interface UpdateProductData {
   name?: string;
   brand?: string;
+  discountSourceId?: string | null;
   category?: ProductCategorySlug; // Puede ser dinámico
   type?: ProductTypeSlug; // Puede ser dinámico
   price?: number;
@@ -308,6 +311,8 @@ export interface UpdateProductData {
 }
 
 export interface ProductFilters {
+  /** Filtrar por ID(s) de marca (campo brand del producto) */
+  brand?: string | string[];
   category?: ProductCategorySlug | ProductCategorySlug[];
   type?: ProductTypeSlug | ProductTypeSlug[];
   lifeStage?: LifeStageSlug | LifeStageSlug[];
@@ -336,6 +341,8 @@ export interface OrderItem {
   quantity: number;
   price: number; // Precio al momento de la compra
   subtotal: number; // quantity * price
+  /** Si compraste con precio promocional/oferta (no aplica devolución salvo política) */
+  purchaseHadPromotion?: boolean;
 }
 
 export interface Order {
@@ -367,6 +374,8 @@ export interface Order {
     name: string;
     nit: string;
   };
+  /** Fecha de entrega (se guarda al marcar el pedido como entregado) */
+  deliveredAt?: FirestoreTimestamp;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }
@@ -399,6 +408,7 @@ export interface UpdateOrderData {
   status?: OrderStatus;
   trackingNumber?: string; // Número de seguimiento del envío
   shippingCost?: number; // Costo de envío
+  deliveredAt?: FirestoreTimestamp;
 }
 
 // ============================================================================
@@ -406,7 +416,14 @@ export interface UpdateOrderData {
 // ============================================================================
 
 export type ReturnStatus = 'pending' | 'approved' | 'rejected' | 'processing' | 'completed' | 'cancelled';
-export type ReturnReason = 'defective' | 'wrong_item' | 'damaged' | 'not_as_described' | 'other';
+export type ReturnReason =
+  | 'defective'
+  | 'wrong_item'
+  | 'damaged'
+  | 'not_as_described'
+  | 'other'
+  | 'expired'
+  | 'company_error';
 
 export interface ReturnTimelineItem {
   date: string;
@@ -431,6 +448,10 @@ export interface Return {
   refundMethod: string; // 'card' | 'transfer' | 'cash'
   shippingAddress: UserAddress;
   timeline: ReturnTimelineItem[];
+  /** Declaración del cliente: producto sin abrir / empaque original */
+  declaresUnopenedOriginalPackaging?: boolean;
+  /** Si el motivo implica culpa de la empresa (costos logísticos a cargo) */
+  companyFault?: boolean;
   createdAt: FirestoreTimestamp;
   updatedAt: FirestoreTimestamp;
 }
@@ -443,6 +464,8 @@ export interface CreateReturnData {
   reason: ReturnReason;
   description: string;
   shippingAddress: UserAddress;
+  /** Declaración obligatoria: producto sin abrir, sin uso y en empaque original */
+  declaresUnopenedOriginalPackaging: boolean;
 }
 
 export interface UpdateReturnData {
@@ -505,13 +528,22 @@ export interface AddToCartData {
 // DESCUENTOS (Opcional - para casos complejos)
 // ============================================================================
 
-export type DiscountTargetType = 'product' | 'category' | 'global';
+export type DiscountTargetType = 'product' | 'category' | 'global' | 'brand';
 
 export interface Discount {
   id: string;
   name: string;
   type: DiscountTargetType;
-  targetId?: string | null; // productId, category, o null para global
+  /** @deprecated usar targetIds */
+  targetId?: string | null;
+  /** IDs de marcas (/brands) o de productos (/products) según type */
+  targetIds?: string[] | null;
+  /** IDs de marca para la vista tienda (ofertas); se rellenan al aplicar la promoción */
+  listingBrandIds?: string[] | null;
+  /** IDs de producto para la vista tienda (ofertas); se rellenan al aplicar la promoción */
+  listingProductIds?: string[] | null;
+  /** Productos a los que se aplicó la última vez esta promoción (para revertir al editar/eliminar) */
+  appliedProductIds?: string[] | null;
   discountValue: number;
   discountType: DiscountType;
   startDate: FirestoreTimestamp;
@@ -528,6 +560,9 @@ export interface CreateDiscountData {
   name: string;
   type: DiscountTargetType;
   targetId?: string | null;
+  targetIds?: string[] | null;
+  listingBrandIds?: string[] | null;
+  listingProductIds?: string[] | null;
   discountValue: number;
   discountType: DiscountType;
   startDate: Date | FirestoreTimestamp;
@@ -541,6 +576,10 @@ export interface UpdateDiscountData {
   name?: string;
   type?: DiscountTargetType;
   targetId?: string | null;
+  targetIds?: string[] | null;
+  listingBrandIds?: string[] | null;
+  listingProductIds?: string[] | null;
+  appliedProductIds?: string[] | null;
   discountValue?: number;
   discountType?: DiscountType;
   startDate?: Date | FirestoreTimestamp;

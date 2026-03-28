@@ -121,5 +121,6 @@ export {
   createDiscount,
   updateDiscount,
   deleteDiscount,
+  applyDiscountToProducts,
 } from './discounts';
 

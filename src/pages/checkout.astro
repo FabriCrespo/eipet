@@ -85,14 +85,37 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           <div class="lg:col-span-2 space-y-6">
             <!-- Información de Envío -->
             <div class="bg-white rounded-xl shadow-md p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 id="desktop-shipping-card-title" class="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
                 <svg class="w-6 h-6 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Información de Envío
+                <span id="desktop-shipping-title-text">Información de Envío</span>
               </h2>
 
+              <div class="flex rounded-xl overflow-hidden bg-[#5d3fbb] mb-4" role="tablist">
+                <button
+                  type="button"
+                  id="desktop-tab-envio"
+                  class="desktop-delivery-tab desktop-delivery-tab--active flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-[#8b7bc4] text-black font-medium text-sm rounded-l-xl transition-colors"
+                  data-delivery="envio"
+                  aria-selected="true"
+                >
+                  <img src="/images/delivery-man.png" alt="" class="w-5 h-5 object-contain" />
+                  Envio
+                </button>
+                <button
+                  type="button"
+                  id="desktop-tab-recoger"
+                  class="desktop-delivery-tab flex-1 flex items-center justify-center py-3.5 px-4 text-[#f2c51f] font-medium text-sm rounded-r-xl transition-colors"
+                  data-delivery="recoger"
+                  aria-selected="false"
+                >
+                  Recoger en eipet
+                </button>
+              </div>
+
+              <div id="desktop-shipping-envio-flow">
               <!-- Direcciones guardadas (solo si hay usuario logueado) -->
               <div id="saved-addresses-section" class="hidden mb-4">
                 <div class="mb-3">
@@ -241,6 +264,107 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   ></textarea>
                 </div>
               </form>
+              </div>
+
+              <!-- Recoger en tienda (desktop) — misma estructura que móvil step 2 -->
+              <div id="desktop-shipping-recoger-flow" class="hidden space-y-5">
+                <div class="text-center">
+                  <p class="text-xs font-semibold text-[#5d3fbb] uppercase tracking-wide">Recoger en la tienda</p>
+                  <p class="text-lg font-bold text-gray-900">eipet</p>
+                </div>
+
+                <div>
+                  <h2 class="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Ubicación
+                  </h2>
+                  <button
+                    type="button"
+                    id="desktop-pickup-map-toggle"
+                    class="w-full flex items-center gap-3 rounded-xl border-2 border-[#5d3fbb]/40 bg-white px-4 py-3.5 text-left shadow-sm hover:border-[#5d3fbb] transition-colors"
+                    aria-expanded="false"
+                    aria-controls="desktop-pickup-map-wrap"
+                  >
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-xl" aria-hidden="true">🐕</span>
+                    <span class="flex-1 text-sm font-semibold text-gray-900">¿Cómo llegar a eipet?</span>
+                    <svg class="w-5 h-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <div id="desktop-pickup-map-wrap" class="hidden mt-3 rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
+                    <div class="relative h-56 w-full">
+                      <div id="checkout-pickup-map-desktop" class="absolute inset-0 z-0 h-full w-full"></div>
+                    </div>
+                    <p class="text-[11px] text-gray-500 px-3 py-2">Ubicación de la tienda Eipet. Cierra el mapa cuando termines.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <h2 class="text-base font-semibold text-gray-900 mb-2">Hora de recoger</h2>
+                  <button
+                    type="button"
+                    id="desktop-pickup-schedule-toggle"
+                    class="w-full flex items-center gap-3 rounded-xl border-2 border-[#5d3fbb]/40 bg-white px-4 py-3.5 text-left shadow-sm hover:border-[#5d3fbb] transition-colors"
+                    aria-expanded="false"
+                    aria-controls="desktop-pickup-schedule-wrap"
+                  >
+                    <svg class="w-6 h-6 shrink-0 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="flex-1 text-sm font-semibold text-gray-900">Elija qué hora recoger o día</span>
+                    <svg class="w-5 h-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <div id="desktop-pickup-schedule-wrap" class="hidden mt-3 rounded-xl border border-gray-200 bg-white p-4">
+                    <label for="desktop-pickup-datetime" class="block text-xs font-semibold text-gray-700 mb-2">Fecha y hora aproximada</label>
+                    <input
+                      type="datetime-local"
+                      id="desktop-pickup-datetime"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
+                    />
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/80 p-4">
+                  <svg class="w-5 h-5 mt-0.5 shrink-0 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900">Instrucciones para recoger</p>
+                    <p id="desktop-pickup-instructions-note" class="text-xs text-gray-600 mt-1 leading-relaxed">
+                      Por favor asegúrate de que el pedido esté completo al recibirlo; el número de ticket te lo indicamos al confirmar la compra.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="desktop-recoger-fullName" class="block text-xs font-semibold text-gray-700 mb-1 sm:text-sm sm:mb-2">Nombre completo <span class="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      id="desktop-recoger-fullName"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30 sm:px-4 sm:py-3 sm:text-sm"
+                      placeholder="Quien recoge el pedido"
+                      autocomplete="name"
+                    />
+                  </div>
+                  <div>
+                    <label for="desktop-recoger-phone" class="block text-xs font-semibold text-gray-700 mb-1 sm:text-sm sm:mb-2">Teléfono <span class="text-red-500">*</span></label>
+                    <input
+                      type="tel"
+                      id="desktop-recoger-phone"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30 sm:px-4 sm:py-3 sm:text-sm"
+                      placeholder="+591 70000000"
+                      autocomplete="tel"
+                    />
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             <!-- Método de Pago -->
@@ -347,24 +471,28 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 <!-- Se cargarán dinámicamente -->
               </div>
 
-              <!-- Resumen de Precios -->
-              <div class="border-t border-gray-200 pt-4 space-y-3">
+              <!-- Resumen de Precios (misma lógica que móvil step 2: productos → Envío → Subtotal) -->
+              <div class="border-t border-gray-200 pt-4 space-y-2">
                 <div class="flex justify-between text-sm">
-                  <span class="text-gray-600">Subtotal</span>
-                  <span id="subtotal" class="font-semibold text-gray-900">Bs. 0.00</span>
+                  <span class="text-gray-600">productos</span>
+                  <span id="subtotal" class="font-semibold text-gray-900">Bs 0</span>
                 </div>
                 <div class="flex justify-between text-sm">
-                  <span class="text-gray-600">Envío</span>
-                  <span id="shipping-cost" class="font-semibold text-gray-900">Bs. 0.00</span>
+                  <span class="text-gray-600">Envio</span>
+                  <span id="shipping-cost" class="font-semibold text-gray-900">Gratis</span>
                 </div>
                 <p id="shipping-hint-desktop" class="checkout-shipping-hint hidden text-xs leading-snug mt-1 rounded-lg px-2 py-1.5 bg-gray-50 border border-gray-100"></p>
+                <div class="flex justify-between text-sm font-semibold pt-1">
+                  <span>Subtotal</span>
+                  <span id="desktop-summary-subtotal">Bs 0</span>
+                </div>
                 <div class="flex justify-between text-sm" id="discount-row" style="display: none;">
                   <span class="text-gray-600">Descuento</span>
                   <span id="discount" class="font-semibold text-green-600">-Bs. 0.00</span>
                 </div>
                 <div class="border-t border-gray-200 pt-3 flex justify-between">
                   <span class="text-lg font-bold text-gray-900">Total</span>
-                  <span id="total" class="text-lg font-bold text-[#5d3fbb]">Bs. 0.00</span>
+                  <span id="total" class="text-lg font-bold text-[#5d3fbb]">Bs 0</span>
                 </div>
               </div>
 
@@ -374,7 +502,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 class="w-full mt-6 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 disabled
               >
-                <span id="confirm-btn-text">Confirmar Pedido</span>
+                <span id="confirm-btn-text">Pagar</span>
                 <span id="confirm-btn-loading" class="hidden items-center justify-center gap-2">
                   <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -472,7 +600,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
           <!-- Step 2: ¿Cómo quieres pagar? -->
           <div id="checkout-step-2" class="checkout-mobile-step hidden">
-            <h1 class="text-xl font-bold text-gray-800 text-center mb-6">¿Como quieres pagar?</h1>
+            <h1 id="mobile-step2-heading" class="text-xl font-bold text-gray-800 text-center mb-2">¿Como quieres pagar?</h1>
+            <p id="mobile-step2-subheading" class="text-center text-sm text-gray-500 mb-6 hidden"></p>
 
             <!-- Métodos de pago destacados -->
             <div class="mb-6">
@@ -498,8 +627,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               </button>
             </div>
 
-            <!-- Datos de entrega -->
-            <div class="space-y-5 mb-6">
+            <!-- Datos de entrega: envío a domicilio -->
+            <div id="mobile-step2-envio-flow" class="space-y-5 mb-6">
               <h2 class="text-base font-semibold text-gray-900">Datos de entrega</h2>
 
               <!-- Tipo de entrega -->
@@ -658,6 +787,109 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               </div>
             </div>
 
+            <!-- Recoger en tienda eipet (móvil step 2) -->
+            <div id="mobile-step2-recoger-flow" class="hidden space-y-5 mb-6">
+              <div class="text-center">
+                <p class="text-xs font-semibold text-[#5d3fbb] uppercase tracking-wide">Recoger en la tienda</p>
+                <p class="text-lg font-bold text-gray-900">eipet</p>
+              </div>
+
+              <!-- Ubicación -->
+              <div>
+                <h2 class="text-base font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Ubicación
+                </h2>
+                <button
+                  type="button"
+                  id="mobile-pickup-map-toggle"
+                  class="w-full flex items-center gap-3 rounded-xl border-2 border-[#5d3fbb]/40 bg-white px-4 py-3.5 text-left shadow-sm hover:border-[#5d3fbb] transition-colors"
+                  aria-expanded="false"
+                  aria-controls="mobile-pickup-map-wrap"
+                >
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-xl" aria-hidden="true">🐕</span>
+                  <span class="flex-1 text-sm font-semibold text-gray-900">¿Cómo llegar a eipet?</span>
+                  <svg class="w-5 h-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <div id="mobile-pickup-map-wrap" class="hidden mt-3 rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
+                  <div class="relative h-56 w-full">
+                    <div id="checkout-pickup-map-mobile" class="absolute inset-0 z-0 h-full w-full"></div>
+                  </div>
+                  <p class="text-[11px] text-gray-500 px-3 py-2">Ubicación de la tienda Eipet. Cierra el mapa cuando termines.</p>
+                </div>
+              </div>
+
+              <!-- Hora de recoger -->
+              <div>
+                <h2 class="text-base font-semibold text-gray-900 mb-2">Hora de recoger</h2>
+                <button
+                  type="button"
+                  id="mobile-pickup-schedule-toggle"
+                  class="w-full flex items-center gap-3 rounded-xl border-2 border-[#5d3fbb]/40 bg-white px-4 py-3.5 text-left shadow-sm hover:border-[#5d3fbb] transition-colors"
+                  aria-expanded="false"
+                  aria-controls="mobile-pickup-schedule-wrap"
+                >
+                  <svg class="w-6 h-6 shrink-0 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="flex-1 text-sm font-semibold text-gray-900">Elija qué hora recoger o día</span>
+                  <svg class="w-5 h-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <div id="mobile-pickup-schedule-wrap" class="hidden mt-3 rounded-xl border border-gray-200 bg-white p-4">
+                  <label for="mobile-pickup-datetime" class="block text-xs font-semibold text-gray-700 mb-2">Fecha y hora aproximada</label>
+                  <input
+                    type="datetime-local"
+                    id="mobile-pickup-datetime"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
+                  />
+                </div>
+              </div>
+
+              <!-- Instrucciones recogida -->
+              <div class="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/80 p-4">
+                <svg class="w-5 h-5 mt-0.5 shrink-0 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-900">Instrucciones para recoger</p>
+                  <p id="mobile-pickup-instructions-note" class="text-xs text-gray-600 mt-1 leading-relaxed">
+                    Por favor asegúrate de que el pedido esté completo al recibirlo; el número de ticket te lo indicamos al confirmar la compra.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Contacto (recogida) -->
+              <div class="grid grid-cols-1 gap-3">
+                <div>
+                  <label for="mobile-recoger-fullName" class="block text-xs font-semibold text-gray-700 mb-1">Nombre completo <span class="text-red-500">*</span></label>
+                  <input
+                    id="mobile-recoger-fullName"
+                    type="text"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
+                    placeholder="Quien recoge el pedido"
+                    autocomplete="name"
+                  />
+                </div>
+                <div>
+                  <label for="mobile-recoger-phone" class="block text-xs font-semibold text-gray-700 mb-1">Teléfono <span class="text-red-500">*</span></label>
+                  <input
+                    id="mobile-recoger-phone"
+                    type="tel"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm"
+                    placeholder="+591 70000000"
+                    autocomplete="tel"
+                  />
+                </div>
+              </div>
+            </div>
+
             <!-- Datos de facturación -->
             <div class="space-y-3 mb-6">
               <h2 class="text-base font-semibold text-gray-900">Datos de Facturacion</h2>
@@ -805,6 +1037,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
     .checkout-delivery-tab:not(.checkout-delivery-tab--active) {
       background-color: transparent;
     }
+    .desktop-delivery-tab--active {
+      background-color: #8b7bc4 !important;
+    }
     .checkout-mobile-item-card {
       background-color: #f3f4f6;
       border-radius: 0.75rem;
@@ -827,7 +1062,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
     /* Evitar que Leaflet se monte por encima del header */
     :global(#checkout-map.leaflet-container),
-    :global(#checkout-mobile-map.leaflet-container) {
+    :global(#checkout-mobile-map.leaflet-container),
+    :global(#checkout-pickup-map-mobile.leaflet-container),
+    :global(#checkout-pickup-map-desktop.leaflet-container) {
       position: relative;
       z-index: 1;
     }
@@ -870,10 +1107,16 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
     :global(#checkout-map .leaflet-pane),
     :global(#checkout-mobile-map .leaflet-pane),
+    :global(#checkout-pickup-map-mobile .leaflet-pane),
+    :global(#checkout-pickup-map-desktop .leaflet-pane),
     :global(#checkout-map .leaflet-top),
     :global(#checkout-map .leaflet-bottom),
     :global(#checkout-mobile-map .leaflet-top),
-    :global(#checkout-mobile-map .leaflet-bottom) {
+    :global(#checkout-mobile-map .leaflet-bottom),
+    :global(#checkout-pickup-map-mobile .leaflet-top),
+    :global(#checkout-pickup-map-mobile .leaflet-bottom),
+    :global(#checkout-pickup-map-desktop .leaflet-top),
+    :global(#checkout-pickup-map-desktop .leaflet-bottom) {
       z-index: 1;
     }
 
@@ -995,6 +1238,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const checkoutContent = document.getElementById('checkout-content');
       const orderItemsDiv = document.getElementById('order-items');
       const subtotalSpan = document.getElementById('subtotal');
+      const desktopSummarySubtotal = document.getElementById('desktop-summary-subtotal');
       const shippingCostSpan = document.getElementById('shipping-cost');
       const discountSpan = document.getElementById('discount');
       const discountRow = document.getElementById('discount-row');
@@ -1061,6 +1305,21 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mobileBillingNitInput = document.getElementById('mobile-billing-nit-input') as HTMLInputElement | null;
       const billingNameInput = document.getElementById('billingName') as HTMLInputElement | null;
       const billingNitInput = document.getElementById('billingNit') as HTMLInputElement | null;
+      const mobileStep2Heading = document.getElementById('mobile-step2-heading');
+      const mobileStep2Subheading = document.getElementById('mobile-step2-subheading');
+      const mobileStep2EnvioFlow = document.getElementById('mobile-step2-envio-flow');
+      const mobileStep2RecogerFlow = document.getElementById('mobile-step2-recoger-flow');
+      const mobileRecogerFullName = document.getElementById('mobile-recoger-fullName') as HTMLInputElement | null;
+      const mobileRecogerPhone = document.getElementById('mobile-recoger-phone') as HTMLInputElement | null;
+      const mobilePickupDatetime = document.getElementById('mobile-pickup-datetime') as HTMLInputElement | null;
+      const desktopRecogerFullName = document.getElementById('desktop-recoger-fullName') as HTMLInputElement | null;
+      const desktopRecogerPhone = document.getElementById('desktop-recoger-phone') as HTMLInputElement | null;
+      const desktopPickupDatetime = document.getElementById('desktop-pickup-datetime') as HTMLInputElement | null;
+      const desktopShippingEnvioFlow = document.getElementById('desktop-shipping-envio-flow');
+      const desktopShippingRecogerFlow = document.getElementById('desktop-shipping-recoger-flow');
+      const desktopTabEnvioBtn = document.getElementById('desktop-tab-envio');
+      const desktopTabRecogerBtn = document.getElementById('desktop-tab-recoger');
+      const desktopShippingTitleText = document.getElementById('desktop-shipping-title-text');
 
       let deliveryType: 'envio' | 'recoger' = 'envio';
       let currentPaymentMethod: 'cash' | 'qr' | 'card' = 'qr';
@@ -1121,6 +1380,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       let checkoutMarker: any = null;
       let mobileMap: any = null;
       let mobileMarker: any = null;
+      let pickupMapMobile: any = null;
+      let pickupMapDesktop: any = null;
       const DEFAULT_CENTER: [number, number] = [-16.4897, -68.1193]; // La Paz, Bolivia
       /** Tienda física Eipet (17°46'44.9"S 63°10'35.0"W) */
       const STORE_EIPET_LAT_LNG: [number, number] = [-17.779127, -63.176396];
@@ -1160,6 +1421,113 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         const bounds = L.latLngBounds([STORE_EIPET_LAT_LNG, [deliveryLat, deliveryLng]]);
         map.fitBounds(bounds, { padding: [44, 44], maxZoom: 16, animate: true });
         setTimeout(() => map.invalidateSize(), 350);
+      }
+
+      function initPickupMapMobile() {
+        const el = document.getElementById('checkout-pickup-map-mobile');
+        if (!el) return;
+        const L = (window as any).L;
+        if (!L) {
+          setTimeout(initPickupMapMobile, 200);
+          return;
+        }
+        if (pickupMapMobile) {
+          setTimeout(() => {
+            pickupMapMobile.invalidateSize();
+            pickupMapMobile.setView(STORE_EIPET_LAT_LNG, 16);
+          }, 120);
+          return;
+        }
+        pickupMapMobile = L.map('checkout-pickup-map-mobile').setView(STORE_EIPET_LAT_LNG, 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap',
+        }).addTo(pickupMapMobile);
+        addEipetStoreMarker(pickupMapMobile, L);
+        setTimeout(() => {
+          pickupMapMobile.invalidateSize();
+        }, 100);
+      }
+
+      function initPickupMapDesktop() {
+        const el = document.getElementById('checkout-pickup-map-desktop');
+        if (!el) return;
+        const L = (window as any).L;
+        if (!L) {
+          setTimeout(initPickupMapDesktop, 200);
+          return;
+        }
+        if (pickupMapDesktop) {
+          setTimeout(() => {
+            pickupMapDesktop.invalidateSize();
+            pickupMapDesktop.setView(STORE_EIPET_LAT_LNG, 16);
+          }, 120);
+          return;
+        }
+        pickupMapDesktop = L.map('checkout-pickup-map-desktop').setView(STORE_EIPET_LAT_LNG, 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap',
+        }).addTo(pickupMapDesktop);
+        addEipetStoreMarker(pickupMapDesktop, L);
+        setTimeout(() => {
+          pickupMapDesktop.invalidateSize();
+        }, 100);
+      }
+
+      function setupPickupPanelToggle(toggleId: string, wrapId: string, onOpen?: () => void) {
+        const toggle = document.getElementById(toggleId);
+        const wrap = document.getElementById(wrapId);
+        if (!toggle || !wrap) return;
+        toggle.addEventListener('click', () => {
+          wrap.classList.toggle('hidden');
+          const isOpen = !wrap.classList.contains('hidden');
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          if (isOpen && onOpen) {
+            setTimeout(onOpen, 80);
+          }
+        });
+      }
+
+      function applyCheckoutDeliveryModeUI() {
+        const recoger = deliveryType === 'recoger';
+        if (mobileStep2EnvioFlow && mobileStep2RecogerFlow) {
+          mobileStep2EnvioFlow.classList.toggle('hidden', recoger);
+          mobileStep2RecogerFlow.classList.toggle('hidden', !recoger);
+        }
+        if (mobileStep2Heading) {
+          mobileStep2Heading.textContent = recoger ? 'Recoger en eipet' : '¿Como quieres pagar?';
+        }
+        if (mobileStep2Subheading) {
+          if (recoger) {
+            mobileStep2Subheading.textContent = 'Recoger en la tienda › eipet';
+            mobileStep2Subheading.classList.remove('hidden');
+          } else {
+            mobileStep2Subheading.classList.add('hidden');
+          }
+        }
+        if (desktopShippingEnvioFlow && desktopShippingRecogerFlow) {
+          desktopShippingEnvioFlow.classList.toggle('hidden', recoger);
+          desktopShippingRecogerFlow.classList.toggle('hidden', !recoger);
+        }
+        if (desktopTabEnvioBtn && desktopTabRecogerBtn) {
+          desktopTabEnvioBtn.setAttribute('aria-selected', recoger ? 'false' : 'true');
+          desktopTabRecogerBtn.setAttribute('aria-selected', recoger ? 'true' : 'false');
+          if (!recoger) {
+            desktopTabEnvioBtn.className =
+              'desktop-delivery-tab desktop-delivery-tab--active flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-[#8b7bc4] text-black font-medium text-sm rounded-l-xl transition-colors';
+            desktopTabRecogerBtn.className =
+              'desktop-delivery-tab flex-1 flex items-center justify-center py-3.5 px-4 text-[#f2c51f] font-medium text-sm rounded-r-xl transition-colors';
+          } else {
+            desktopTabEnvioBtn.className =
+              'desktop-delivery-tab flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[#f2c51f] font-medium text-sm rounded-l-xl transition-colors';
+            desktopTabRecogerBtn.className =
+              'desktop-delivery-tab desktop-delivery-tab--active flex-1 flex items-center justify-center py-3.5 px-4 bg-[#8b7bc4] text-black font-medium text-sm rounded-r-xl transition-colors';
+          }
+        }
+        if (desktopShippingTitleText) {
+          desktopShippingTitleText.textContent = recoger ? 'Recoger en eipet' : 'Información de Envío';
+        }
+        recalculateShipping();
+        updateTotals();
       }
 
       function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -2479,6 +2847,18 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             if (!mobilePhoneInput.value) {
               mobilePhoneInput.value = result.user.phone || '';
             }
+            if (mobileRecogerFullName && !mobileRecogerFullName.value.trim()) {
+              mobileRecogerFullName.value = mobileFullNameInput.value;
+            }
+            if (mobileRecogerPhone && !mobileRecogerPhone.value.trim()) {
+              mobileRecogerPhone.value = mobilePhoneInput.value;
+            }
+            if (desktopRecogerFullName && !desktopRecogerFullName.value.trim()) {
+              desktopRecogerFullName.value = mobileFullNameInput.value;
+            }
+            if (desktopRecogerPhone && !desktopRecogerPhone.value.trim()) {
+              desktopRecogerPhone.value = mobilePhoneInput.value;
+            }
           }
         } catch (_) {}
       }
@@ -2545,6 +2925,23 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         if (mobileBillingNitInput && mobileBillingNit) {
           mobileBillingNitInput.value = (mobileBillingNit as HTMLElement).textContent || '';
         }
+
+        if (mobileRecogerFullName && mobileFullNameInput && !mobileRecogerFullName.value.trim()) {
+          mobileRecogerFullName.value = mobileFullNameInput.value || '';
+        }
+        if (mobileRecogerPhone && mobilePhoneInput && !mobileRecogerPhone.value.trim()) {
+          mobileRecogerPhone.value = mobilePhoneInput.value || '';
+        }
+        if (desktopRecogerFullName && !desktopRecogerFullName.value.trim()) {
+          const fn = document.getElementById('fullName') as HTMLInputElement | null;
+          if (fn?.value) desktopRecogerFullName.value = fn.value;
+        }
+        if (desktopRecogerPhone && !desktopRecogerPhone.value.trim()) {
+          const ph = document.getElementById('phone') as HTMLInputElement | null;
+          if (ph?.value) desktopRecogerPhone.value = ph.value;
+        }
+
+        applyCheckoutDeliveryModeUI();
       }
 
       // Actualizar totales (desktop y móvil)
@@ -2564,12 +2961,17 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         const discount = 0; // Por ahora sin descuentos
         const total = subtotal - discount + shippingCost;
 
-        if (subtotalSpan) subtotalSpan.textContent = `Bs. ${formatPrice(subtotal)}`;
+        const productsLine = `Bs ${formatPrice(subtotal)}`;
+        const shipLineDesktop = shippingCost === 0 ? 'Gratis' : `Bs ${formatPrice(shippingCost)}`;
+        const subtotalAfterShip = `Bs ${formatPrice(subtotal + shippingCost)}`;
+        const totalLine = `Bs ${formatPrice(total)}`;
+
+        if (subtotalSpan) subtotalSpan.textContent = productsLine;
         if (shippingCostSpan) {
-          shippingCostSpan.textContent =
-            shippingCost === 0 ? 'Gratis' : `Bs. ${formatPrice(shippingCost)}`;
+          shippingCostSpan.textContent = shipLineDesktop;
         }
-        if (totalSpan) totalSpan.textContent = `Bs. ${formatPrice(total)}`;
+        if (desktopSummarySubtotal) desktopSummarySubtotal.textContent = subtotalAfterShip;
+        if (totalSpan) totalSpan.textContent = totalLine;
 
         if (discount > 0) {
           if (discountSpan) discountSpan.textContent = `-Bs. ${formatPrice(discount)}`;
@@ -2642,21 +3044,41 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           }
         }
 
-        // Validar dirección: en móvil paso 2 se usan los campos móviles; en desktop el formulario oculto
+        // Validar según envío a domicilio vs recoger en tienda
         if (isMobileView() && currentMobileStep >= 2) {
-          if (!mobileFullNameInput?.value?.trim() || !mobilePhoneInput?.value?.trim()) {
-            showError('Completa nombre y teléfono de entrega.');
+          if (deliveryType === 'recoger') {
+            if (!mobileRecogerFullName?.value?.trim() || !mobileRecogerPhone?.value?.trim()) {
+              showError('Completa nombre y teléfono para recoger en tienda.');
+              return;
+            }
+            if (!mobilePickupDatetime?.value?.trim()) {
+              showError('Indica fecha y hora aproximada para recoger en tienda.');
+              return;
+            }
+          } else {
+            if (!mobileFullNameInput?.value?.trim() || !mobilePhoneInput?.value?.trim()) {
+              showError('Completa nombre y teléfono de entrega.');
+              return;
+            }
+            if (!mobileAddressInput?.value?.trim()) {
+              showError('Completa la dirección de entrega.');
+              return;
+            }
+            if (!addressLatInput?.value?.trim() || !addressLngInput?.value?.trim()) {
+              showError('Marca tu ubicación en el mapa o usa "Usar mi ubicación actual".');
+              return;
+            }
+          }
+        } else if (!isMobileView() && deliveryType === 'recoger') {
+          if (!desktopRecogerFullName?.value?.trim() || !desktopRecogerPhone?.value?.trim()) {
+            showError('Completa nombre y teléfono para recoger en tienda.');
             return;
           }
-          if (!mobileAddressInput?.value?.trim()) {
-            showError('Completa la dirección de entrega.');
+          if (!desktopPickupDatetime?.value?.trim()) {
+            showError('Indica fecha y hora aproximada para recoger en tienda.');
             return;
           }
-          if (!addressLatInput?.value?.trim() || !addressLngInput?.value?.trim()) {
-            showError('Marca tu ubicación en el mapa o usa "Usar mi ubicación actual".');
-            return;
-          }
-        } else if (useManualAddress && !shippingForm.checkValidity()) {
+        } else if (useManualAddress && shippingForm && !shippingForm.checkValidity()) {
           shippingForm.reportValidity();
           return;
         }
@@ -2748,31 +3170,73 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           // Obtener datos de dirección (de formulario, móvil o dirección guardada)
           let shippingAddress: any;
 
-          // En móvil, si estamos en el step 2 usamos primero los campos de edición móvil
+          // En móvil paso 2: recoger en tienda o envío
           if (isMobileView() && currentMobileStep >= 2 && mobileFullNameInput && mobileAddressInput) {
             const { Timestamp } = await import('firebase/firestore');
             const now = Timestamp.now();
-            const latVal = addressLatInput?.value || '';
-            const lngVal = addressLngInput?.value || '';
-            const latitude = latVal ? parseFloat(latVal) : null;
-            const longitude = lngVal ? parseFloat(lngVal) : null;
+            if (deliveryType === 'recoger') {
+              const dt = (mobilePickupDatetime?.value || '').trim();
+              shippingAddress = {
+                id: `pickup-${Date.now()}`,
+                name: 'Recogida en tienda Eipet',
+                fullName: (mobileRecogerFullName?.value || '').trim(),
+                phone: (mobileRecogerPhone?.value || '').trim(),
+                address: 'Recogida en tienda Eipet',
+                city: 'Santa Cruz',
+                district: '—',
+                instructions: `Recogida en tienda. Fecha/hora indicada: ${dt}.`,
+                isDefault: false,
+                latitude: STORE_EIPET_LAT_LNG[0],
+                longitude: STORE_EIPET_LAT_LNG[1],
+                createdAt: now,
+                updatedAt: now,
+                pickupInStore: true,
+                pickupScheduledAt: dt,
+              };
+            } else {
+              const latVal = addressLatInput?.value || '';
+              const lngVal = addressLngInput?.value || '';
+              const latitude = latVal ? parseFloat(latVal) : null;
+              const longitude = lngVal ? parseFloat(lngVal) : null;
 
+              shippingAddress = {
+                id: selectedAddressId || `temp-${Date.now()}`,
+                name: (mobileAddressLabelInput?.value || '').trim() || 'Dirección de Envío',
+                fullName: mobileFullNameInput.value || '',
+                phone: mobilePhoneInput?.value || '',
+                address: mobileAddressInput.value || '',
+                city: mobileCityInput?.value || '',
+                district: mobileDistrictInput?.value || '',
+                instructions: mobileInstructionsInput?.value || '',
+                isDefault: false,
+                latitude,
+                longitude,
+                createdAt: now,
+                updatedAt: now,
+              };
+              saveGuestShippingDraft();
+            }
+          } else if (!isMobileView() && deliveryType === 'recoger' && desktopRecogerFullName && desktopRecogerPhone) {
+            const { Timestamp } = await import('firebase/firestore');
+            const now = Timestamp.now();
+            const dt = (desktopPickupDatetime?.value || '').trim();
             shippingAddress = {
-              id: selectedAddressId || `temp-${Date.now()}`,
-              name: (mobileAddressLabelInput?.value || '').trim() || 'Dirección de Envío',
-              fullName: mobileFullNameInput.value || '',
-              phone: mobilePhoneInput?.value || '',
-              address: mobileAddressInput.value || '',
-              city: mobileCityInput?.value || '',
-              district: mobileDistrictInput?.value || '',
-              instructions: mobileInstructionsInput?.value || '',
+              id: `pickup-${Date.now()}`,
+              name: 'Recogida en tienda Eipet',
+              fullName: desktopRecogerFullName.value.trim(),
+              phone: desktopRecogerPhone.value.trim(),
+              address: 'Recogida en tienda Eipet',
+              city: 'Santa Cruz',
+              district: '—',
+              instructions: `Recogida en tienda. Fecha/hora indicada: ${dt}.`,
               isDefault: false,
-              latitude,
-              longitude,
+              latitude: STORE_EIPET_LAT_LNG[0],
+              longitude: STORE_EIPET_LAT_LNG[1],
               createdAt: now,
-              updatedAt: now
+              updatedAt: now,
+              pickupInStore: true,
+              pickupScheduledAt: dt,
             };
-            saveGuestShippingDraft();
           } else if (!useManualAddress && selectedAddressId) {
             const address = userAddresses.find((a: any) => a.id === selectedAddressId);
             if (address) {
@@ -2794,7 +3258,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             }
           }
 
-          if (!shippingAddress && useManualAddress) {
+          if (!shippingAddress && useManualAddress && deliveryType !== 'recoger') {
             const formData = new FormData(shippingForm);
             const { Timestamp } = await import('firebase/firestore');
             const now = Timestamp.now();
@@ -2867,6 +3331,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               const itemSubtotal = price * quantity;
               subtotal += itemSubtotal;
 
+              const prom =
+                !!(product.discount && Number(product.discount) > 0) ||
+                !!(product.originalPrice && product.originalPrice > price);
               orderItems.push({
                 id: `${item.productId}-${Date.now()}-${Math.random()}`,
                 productId: item.productId,
@@ -2874,7 +3341,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 productImage: product.image || '',
                 quantity: quantity,
                 price: price,
-                subtotal: itemSubtotal
+                subtotal: itemSubtotal,
+                purchaseHadPromotion: prom,
               });
             }
           });
@@ -2894,7 +3362,14 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             shippingCost: shippingCost,
             freeDelivery: lastFreeDeliveryPromo,
             outOfCoverage: deliveryType === 'envio' ? lastOutOfCoverage : false,
-            sawTeFaltanMessage: userSawTeFaltanMessage
+            sawTeFaltanMessage: userSawTeFaltanMessage,
+            pickupInStore: deliveryType === 'recoger',
+            pickupScheduledAt:
+              deliveryType === 'recoger'
+                ? isMobileView()
+                  ? (mobilePickupDatetime?.value || '').trim()
+                  : (desktopPickupDatetime?.value || '').trim()
+                : null,
           };
           
           // Datos de facturación (opcionales)
@@ -3123,7 +3598,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           deliveryType = 'envio';
           mobileTabEnvio.classList.add('checkout-delivery-tab--active');
           mobileTabRecoger?.classList.remove('checkout-delivery-tab--active');
-          updateTotals();
+          applyCheckoutDeliveryModeUI();
         });
       }
       if (mobileTabRecoger) {
@@ -3131,9 +3606,27 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           deliveryType = 'recoger';
           mobileTabRecoger.classList.add('checkout-delivery-tab--active');
           mobileTabEnvio?.classList.remove('checkout-delivery-tab--active');
-          updateTotals();
+          applyCheckoutDeliveryModeUI();
         });
       }
+
+      if (desktopTabEnvioBtn) {
+        desktopTabEnvioBtn.addEventListener('click', () => {
+          deliveryType = 'envio';
+          applyCheckoutDeliveryModeUI();
+        });
+      }
+      if (desktopTabRecogerBtn) {
+        desktopTabRecogerBtn.addEventListener('click', () => {
+          deliveryType = 'recoger';
+          applyCheckoutDeliveryModeUI();
+        });
+      }
+
+      setupPickupPanelToggle('mobile-pickup-map-toggle', 'mobile-pickup-map-wrap', initPickupMapMobile);
+      setupPickupPanelToggle('mobile-pickup-schedule-toggle', 'mobile-pickup-schedule-wrap');
+      setupPickupPanelToggle('desktop-pickup-map-toggle', 'desktop-pickup-map-wrap', initPickupMapDesktop);
+      setupPickupPanelToggle('desktop-pickup-schedule-toggle', 'desktop-pickup-schedule-wrap');
 
       // Botones de edición móvil (dirección y facturación)
       const mobileChangeAddressBtn = document.getElementById('mobile-change-address-btn');
@@ -3337,6 +3830,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       // Inicializar
       syncMobilePaymentSummary(currentPaymentMethod);
       await loadCheckout();
+      applyCheckoutDeliveryModeUI();
     })();
   </script>
 </Layout>
