@@ -842,13 +842,35 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                <div id="mobile-pickup-schedule-wrap" class="hidden mt-3 rounded-xl border border-gray-200 bg-white p-4">
-                  <label for="mobile-pickup-datetime" class="block text-xs font-semibold text-gray-700 mb-2">Fecha y hora aproximada</label>
-                  <input
-                    type="datetime-local"
-                    id="mobile-pickup-datetime"
-                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
-                  />
+                <div
+                  id="mobile-pickup-schedule-wrap"
+                  class="hidden mt-3 min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white p-4"
+                >
+                  <p class="mb-3 text-xs leading-snug text-gray-600">
+                    Elige el día y la hora en que piensas recoger tu pedido en la tienda.
+                  </p>
+                  <div class="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                    <div class="min-w-0">
+                      <label for="mobile-pickup-date" class="mb-1.5 block text-xs font-semibold text-gray-800">Día</label>
+                      <input
+                        type="date"
+                        id="mobile-pickup-date"
+                        autocomplete="off"
+                        class="checkout-mobile-pickup-input block w-full min-w-0 max-w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 shadow-sm focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/25"
+                      />
+                    </div>
+                    <div class="min-w-0">
+                      <label for="mobile-pickup-time" class="mb-1.5 block text-xs font-semibold text-gray-800">Hora</label>
+                      <input
+                        type="time"
+                        id="mobile-pickup-time"
+                        autocomplete="off"
+                        step="300"
+                        class="checkout-mobile-pickup-input block w-full min-w-0 max-w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 shadow-sm focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/25"
+                      />
+                    </div>
+                  </div>
+                  <p class="mt-2 text-[11px] leading-snug text-gray-500">Si no estás seguro, elige una hora aproximada; lo coordinamos al confirmar.</p>
                 </div>
               </div>
 
@@ -1158,6 +1180,22 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
     #mobile-change-address-chevron.mobile-change-address-chevron--open {
       transform: rotate(180deg);
     }
+
+    /*
+     * Recogida móvil: date/time nativos (evita desborde y “placeholder” invisible de datetime-local).
+     * 16px mínimo reduce zoom accidental en iOS al enfocar.
+     */
+    .checkout-mobile-pickup-input {
+      box-sizing: border-box;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    :global(#mobile-pickup-date::-webkit-calendar-picker-indicator),
+    :global(#mobile-pickup-time::-webkit-calendar-picker-indicator) {
+      cursor: pointer;
+      opacity: 0.75;
+    }
   </style>
 
   <script>
@@ -1322,7 +1360,23 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mobileStep2RecogerFlow = document.getElementById('mobile-step2-recoger-flow');
       const mobileRecogerFullName = document.getElementById('mobile-recoger-fullName') as HTMLInputElement | null;
       const mobileRecogerPhone = document.getElementById('mobile-recoger-phone') as HTMLInputElement | null;
-      const mobilePickupDatetime = document.getElementById('mobile-pickup-datetime') as HTMLInputElement | null;
+      const mobilePickupDate = document.getElementById('mobile-pickup-date') as HTMLInputElement | null;
+      const mobilePickupTime = document.getElementById('mobile-pickup-time') as HTMLInputElement | null;
+
+      /** Valor combinado para recogida en tienda (móvil): mismo significado que un datetime-local. */
+      function getMobilePickupScheduleValue(): string {
+        const d = mobilePickupDate?.value?.trim() ?? '';
+        const t = mobilePickupTime?.value?.trim() ?? '';
+        if (!d || !t) return '';
+        return `${d}T${t}`;
+      }
+
+      function syncMobilePickupMinDate() {
+        if (!mobilePickupDate) return;
+        try {
+          mobilePickupDate.min = new Date().toISOString().slice(0, 10);
+        } catch (_) {}
+      }
       const desktopRecogerFullName = document.getElementById('desktop-recoger-fullName') as HTMLInputElement | null;
       const desktopRecogerPhone = document.getElementById('desktop-recoger-phone') as HTMLInputElement | null;
       const desktopPickupDatetime = document.getElementById('desktop-pickup-datetime') as HTMLInputElement | null;
@@ -3041,6 +3095,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         }
 
         applyCheckoutDeliveryModeUI();
+        syncMobilePickupMinDate();
       }
 
       // Actualizar totales (desktop y móvil)
@@ -3150,8 +3205,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               showError('Completa nombre y teléfono para recoger en tienda.');
               return;
             }
-            if (!mobilePickupDatetime?.value?.trim()) {
-              showError('Indica fecha y hora aproximada para recoger en tienda.');
+            if (!getMobilePickupScheduleValue()) {
+              showError('Indica día y hora aproximados para recoger en tienda.');
               return;
             }
           } else {
@@ -3274,7 +3329,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const { Timestamp } = await import('firebase/firestore');
             const now = Timestamp.now();
             if (deliveryType === 'recoger') {
-              const dt = (mobilePickupDatetime?.value || '').trim();
+              const dt = getMobilePickupScheduleValue();
               shippingAddress = {
                 id: `pickup-${Date.now()}`,
                 name: 'Recogida en tienda Eipet',
@@ -3466,7 +3521,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             pickupScheduledAt:
               deliveryType === 'recoger'
                 ? isMobileView()
-                  ? (mobilePickupDatetime?.value || '').trim()
+                  ? getMobilePickupScheduleValue()
                   : (desktopPickupDatetime?.value || '').trim()
                 : null,
           };
