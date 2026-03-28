@@ -3,21 +3,26 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Carrito de Compras - Eipet" description="Revisa tu carrito de compras y completa tu pedido">
-  <section class="py-4 sm:py-6 lg:py-8 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <!-- Header mejorado -->
-      <div class="mb-6 sm:mb-8 lg:mb-10">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#5d3fbb] to-[#6d4fcc] rounded-xl flex items-center justify-center shadow-lg">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent">Carrito de Compras</h1>
-            <p class="text-gray-600 text-xs sm:text-sm mt-1">Revisa tus productos y completa tu compra</p>
-          </div>
-        </div>
+      <!-- Misma línea visual que checkout -->
+      <nav class="hidden lg:flex mb-6 items-center gap-2 text-sm text-gray-600">
+        <a href="/" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Inicio</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <a href="/products" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Productos</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-gray-800 font-medium">Carrito</span>
+      </nav>
+
+      <div class="mb-8">
+        <h1 class="text-3xl lg:text-4xl font-bold bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent mb-2">
+          Tu carrito
+        </h1>
+        <p class="text-gray-600">Revisa tus productos y continúa al checkout para pagar</p>
       </div>
 
       <!-- Contenedor principal -->
@@ -31,8 +36,12 @@ import Layout from '../layouts/Layout.astro';
             </svg>
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Tu carrito está vacío</h2>
             <p class="text-gray-500 mb-6">Agrega productos para comenzar tu compra</p>
-            <a href="/products?pet=dog" class="inline-block px-6 py-3 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors">
-              Ver Productos
+            <a
+              href="/products?pet=dog"
+              class="inline-flex items-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              data-astro-prefetch
+            >
+              Ver productos
             </a>
           </div>
 
@@ -44,58 +53,58 @@ import Layout from '../layouts/Layout.astro';
 
         <!-- Resumen del pedido -->
         <div class="lg:col-span-1">
-          <div id="cart-summary" class="bg-white rounded-xl shadow-sm p-6 sticky top-4 hidden">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Resumen del Pedido</h2>
-            
-            <!-- Detalles -->
-            <div class="space-y-3 mb-6 pb-6 border-b border-gray-200">
+          <div id="cart-summary" class="bg-white rounded-xl shadow-md p-6 sticky top-24 hidden">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Resumen del pedido</h2>
+
+            <!-- Misma estructura de montos que el checkout (sidebar) -->
+            <div class="border-t border-gray-200 pt-4 space-y-2">
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Subtotal:</span>
-                <span id="summary-subtotal" class="font-semibold text-gray-900">Bs. 0</span>
+                <span class="text-gray-600">productos</span>
+                <span id="summary-products" class="font-semibold text-gray-900">Bs 0</span>
               </div>
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Envío:</span>
-                <span id="summary-shipping" class="font-semibold text-gray-900">Bs. 0</span>
+                <span class="text-gray-600">Envio</span>
+                <span id="summary-shipping" class="font-semibold text-gray-900">Gratis</span>
               </div>
-              <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Descuento:</span>
-                <span id="summary-discount" class="font-semibold text-green-600">Bs. 0</span>
+              <div id="summary-discount-row" class="hidden justify-between text-sm">
+                <span class="text-gray-600">Descuento</span>
+                <span id="summary-discount" class="font-semibold text-green-600">Bs 0</span>
+              </div>
+              <div class="flex justify-between text-sm font-semibold pt-1">
+                <span>Subtotal</span>
+                <span id="summary-subtotal-line">Bs 0</span>
+              </div>
+              <div class="border-t border-gray-200 pt-3 flex justify-between">
+                <span class="text-lg font-bold text-gray-900">Total</span>
+                <span id="summary-total" class="text-lg font-bold text-[#5d3fbb]">Bs 0</span>
               </div>
             </div>
 
-            <!-- Total -->
-            <div class="mb-6 pb-6 border-b border-gray-200">
-              <div class="flex justify-between items-center">
-                <span class="text-lg font-bold text-gray-900">Total:</span>
-                <span id="summary-total" class="text-2xl font-bold text-[#5d3fbb]">Bs. 0</span>
-              </div>
-            </div>
-
-            <!-- Botones -->
-            <div class="space-y-3">
-              <button
-                id="checkout-btn"
-                class="w-full px-6 py-3 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors text-base"
+            <div class="space-y-3 mt-6">
+              <!-- id único: el header ya usa `checkout-btn` en el mini carrito -->
+              <a
+                href="/checkout"
+                id="cart-page-checkout-btn"
+                class="flex w-full items-center justify-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-center active:scale-[0.98]"
+                data-astro-prefetch
               >
-                Proceder al Pago
-              </button>
+                Proceder al pago
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
               <a
                 href="/products?pet=dog"
-                class="block w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors text-center text-base"
+                class="block w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors text-center text-sm"
+                data-astro-prefetch
               >
-                Seguir Comprando
+                Seguir comprando
               </a>
             </div>
 
-            <!-- Información adicional -->
-            <div class="mt-6 pt-6 border-t border-gray-200">
-              <div class="flex items-start gap-2 text-xs text-gray-500">
-                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <p>Tu información de pago está protegida y encriptada</p>
-              </div>
-            </div>
+            <p class="text-xs text-gray-500 text-center mt-4">
+              En el siguiente paso completarás envío o recogida y el pago
+            </p>
           </div>
         </div>
       </div>
@@ -223,7 +232,7 @@ import Layout from '../layouts/Layout.astro';
       const subtotal = (product.price || 0) * item.quantity;
 
       return `
-        <div class="cart-item-row bg-white rounded-xl shadow-sm p-4 sm:p-6" data-product-id="${item.productId}">
+        <div class="cart-item-row bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100" data-product-id="${item.productId}">
           <div class="flex flex-col sm:flex-row gap-4">
             <!-- Imagen -->
             <div class="w-full sm:w-32 h-32 sm:h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
@@ -370,14 +379,21 @@ import Layout from '../layouts/Layout.astro';
     }
   }
 
-  // Actualizar resumen
+  function formatBs(n: number): string {
+    return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  // Actualizar resumen (misma lógica de filas que checkout: productos → Envio → Subtotal → Total)
   function updateSummary() {
     const summary = document.getElementById('cart-summary');
-    const subtotalEl = document.getElementById('summary-subtotal');
+    const productsEl = document.getElementById('summary-products');
     const shippingEl = document.getElementById('summary-shipping');
+    const subtotalLineEl = document.getElementById('summary-subtotal-line');
     const totalEl = document.getElementById('summary-total');
+    const discountRow = document.getElementById('summary-discount-row');
+    const discountEl = document.getElementById('summary-discount');
 
-    if (!summary || !subtotalEl || !shippingEl || !totalEl) return;
+    if (!summary || !productsEl || !shippingEl || !subtotalLineEl || !totalEl) return;
 
     if (cartState.items.length === 0) {
       summary.classList.add('hidden');
@@ -389,10 +405,23 @@ import Layout from '../layouts/Layout.astro';
     const subtotal = getCartSubtotal();
     const shipping = calculateShipping();
     const total = getCartTotal();
+    const discount = 0;
 
-    subtotalEl.textContent = `Bs. ${subtotal.toLocaleString()}`;
-    shippingEl.textContent = shipping === 0 ? 'Gratis' : `Bs. ${shipping.toLocaleString()}`;
-    totalEl.textContent = `Bs. ${total.toLocaleString()}`;
+    productsEl.textContent = `Bs ${formatBs(subtotal)}`;
+    shippingEl.textContent = shipping === 0 ? 'Gratis' : `Bs ${formatBs(shipping)}`;
+    subtotalLineEl.textContent = `Bs ${formatBs(subtotal + shipping)}`;
+    totalEl.textContent = `Bs ${formatBs(total)}`;
+
+    if (discountRow && discountEl) {
+      if (discount > 0) {
+        discountRow.classList.remove('hidden');
+        discountRow.classList.add('flex');
+        discountEl.textContent = `-Bs ${formatBs(discount)}`;
+      } else {
+        discountRow.classList.add('hidden');
+        discountRow.classList.remove('flex');
+      }
+    }
   }
 
   // Renderizar carrito completo
@@ -416,16 +445,6 @@ import Layout from '../layouts/Layout.astro';
     loadCartFromStorage();
     await loadProductDataForCartItems();
     renderCart();
-
-    // Botón de checkout
-    const checkoutBtn = document.getElementById('checkout-btn');
-    checkoutBtn?.addEventListener('click', () => {
-      if (cartState.items.length === 0) {
-        alert('Tu carrito está vacío');
-        return;
-      }
-      window.location.href = '/checkout';
-    });
 
     // Escuchar actualizaciones del carrito desde otras pestañas
     window.addEventListener('storage', (e) => {

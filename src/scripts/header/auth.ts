@@ -2,6 +2,38 @@ const els = {
   logoutBtn: document.getElementById("logout-btn"),
 };
 
+function initUserMenuToggle(): void {
+  const userBtn = document.getElementById("user-btn");
+  const userMenuWrap = document.getElementById("user-menu-wrap");
+  if (!userBtn || !userMenuWrap) return;
+
+  const closeUserMenu = (): void => {
+    userMenuWrap.classList.remove("user-menu-open");
+    userBtn.setAttribute("aria-expanded", "false");
+  };
+
+  userBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const opening = !userMenuWrap.classList.contains("user-menu-open");
+    userMenuWrap.classList.toggle("user-menu-open");
+    userBtn.setAttribute("aria-expanded", opening ? "true" : "false");
+    if (opening) {
+      window.dispatchEvent(new CustomEvent("eipet-close-cart"));
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    const t = e.target as Node;
+    if (!userMenuWrap.contains(t)) closeUserMenu();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeUserMenu();
+  });
+
+  window.addEventListener("eipet-close-user-menu", closeUserMenu);
+}
+
 export function updateAuthUI(user: { role?: string } | null): void {
   const loginMenuItems = document.getElementById("login-menu-items");
   const userMenuItems = document.querySelectorAll(
@@ -50,6 +82,7 @@ async function handleLogout(): Promise<void> {
 }
 
 export async function initAuth(): Promise<void> {
+  initUserMenuToggle();
   els.logoutBtn?.addEventListener("click", handleLogout);
   try {
     const { onAuthStateChange, getCurrentUserData } = await import("../../lib/auth");

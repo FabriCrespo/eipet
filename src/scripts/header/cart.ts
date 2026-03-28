@@ -352,6 +352,7 @@ async function loadProductData(): Promise<void> {
 
 function openDropdown(): void {
   if (!els.cartDropdown) return;
+  window.dispatchEvent(new CustomEvent("eipet-close-user-menu"));
   document.body.classList.add("cart-open");
   els.cartDropdown.style.display = "flex";
   requestAnimationFrame(() => els.cartDropdown?.classList.remove("opacity-0", "invisible"));
@@ -391,6 +392,10 @@ export async function initCart(): Promise<void> {
 
   els.viewCartBtn?.addEventListener("click", () => (window.location.href = "/cart"));
   els.checkoutBtn?.addEventListener("click", () => (window.location.href = "/checkout"));
+
+  window.addEventListener("eipet-close-cart", () => {
+    closeDropdown();
+  });
 
   if (!(window as any).__cartInit) {
     (window as any).__cartInit = true;

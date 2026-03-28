@@ -14,6 +14,8 @@ export function initMobileMenu(): void {
   els.mobileMenuBtn?.addEventListener("click", () => {
     const isOpen = els.mobileMenu?.classList.contains("max-h-0");
     if (isOpen) {
+      window.dispatchEvent(new CustomEvent("eipet-close-user-menu"));
+      window.dispatchEvent(new CustomEvent("eipet-close-cart"));
       els.mobileMenu?.classList.remove("max-h-0");
       els.mobileMenu?.classList.add("max-h-screen");
       els.menuIcon?.classList.add("hidden");
@@ -35,6 +37,8 @@ export function initMobileMenu(): void {
   els.mobileSearchToggleBtn?.addEventListener("click", () => {
     const isOpen = els.mobileSearchContainer?.classList.contains("max-h-0");
     if (isOpen) {
+      window.dispatchEvent(new CustomEvent("eipet-close-user-menu"));
+      window.dispatchEvent(new CustomEvent("eipet-close-cart"));
       els.mobileSearchContainer?.classList.remove("max-h-0");
       els.mobileSearchContainer?.classList.add("max-h-64");
       els.searchIcon?.classList.add("hidden");

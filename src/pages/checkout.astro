@@ -1055,9 +1055,20 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       animation: paymentModalSlideUp 220ms ease-out forwards;
     }
 
-    /* El footer móvil debe quedar por encima del mapa Leaflet */
+    /*
+     * Footer móvil: por encima del mapa Leaflet (z-1), pero por debajo del mini carrito
+     * del header (z-50) para que no tape el panel al abrirlo en esta página.
+     */
     #checkout-mobile-footer {
-      z-index: 1200;
+      z-index: 40;
+    }
+
+    /* Hueco entre el panel del carrito y el footer fijo del checkout (móvil / < lg) */
+    @media (max-width: 1023px) {
+      :global(body.cart-open #cart-dropdown) {
+        bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
+        max-height: min(78vh, calc(100vh - 8.5rem - env(safe-area-inset-bottom, 0px)));
+      }
     }
 
     /* Evitar que Leaflet se monte por encima del header */

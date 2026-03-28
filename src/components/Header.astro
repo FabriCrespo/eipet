@@ -175,13 +175,16 @@ import "../styles/global.css";
 
       <!-- Acciones Derecha compactas -->
       <div class="flex items-center gap-1.5 sm:gap-2 ml-2">
-        <!-- User Menu compacto (z-index por encima del panel del carrito) -->
-        <div class="relative z-60 group">
+        <!-- User Menu: en móvil/táctil no hay hover; el script abre/cierra con clic (auth.ts) -->
+        <div id="user-menu-wrap" class="relative z-60">
           <button
             id="user-btn"
             type="button"
-            class="relative z-61 p-1.5 text-white rounded-lg hover:bg-white/10 transition-colors duration-200 active:scale-95"
+            class="group relative z-61 p-1.5 text-white rounded-lg hover:bg-white/10 transition-colors duration-200 active:scale-95"
             aria-label="Cuenta"
+            aria-expanded="false"
+            aria-haspopup="true"
+            aria-controls="user-menu-dropdown"
           >
             <svg
               class="w-5 h-5 group-hover:text-[#ffff11] transition-colors duration-200"
@@ -199,7 +202,8 @@ import "../styles/global.css";
           </button>
           <div
             id="user-menu-dropdown"
-            class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100 overflow-hidden"
+            role="menu"
+            class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible pointer-events-none transition-all duration-200 z-100 border border-gray-100 overflow-hidden"
           >
             <div class="py-0.5">
               <div id="user-menu-items" class="hidden">
@@ -929,5 +933,12 @@ import "../styles/global.css";
   #cart-btn {
     position: relative;
     overflow: visible !important;
+  }
+
+  /* Menú usuario: abierto por clase (clic / táctil), no solo hover */
+  #user-menu-wrap.user-menu-open #user-menu-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 </style>
