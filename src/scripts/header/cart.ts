@@ -416,8 +416,10 @@ function openDropdown(): void {
   window.dispatchEvent(new CustomEvent("eipet-close-user-menu"));
   document.body.classList.add("cart-open");
   els.cartDropdown.style.display = "flex";
-  requestAnimationFrame(() => els.cartDropdown?.classList.remove("opacity-0", "invisible"));
+  // Mismo tick: quitar invisible/opacity-0 antes de añadir visible (evita un frame con clases conflictivas).
+  els.cartDropdown.classList.remove("opacity-0", "invisible");
   els.cartDropdown.classList.add("opacity-100", "visible");
+  els.cartDropdown.style.pointerEvents = "auto";
 }
 
 function closeDropdown(): void {
@@ -425,6 +427,7 @@ function closeDropdown(): void {
   document.body.classList.remove("cart-open");
   els.cartDropdown.classList.remove("opacity-100", "visible");
   els.cartDropdown.classList.add("opacity-0", "invisible");
+  els.cartDropdown.style.removeProperty("pointer-events");
   setTimeout(() => { els.cartDropdown!.style.display = "none"; }, 200);
 }
 

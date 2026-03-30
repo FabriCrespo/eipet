@@ -392,8 +392,8 @@ import "../styles/global.css";
           </svg>
         </button>
 
-        <!-- Carrito: el dropdown debe ir DENTRO del mismo contenedor relative para no tapar el icono de usuario -->
-        <div class="relative z-40 shrink-0">
+        <!-- Carrito: con cart abierto el wrap sube z-index para que el panel (que se extiende a la izquierda) no quede bajo user-menu (z-60). -->
+        <div id="cart-header-wrap" class="relative z-40 shrink-0">
           <button
             id="cart-btn"
             type="button"
@@ -722,6 +722,19 @@ import "../styles/global.css";
   #cart-footer {
   box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
 }
+
+  /* Carrito abierto: el contenedor debe quedar por encima del menú usuario (z-60) para que los clics lleguen al panel. */
+  body.cart-open #cart-header-wrap {
+    z-index: 70;
+  }
+
+  /* Menú usuario: el script añade .user-menu-open; debe aplicar en desktop (antes solo estaba dentro del @media móvil) */
+  #user-menu-wrap.user-menu-open #user-menu-dropdown {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
   /* Estilos para el dropdown de búsqueda */
   #search-results-dropdown {
     animation: slideDown 0.15s ease-out;
@@ -836,7 +849,7 @@ import "../styles/global.css";
     100% { transform: scale(1); opacity: 1; }
   }
 
-  /* Estilos para el dropdown del carrito */
+  /* Dropdown del carrito: sin pointer-events:none aquí — bloqueaba clics en desktop cuando el panel está abierto (JS solo añade opacity/visible). */
 #cart-dropdown {
   position: absolute;
   top: 100%;
@@ -948,12 +961,5 @@ import "../styles/global.css";
   #cart-btn {
     position: relative;
     overflow: visible !important;
-  }
-
-  /* Menú usuario: abierto por clase (clic / táctil), no solo hover */
-  #user-menu-wrap.user-menu-open #user-menu-dropdown {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
   }
 </style>
