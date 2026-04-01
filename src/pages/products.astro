@@ -198,7 +198,7 @@ import './products-page.css';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div id="price-filter-content" class="hidden mt-2 pl-8 space-y-2">
+              <div id="price-filter-content" data-filter-panel="price" class="hidden mt-2 pl-8 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="0-100">
                   <span class="text-sm text-gray-700">Bs. 0 - 100</span>
@@ -234,7 +234,7 @@ import './products-page.css';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div id="life-stage-filter-content" class="hidden mt-2 pl-8 space-y-2">
+              <div id="life-stage-filter-content" data-filter-panel="life-stage" class="hidden mt-2 pl-8 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="cachorro">
                   <span class="text-sm text-gray-700">Cachorro</span>
@@ -266,7 +266,7 @@ import './products-page.css';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div id="breed-size-filter-content" class="hidden mt-2 pl-8 space-y-2">
+              <div id="breed-size-filter-content" data-filter-panel="breed-size" class="hidden mt-2 pl-8 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="pequeña">
                   <span class="text-sm text-gray-700">Pequeña</span>
@@ -302,7 +302,7 @@ import './products-page.css';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div id="type-filter-content" class="hidden mt-2 pl-8 space-y-2">
+              <div id="type-filter-content" data-filter-panel="product-type" class="hidden mt-2 pl-8 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="food">
                   <span class="text-sm text-gray-700">Alimento</span>
@@ -575,6 +575,158 @@ import './products-page.css';
         return typeof p.category === 'string' ? p.category : 'all';
       }
 
+      /** Texto minúsculas y sin tildes/ñ para comparar nombres (ej. "Pódium", "Pequeña", "2.8kg"). */
+      function normalizeNameForInfer(s: string): string {
+        let t = String(s || '').toLowerCase();
+        try {
+          t = t.normalize('NFD').replace(/\p{M}/gu, '');
+        } catch {
+          t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+        return t.replace(/ñ/g, 'n').replace(/ü/g, 'u');
+      }
+
+      /** Nombre del producto listo para includes() (misma lógica que arriba). */
+      function productNameNorm(p: any): string {
+        return normalizeNameForInfer(p.name || '');
+      }
+
+      /**
+       * Etapa: coincide por campo Firestore o por texto en el nombre ("Adulto", "Cachorro", "Pódium Cachorro"...).
+       */
+      function productMatchesLifeStageFilter(p: any, stages: string[]): boolean {
+        const rawDb = normalizeLifeStageField(String(p.lifeStage || ''));
+        if (rawDb === 'todos') return true;
+        const eff = effectiveLifeStage(p);
+        if (eff === 'todos') return true;
+        const n = productNameNorm(p);
+        return stages.some((stage) => {
+          if (eff === stage) return true;
+          if (stage === 'adulto') return n.includes('adulto');
+          if (stage === 'cachorro') return n.includes('cachorro') || n.includes('gatito');
+          if (stage === 'senior') return n.includes('senior');
+          return false;
+        });
+      }
+
+      /**
+       * Tamaño raza: por campo o por "Raza Pequeña" / "Raza Mediana" / "Raza Grande" en el nombre.
+       */
+      function productMatchesBreedSizeFilter(p: any, sizes: string[]): boolean {
+        const rawDb = normalizeBreedSizeField(String(p.breedSize || ''));
+        if (rawDb === 'todos') return true;
+        const eff = effectiveBreedSize(p);
+        if (eff === 'todos') return true;
+        const n = productNameNorm(p);
+        return sizes.some((size) => {
+          if (eff === size) return true;
+          if (size === 'pequeña') {
+            return n.includes('raza pequena') || n.includes('raza peque');
+          }
+          if (size === 'mediana') {
+            return n.includes('raza mediana');
+          }
+          if (size === 'grande') {
+            return n.includes('raza grande');
+          }
+          if (size === 'todos') return true;
+          return false;
+        });
+      }
+
+      function normalizeLifeStageField(v: string): string {
+        const x = normalizeNameForInfer(v).trim();
+        if (x === 'gatito') return 'cachorro';
+        if (x === 'cachorro' || x === 'adulto' || x === 'senior' || x === 'todos') return x;
+        return '';
+      }
+
+      function normalizeBreedSizeField(v: string): string {
+        const x = normalizeNameForInfer(v).trim();
+        if (x === 'pequena' || x === 'mediana' || x === 'grande' || x === 'todos') {
+          if (x === 'pequena') return 'pequeña';
+          return x;
+        }
+        return '';
+      }
+
+      /**
+       * Etapa de vida desde el nombre si el campo viene vacío (ej. "... Adulto ...", "Cachorro", "Senior").
+       */
+      function inferLifeStageFromName(name: string): string {
+        const n = normalizeNameForInfer(name);
+        if (!n) return '';
+        if (/\bcachorro\b|\bgatito\b|\bpuppy\b|\bkitten\b/.test(n)) return 'cachorro';
+        if (/\badulto\b/.test(n)) return 'adulto';
+        if (/\bsenior\b|\bmaduro\b|\bmature\b/.test(n)) return 'senior';
+        if (/todas\s+las\s+edades|todas\s+edades/.test(n)) return 'todos';
+        return '';
+      }
+
+      /**
+       * Tamaño de raza desde el nombre (ej. "Raza Pequeña", "Raza Mediana", "Mini", "Todos los tamaños").
+       */
+      function inferBreedSizeFromName(name: string): string {
+        const n = normalizeNameForInfer(name);
+        if (!n) return '';
+        if (/todos\s+los\s+tamanos|todas\s+las\s+razas|todas\s+las\s+tamanos/.test(n)) return 'todos';
+        if (/raza\s+peque|miniatura|\bmini\b|pequena\s+raza/.test(n)) return 'pequeña';
+        if (/raza\s+median|\bmediana\b/.test(n)) return 'mediana';
+        if (/raza\s+grand|\bgrande\b/.test(n)) return 'grande';
+        return '';
+      }
+
+      function effectiveLifeStage(p: any): string {
+        return normalizeLifeStageField(String(p.lifeStage || '')) || inferLifeStageFromName(p.name || '');
+      }
+
+      function effectiveBreedSize(p: any): string {
+        return normalizeBreedSizeField(String(p.breedSize || '')) || inferBreedSizeFromName(p.name || '');
+      }
+
+      /** Slug de tipo de producto alineado con los checkboxes (Firestore puede traer español o mayúsculas). */
+      function effectiveProductType(p: any): string {
+        const raw = String(p.type ?? '')
+          .trim()
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{M}/gu, '');
+        const map: Record<string, string> = {
+          '': 'food',
+          food: 'food',
+          toy: 'toy',
+          cleaning: 'cleaning',
+          accessory: 'accessory',
+          alimento: 'food',
+          comida: 'food',
+          juguetes: 'toy',
+          juguete: 'toy',
+          limpieza: 'cleaning',
+          accesorio: 'accessory',
+          accesorios: 'accessory',
+        };
+        return map[raw] ?? (['food', 'toy', 'cleaning', 'accessory'].includes(raw) ? raw : 'food');
+      }
+
+      /** Checkboxes marcados solo en el sidebar desktop (evita IDs duplicados del drawer móvil). */
+      function getCheckedFilterValues(desktopFc: HTMLElement, panel: string): string[] {
+        let panelEl = desktopFc.querySelector(`[data-filter-panel="${panel}"]`);
+        if (!panelEl) {
+          const byId: Record<string, string> = {
+            price: 'price-filter-content',
+            'life-stage': 'life-stage-filter-content',
+            'breed-size': 'breed-size-filter-content',
+            'product-type': 'type-filter-content',
+          };
+          const id = byId[panel];
+          if (id) panelEl = desktopFc.querySelector(`#${id}`);
+        }
+        if (!panelEl) return [];
+        return Array.from(panelEl.querySelectorAll('input[type="checkbox"]:checked')).map(
+          (i) => (i as HTMLInputElement).value
+        );
+      }
+
       function mapRawProductToCard(p: any): any {
         const categoryData = categoryMap.get(p.category);
         const brandData = brandMap.get(p.brand);
@@ -598,8 +750,8 @@ import './products-page.css';
           discount: p.discount || 0,
           discountType: p.discountType || 'percentage',
           image: p.image || '',
-          lifeStage: p.lifeStage || '',
-          breedSize: p.breedSize || '',
+          lifeStage: normalizeLifeStageField(String(p.lifeStage || '')) || inferLifeStageFromName(p.name || '') || '',
+          breedSize: normalizeBreedSizeField(String(p.breedSize || '')) || inferBreedSizeFromName(p.name || '') || '',
           weight: p.weight || null,
           description: p.description || '',
           stock: p.stock || 0,
@@ -1054,6 +1206,29 @@ import './products-page.css';
     /** Vista promociones: solo categorías/marcas/productos con descuento */
     const discountFilterMode = filterType === 'discount';
       const urlSearchQuery = urlParams.get('search') || '';
+
+      /** Historial interno: atrás del celular / navegador = marcas → categorías (y en ofertas: productos → marcas en oferta). */
+      const PRODUCTS_HISTORY_NS = 'eipet-products-flow';
+
+      function productsFlowHistoryState(screen: string, extra: Record<string, unknown> = {}) {
+        return { __ns: PRODUCTS_HISTORY_NS, screen, ...extra };
+      }
+
+      let productsFlowHistoryHandlingPop = false;
+
+      function replaceProductsFlowHistory(state: Record<string, unknown>) {
+        if (typeof history === 'undefined' || !history.replaceState) return;
+        try {
+          history.replaceState(state, '', window.location.href);
+        } catch (_) {}
+      }
+
+      function pushProductsFlowHistory(state: Record<string, unknown>) {
+        if (typeof history === 'undefined' || !history.pushState || productsFlowHistoryHandlingPop) return;
+        try {
+          history.pushState(state, '', window.location.href);
+        } catch (_) {}
+      }
       
       // Establecer búsqueda desde URL si existe
       if (urlSearchQuery) {
@@ -1294,6 +1469,8 @@ import './products-page.css';
 
         // Scroll suave a la sección de marcas
         brandsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        pushProductsFlowHistory(productsFlowHistoryState('brands', { categoryId }));
       }
 
       // Función para cargar productos de una marca (carga bajo demanda)
@@ -1389,8 +1566,8 @@ import './products-page.css';
               discount: p.discount || 0,
               discountType: p.discountType || 'percentage',
               image: p.image || '',
-              lifeStage: p.lifeStage || '',
-              breedSize: p.breedSize || '',
+              lifeStage: normalizeLifeStageField(String(p.lifeStage || '')) || inferLifeStageFromName(p.name || '') || '',
+              breedSize: normalizeBreedSizeField(String(p.breedSize || '')) || inferBreedSizeFromName(p.name || '') || '',
               weight: p.weight || null,
               description: p.description || '',
               stock: p.stock || 0,
@@ -1557,6 +1734,14 @@ import './products-page.css';
 
         // Scroll suave a los productos
         productsGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        if (discountFilterMode) {
+          pushProductsFlowHistory(productsFlowHistoryState('products', { brandId, source: 'discount' }));
+        } else if (currentCategoryId) {
+          pushProductsFlowHistory(
+            productsFlowHistoryState('products', { brandId, categoryId: currentCategoryId })
+          );
+        }
       }
 
       // Función para volver a categorías
@@ -2073,44 +2258,43 @@ import './products-page.css';
           products = products.slice(-5);
         }
 
-        // Filtros del sidebar
-          const typeCheckboxes = document.querySelectorAll('#type-filter-content input:checked');
-          if (typeCheckboxes.length > 0) {
-            const types = Array.from(typeCheckboxes).map(cb => (cb as HTMLInputElement).value);
-          products = products.filter(p => types.includes(p.type));
+        // Filtros del sidebar: solo #desktop-filters-container (el drawer móvil clona IDs y rompe querySelector global)
+        const desktopFc = document.getElementById('desktop-filters-container');
+        if (desktopFc) {
+          const types = getCheckedFilterValues(desktopFc, 'product-type');
+          if (types.length > 0) {
+            products = products.filter((p) => types.includes(effectiveProductType(p)));
           }
 
-          const lifeStageCheckboxes = document.querySelectorAll('#life-stage-filter-content input:checked');
-          if (lifeStageCheckboxes.length > 0) {
-            const stages = Array.from(lifeStageCheckboxes).map(cb => (cb as HTMLInputElement).value);
-          products = products.filter(p => stages.includes(p.lifeStage || ''));
+          const stages = getCheckedFilterValues(desktopFc, 'life-stage');
+          if (stages.length > 0) {
+            products = products.filter((p) => productMatchesLifeStageFilter(p, stages));
           }
 
-          const breedSizeCheckboxes = document.querySelectorAll('#breed-size-filter-content input:checked');
-          if (breedSizeCheckboxes.length > 0) {
-            const sizes = Array.from(breedSizeCheckboxes).map(cb => (cb as HTMLInputElement).value);
-          products = products.filter(p => {
-            const breedSize = p.breedSize || '';
-            return sizes.includes(breedSize) || (breedSize === 'todos' && sizes.includes('todos'));
-          });
+          const sizes = getCheckedFilterValues(desktopFc, 'breed-size');
+          if (sizes.length > 0) {
+            products = products.filter((p) => productMatchesBreedSizeFilter(p, sizes));
           }
 
-          const priceCheckboxes = document.querySelectorAll('#price-filter-content input:checked');
-          if (priceCheckboxes.length > 0) {
-            const priceRanges = Array.from(priceCheckboxes).map(cb => (cb as HTMLInputElement).value);
-          products = products.filter(p => {
-            return priceRanges.some(range => {
-              if (range === '300+') return p.price >= 300;
-              const [min, max] = range.split('-').map(Number);
-              return p.price >= min && p.price < max;
+          const priceRanges = getCheckedFilterValues(desktopFc, 'price');
+          if (priceRanges.length > 0) {
+            products = products.filter((p) => {
+              return priceRanges.some((range) => {
+                if (range === '300+') return p.price >= 300;
+                const [min, max] = range.split('-').map(Number);
+                return p.price >= min && p.price < max;
+              });
             });
-          });
+          }
         }
 
         filteredProducts = products;
         updateActiveFiltersChips();
 
-        if (!inProductView) {
+        const productsGridEl = document.getElementById('products-grid');
+        const gridVisible = productsGridEl && productsGridEl.style.display !== 'none';
+
+        if (!inProductView && !gridVisible) {
           const es = document.getElementById('empty-state');
           if (es) es.classList.add('hidden');
           return;
@@ -2262,6 +2446,12 @@ import './products-page.css';
 
           // NO cargar marcas ni productos al inicio - se cargarán bajo demanda
           console.log('✅ Carga bajo demanda activada: marcas y productos se cargarán cuando se necesiten');
+
+          if (discountFilterMode) {
+            replaceProductsFlowHistory(productsFlowHistoryState('discount-brands'));
+          } else {
+            replaceProductsFlowHistory(productsFlowHistoryState('categories'));
+          }
           
           // Ocultar loader y mostrar contenido
           hidePageLoader();
@@ -2390,28 +2580,21 @@ import './products-page.css';
 
       function syncCheckboxes() {
         if (!mobileFiltersContent) return;
-        
-        // Sincronizar checkboxes entre desktop y móvil usando valores
+
         const desktopFiltersContainer = document.getElementById('desktop-filters-container');
         if (!desktopFiltersContainer) return;
-        
+
         const desktopCheckboxes = desktopFiltersContainer.querySelectorAll('input[type="checkbox"]');
         const mobileCheckboxes = mobileFiltersContent.querySelectorAll('input[type="checkbox"]');
-        
+
         desktopCheckboxes.forEach((desktopCb) => {
           const desktopValue = (desktopCb as HTMLInputElement).value;
           const mobileCb = Array.from(mobileCheckboxes).find(
-            (cb: any) => cb.value === desktopValue
-          ) as HTMLInputElement;
-          
+            (cb) => (cb as HTMLInputElement).value === desktopValue
+          ) as HTMLInputElement | undefined;
+
           if (mobileCb) {
             mobileCb.checked = (desktopCb as HTMLInputElement).checked;
-            
-            // Sincronizar cambios desde móvil a desktop
-            mobileCb.addEventListener('change', () => {
-              (desktopCb as HTMLInputElement).checked = mobileCb.checked;
-              updateActiveFiltersCount();
-            });
           }
         });
       }
@@ -2553,10 +2736,10 @@ import './products-page.css';
 
         // Agregar chips de filtros checkboxes
         const filterTypes = [
-          { selector: '#type-filter-content input:checked', type: 'type', prefix: 'Tipo: ' },
-          { selector: '#life-stage-filter-content input:checked', type: 'life-stage', prefix: 'Etapa: ' },
-          { selector: '#breed-size-filter-content input:checked', type: 'breed-size', prefix: 'Tamaño: ' },
-          { selector: '#price-filter-content input:checked', type: 'price', prefix: 'Precio: ' }
+          { selector: '[data-filter-panel="product-type"] input:checked', type: 'type', prefix: 'Tipo: ' },
+          { selector: '[data-filter-panel="life-stage"] input:checked', type: 'life-stage', prefix: 'Etapa: ' },
+          { selector: '[data-filter-panel="breed-size"] input:checked', type: 'breed-size', prefix: 'Tamaño: ' },
+          { selector: '[data-filter-panel="price"] input:checked', type: 'price', prefix: 'Precio: ' }
         ];
 
         filterTypes.forEach(({ selector, type, prefix }) => {
@@ -2601,24 +2784,25 @@ import './products-page.css';
                 const filterValue = chip.getAttribute('data-filter-value');
                 
                 if (filterType === 'search') {
-                  // Limpiar búsqueda
-                  const searchInput = document.getElementById('search-input') as HTMLInputElement;
-                  if (searchInput) {
-                    searchInput.value = '';
-                    searchQuery = '';
-                    const clearBtn = document.getElementById('clear-search-btn');
-                    if (clearBtn) clearBtn.classList.add('hidden');
-                  }
-                } else {
-                  // Desmarcar checkbox correspondiente
+                  searchQuery = '';
+                  const hs = document.getElementById('header-search-input') as HTMLInputElement | null;
+                  const ms = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+                  const ls = document.getElementById('search-input') as HTMLInputElement | null;
+                  if (hs) hs.value = '';
+                  if (ms) ms.value = '';
+                  if (ls) ls.value = '';
+                  document.getElementById('header-clear-search-btn')?.classList.add('hidden');
+                  document.getElementById('mobile-clear-search-btn')?.classList.add('hidden');
+                  document.getElementById('clear-search-btn')?.classList.add('hidden');
+                } else if (filterValue) {
+                  const safeVal = CSS.escape(filterValue);
                   const checkbox = desktopFiltersContainer.querySelector(
-                    `input[type="checkbox"][value="${filterValue}"]`
+                    `input[type="checkbox"][value="${safeVal}"]`
                   ) as HTMLInputElement;
                   if (checkbox) {
                     checkbox.checked = false;
-                    // También desmarcar en móvil si existe
                     const mobileCheckbox = document.querySelector(
-                      `#mobile-filters-content input[type="checkbox"][value="${filterValue}"]`
+                      `#mobile-filters-content input[type="checkbox"][value="${safeVal}"]`
                     ) as HTMLInputElement;
                     if (mobileCheckbox) mobileCheckbox.checked = false;
                   }
@@ -2638,18 +2822,28 @@ import './products-page.css';
       }
 
       function clearAllFilters() {
-        // Limpiar todos los checkboxes (desktop y móvil)
-        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox: any) => {
-          checkbox.checked = false;
+        const desktopBox = document.getElementById('desktop-filters-container');
+        desktopBox?.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+          (cb as HTMLInputElement).checked = false;
         });
-        // Limpiar búsqueda
-        const searchInput = document.getElementById('search-input') as HTMLInputElement;
-        if (searchInput) {
-          searchInput.value = '';
-          searchQuery = '';
-          const clearBtn = document.getElementById('clear-search-btn');
-          if (clearBtn) clearBtn.classList.add('hidden');
-        }
+        document.getElementById('mobile-filters-content')?.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+          (cb as HTMLInputElement).checked = false;
+        });
+        // Limpiar búsqueda (header desktop / móvil)
+        const searchInput =
+          (document.getElementById('header-search-input') as HTMLInputElement) ||
+          (document.getElementById('mobile-search-input') as HTMLInputElement) ||
+          (document.getElementById('search-input') as HTMLInputElement);
+        searchQuery = '';
+        const hsClear = document.getElementById('header-search-input') as HTMLInputElement | null;
+        const msClear = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+        const lsClear = document.getElementById('search-input') as HTMLInputElement | null;
+        if (hsClear) hsClear.value = '';
+        if (msClear) msClear.value = '';
+        if (lsClear) lsClear.value = '';
+        document.getElementById('header-clear-search-btn')?.classList.add('hidden');
+        document.getElementById('mobile-clear-search-btn')?.classList.add('hidden');
+        document.getElementById('clear-search-btn')?.classList.add('hidden');
         updateActiveFiltersCount();
         filterProducts();
         updateActiveFiltersChips();
@@ -2659,17 +2853,31 @@ import './products-page.css';
       // Event listeners
       mobileFiltersBtn?.addEventListener('click', openMobileFilters);
       closeMobileFiltersBtn?.addEventListener('click', closeMobileFilters);
+
+      mobileFiltersContent?.addEventListener('change', (e) => {
+        const t = e.target as HTMLElement;
+        if (!t.matches('input[type="checkbox"]')) return;
+        const mobileCb = t as HTMLInputElement;
+        const desktopFiltersContainer = document.getElementById('desktop-filters-container');
+        const desktopCb = desktopFiltersContainer?.querySelector(
+          `input[type="checkbox"][value="${CSS.escape(mobileCb.value)}"]`
+        ) as HTMLInputElement | null;
+        if (desktopCb) desktopCb.checked = mobileCb.checked;
+        filterProducts();
+        updateActiveFiltersChips();
+        updateActiveFiltersCount();
+      });
       applyFiltersBtn?.addEventListener('click', () => {
         // Sincronizar checkboxes de móvil a desktop antes de filtrar
         const desktopFiltersContainer = document.getElementById('desktop-filters-container');
         if (mobileFiltersContent && desktopFiltersContainer) {
           const mobileCheckboxes = mobileFiltersContent.querySelectorAll('input[type="checkbox"]');
-          mobileCheckboxes.forEach((mobileCb: any) => {
-            const value = mobileCb.value;
-            const desktopCb = desktopFiltersContainer.querySelector(`input[type="checkbox"][value="${value}"]`) as HTMLInputElement;
-            if (desktopCb) {
-              desktopCb.checked = mobileCb.checked;
-            }
+          mobileCheckboxes.forEach((node) => {
+            const mobileCb = node as HTMLInputElement;
+            const desktopCb = desktopFiltersContainer.querySelector(
+              `input[type="checkbox"][value="${CSS.escape(mobileCb.value)}"]`
+            ) as HTMLInputElement | null;
+            if (desktopCb) desktopCb.checked = mobileCb.checked;
           });
         }
         filterProducts();
@@ -2738,82 +2946,120 @@ import './products-page.css';
         }
       });
 
-    // Filtros
-    const filterCheckboxes = document.querySelectorAll('input[type="checkbox"]');
-    filterCheckboxes.forEach(checkbox => {
-      checkbox.addEventListener('change', () => {
-          filterProducts();
-          updateActiveFiltersChips();
-      });
-    });
-
-    // Búsqueda en tiempo real con debounce
-    const searchInput = document.getElementById('search-input') as HTMLInputElement;
-    const clearSearchBtn = document.getElementById('clear-search-btn');
-    
-    // Establecer búsqueda desde URL si existe
-    if (urlSearchQuery && searchInput) {
-      searchInput.value = urlSearchQuery;
-      if (clearSearchBtn) clearSearchBtn.classList.remove('hidden');
-    }
-    
-    function handleSearch() {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-      
-      searchTimeout = setTimeout(() => {
-        searchQuery = searchInput?.value || '';
-        
-        // Mostrar/ocultar botón de limpiar
-        if (clearSearchBtn) {
-          if (searchQuery.trim()) {
-            clearSearchBtn.classList.remove('hidden');
-          } else {
-            clearSearchBtn.classList.add('hidden');
-          }
-        }
-        
-        filterProducts();
-        updateActiveFiltersChips();
-      }, 300); // Debounce de 300ms
-    }
-
-    searchInput?.addEventListener('input', handleSearch);
-    searchInput?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchQuery = searchInput.value || '';
-        filterProducts();
-        updateActiveFiltersChips();
-      }
-    });
-
-    clearSearchBtn?.addEventListener('click', () => {
-      searchInput.value = '';
-      searchQuery = '';
-      clearSearchBtn.classList.add('hidden');
+    // Filtros desktop: delegación (los del drawer móvil se sincronizan arriba y no duplican listeners al clonar)
+    document.getElementById('desktop-filters-container')?.addEventListener('change', (e) => {
+      const t = e.target as HTMLElement;
+      if (!t.matches('input[type="checkbox"]')) return;
       filterProducts();
       updateActiveFiltersChips();
     });
 
-      // Event listener para botón "Volver a categorías"
+    // Búsqueda en tiempo real (Header desktop + móvil; mismo estado que filtros)
+    const headerSearchEl = document.getElementById('header-search-input') as HTMLInputElement | null;
+    const mobileSearchEl = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+    const legacySearchEl = document.getElementById('search-input') as HTMLInputElement | null;
+
+    function syncSearchMirror(source: HTMLInputElement) {
+      searchQuery = source.value || '';
+      if (headerSearchEl && source !== headerSearchEl) headerSearchEl.value = searchQuery;
+      if (mobileSearchEl && source !== mobileSearchEl) mobileSearchEl.value = searchQuery;
+      if (legacySearchEl && source !== legacySearchEl) legacySearchEl.value = searchQuery;
+    }
+
+    function toggleClearButtons(hasText: boolean) {
+      document.getElementById('header-clear-search-btn')?.classList.toggle('hidden', !hasText);
+      document.getElementById('mobile-clear-search-btn')?.classList.toggle('hidden', !hasText);
+      document.getElementById('clear-search-btn')?.classList.toggle('hidden', !hasText);
+    }
+
+    if (urlSearchQuery) {
+      searchQuery = urlSearchQuery;
+      if (headerSearchEl) headerSearchEl.value = urlSearchQuery;
+      if (mobileSearchEl) mobileSearchEl.value = urlSearchQuery;
+      if (legacySearchEl) legacySearchEl.value = urlSearchQuery;
+      toggleClearButtons(true);
+    }
+
+    function handleSearch(ev: Event) {
+      const source = ev.target as HTMLInputElement;
+      if (searchTimeout) clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        syncSearchMirror(source);
+        toggleClearButtons(!!searchQuery.trim());
+        filterProducts();
+        updateActiveFiltersChips();
+      }, 300);
+    }
+
+    function onSearchKeydown(ev: KeyboardEvent) {
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      if (searchTimeout) clearTimeout(searchTimeout);
+      syncSearchMirror(ev.target as HTMLInputElement);
+      toggleClearButtons(!!searchQuery.trim());
+      filterProducts();
+      updateActiveFiltersChips();
+    }
+
+    [headerSearchEl, mobileSearchEl, legacySearchEl].forEach((el) => {
+      if (!el) return;
+      el.addEventListener('input', handleSearch);
+      el.addEventListener('keydown', onSearchKeydown);
+    });
+
+    function clearAllSearchInputs() {
+      searchQuery = '';
+      headerSearchEl && (headerSearchEl.value = '');
+      mobileSearchEl && (mobileSearchEl.value = '');
+      legacySearchEl && (legacySearchEl.value = '');
+      toggleClearButtons(false);
+      filterProducts();
+      updateActiveFiltersChips();
+    }
+
+    document.getElementById('header-clear-search-btn')?.addEventListener('click', clearAllSearchInputs);
+    document.getElementById('mobile-clear-search-btn')?.addEventListener('click', clearAllSearchInputs);
+    document.getElementById('clear-search-btn')?.addEventListener('click', clearAllSearchInputs);
+
+      window.addEventListener('popstate', async (e) => {
+        const st = e.state as { __ns?: string; screen?: string; categoryId?: string; brandId?: string; source?: string } | null;
+        if (!st || st.__ns !== PRODUCTS_HISTORY_NS || !st.screen) return;
+
+        productsFlowHistoryHandlingPop = true;
+        try {
+          switch (st.screen) {
+            case 'categories':
+              showCategories();
+              break;
+            case 'discount-brands':
+              showDiscountBrandsView();
+              break;
+            case 'brands':
+              if (st.categoryId) await showBrandsForCategory(st.categoryId);
+              break;
+            case 'products':
+              if (st.brandId) await showProductsForBrand(st.brandId);
+              break;
+            default:
+              break;
+          }
+        } finally {
+          productsFlowHistoryHandlingPop = false;
+        }
+      });
+
+      // Event listener para botón "Volver a categorías" (misma pila que el botón atrás del sistema)
       const backToCategoriesBtn = document.getElementById('back-to-categories-btn');
-      backToCategoriesBtn?.addEventListener('click', () => {
-        showCategories();
+      backToCategoriesBtn?.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        history.back();
       });
 
       // Event listener para botón "Volver a marcas"
       const backToBrandsBtn = document.getElementById('back-to-brands-btn');
-      backToBrandsBtn?.addEventListener('click', () => {
-        if (discountFilterMode) {
-          showDiscountBrandsView();
-          return;
-        }
-        if (currentCategoryId) {
-          showBrands(currentCategoryId);
-        }
+      backToBrandsBtn?.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        history.back();
       });
 
       // Inicializar

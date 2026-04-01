@@ -3351,6 +3351,20 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         syncMobilePickupMinDate();
       }
 
+      /** Móvil: paso 1 → paso 2 (pago y datos). Solo con carrito visible y viewport menor a lg. */
+      function goToMobileCheckoutStep2() {
+        if (!isMobileView()) return;
+        if (currentMobileStep !== 1) return;
+        if (!checkoutContent || checkoutContent.classList.contains('hidden')) return;
+        if (cartItems.length === 0) return;
+        if (checkoutStep1) checkoutStep1.classList.add('hidden');
+        if (checkoutStep2) checkoutStep2.classList.remove('hidden');
+        currentMobileStep = 2;
+        if (mobilePedirPagarBtn) mobilePedirPagarBtn.textContent = 'Pagar';
+        setupMobileStep2();
+        document.getElementById('checkout-step-2')?.scrollIntoView({ behavior: 'smooth' });
+      }
+
       // Actualizar totales (desktop y móvil)
       function updateTotals() {
         recalculateShipping();
@@ -4014,6 +4028,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           mobileTabRecoger.classList.add('checkout-delivery-tab--active');
           mobileTabEnvio?.classList.remove('checkout-delivery-tab--active');
           applyCheckoutDeliveryModeUI();
+          goToMobileCheckoutStep2();
         });
       }
 
@@ -4182,12 +4197,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           }
 
           if (currentMobileStep === 1) {
-            if (checkoutStep1) checkoutStep1.classList.add('hidden');
-            if (checkoutStep2) checkoutStep2.classList.remove('hidden');
-            currentMobileStep = 2;
-            mobilePedirPagarBtn.textContent = 'Pagar';
-            setupMobileStep2();
-            document.getElementById('checkout-step-2')?.scrollIntoView({ behavior: 'smooth' });
+            goToMobileCheckoutStep2();
           } else if (currentMobileStep === 2) {
             confirmOrder();
           }
