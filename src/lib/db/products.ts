@@ -6,6 +6,7 @@
 import {
   collection,
   doc,
+  documentId,
   getDoc,
   getDocs,
   addDoc,
@@ -21,6 +22,7 @@ import {
   runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { chunkIdsForFirestoreIn, FIRESTORE_IN_CHUNK_SIZE } from './firestoreInChunk';
 import type {
   Product,
   CreateProductData,
@@ -157,12 +159,42 @@ export async function getProducts(filters?: ProductFilters): Promise<QueryResult
   }
 }
 
-function chunkIds<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    out.push(arr.slice(i, i + size));
+export { chunkIdsForFirestoreIn, FIRESTORE_IN_CHUNK_SIZE } from './firestoreInChunk';
+
+/**
+ * Lectura por lotes por ID de documento (sustituye N× getDoc).
+ * Mantiene el orden de la primera aparición de cada id en `ids`.
+ */
+export async function getProductsByIds(ids: string[]): Promise<QueryResult<Product>> {
+  try {
+    if (!db) return { data: [], error: new Error('Firestore no inicializado') };
+    const unique: string[] = [];
+    const seen = new Set<string>();
+    for (const id of ids) {
+      const s = String(id || '').trim();
+      if (!s || seen.has(s)) continue;
+      seen.add(s);
+      unique.push(s);
+    }
+    if (unique.length === 0) return { data: [] };
+
+    const productsRef = collection(db, COLLECTION_NAME);
+    const byId = new Map<string, Product>();
+
+    for (const chunk of chunkIdsForFirestoreIn(unique)) {
+      const q = query(productsRef, where(documentId(), 'in', chunk));
+      const snap = await getDocs(q);
+      snap.docs.forEach((docSnap) => {
+        byId.set(docSnap.id, { id: docSnap.id, ...docSnap.data() } as Product);
+      });
+    }
+
+    const ordered = unique.map((id) => byId.get(id)).filter((p): p is Product => Boolean(p));
+    return { data: ordered };
+  } catch (error) {
+    console.error('Error getProductsByIds:', error);
+    return { data: [], error: error as Error };
   }
-  return out;
 }
 
 /**
@@ -175,7 +207,7 @@ export async function getProductsByBrandIds(brandIds: string[]): Promise<QueryRe
     if (unique.length === 0) return { data: [] };
     const productsRef = collection(db, COLLECTION_NAME);
     const byId = new Map<string, Product>();
-    for (const chunk of chunkIds(unique, 10)) {
+    for (const chunk of chunkIdsForFirestoreIn(unique)) {
       const q = query(productsRef, where('brand', 'in', chunk));
       const snap = await getDocs(q);
       snap.docs.forEach((docSnap) => {

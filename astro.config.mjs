@@ -16,5 +16,9 @@ export default defineConfig({
                 '@lib': path.resolve(__dirname, './src/lib'),
             },
         },
+        server: {
+            // Sin WebSocket / HMR: menos ruido en consola y sin reconexiones; recarga manual al cambiar código.
+            hmr: false,
+        },
     },
 });

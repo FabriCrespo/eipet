@@ -3,8 +3,8 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Carrito de Compras - Eipet" description="Revisa tu carrito de compras y completa tu pedido">
-  <section class="py-8 lg:py-12 bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+  <section class="py-5 sm:py-8 lg:py-12 bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-3 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Misma línea visual que checkout -->
       <nav class="hidden lg:flex mb-6 items-center gap-2 text-sm text-gray-600">
         <a href="/" class="hover:text-[#5d3fbb] transition-colors" data-astro-prefetch>Inicio</a>
@@ -18,27 +18,27 @@ import Layout from '../layouts/Layout.astro';
         <span class="text-gray-800 font-medium">Carrito</span>
       </nav>
 
-      <div class="mb-8">
-        <h1 class="text-3xl lg:text-4xl font-bold bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent mb-2">
+      <div class="mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-xl sm:text-2xl lg:text-4xl font-bold bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] bg-clip-text text-transparent mb-1 sm:mb-2">
           Tu carrito
         </h1>
-        <p class="text-gray-600">Revisa tus productos y continúa al checkout para pagar</p>
+        <p class="text-sm sm:text-base text-gray-600">Revisa tus productos y continúa al checkout para pagar</p>
       </div>
 
       <!-- Contenedor principal -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         <!-- Lista de productos -->
         <div class="lg:col-span-2">
           <!-- Empty State -->
-          <div id="cart-empty" class="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center hidden">
-            <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div id="cart-empty" class="bg-white rounded-xl shadow-sm p-6 sm:p-10 lg:p-12 text-center hidden">
+            <svg class="w-16 h-16 sm:w-24 sm:h-24 mx-auto text-gray-300 mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Tu carrito está vacío</h2>
-            <p class="text-gray-500 mb-6">Agrega productos para comenzar tu compra</p>
+            <h2 class="text-lg sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">Tu carrito está vacío</h2>
+            <p class="text-sm sm:text-base text-gray-500 mb-5 sm:mb-6">Agrega productos para comenzar tu compra</p>
             <a
               href="/products?pet=dog"
-              class="inline-flex items-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              class="inline-flex items-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white text-sm sm:text-base font-semibold px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               data-astro-prefetch
             >
               Ver productos
@@ -46,15 +46,15 @@ import Layout from '../layouts/Layout.astro';
           </div>
 
           <!-- Items del carrito -->
-          <div id="cart-items-container" class="space-y-4 hidden">
+          <div id="cart-items-container" class="space-y-3 sm:space-y-4 hidden">
             <!-- Los items se renderizarán aquí -->
           </div>
         </div>
 
         <!-- Resumen del pedido -->
         <div class="lg:col-span-1">
-          <div id="cart-summary" class="bg-white rounded-xl shadow-md p-6 sticky top-24 hidden">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Resumen del pedido</h2>
+          <div id="cart-summary" class="bg-white rounded-xl shadow-md p-4 sm:p-6 sticky top-20 sm:top-24 hidden">
+            <h2 class="text-base sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Resumen del pedido</h2>
 
             <!-- Misma estructura de montos que el checkout (sidebar) -->
             <div class="border-t border-gray-200 pt-4 space-y-2">
@@ -75,27 +75,29 @@ import Layout from '../layouts/Layout.astro';
                 <span id="summary-subtotal-line">Bs 0</span>
               </div>
               <div class="border-t border-gray-200 pt-3 flex justify-between">
-                <span class="text-lg font-bold text-gray-900">Total</span>
-                <span id="summary-total" class="text-lg font-bold text-[#5d3fbb]">Bs 0</span>
+                <span class="text-base sm:text-lg font-bold text-gray-900">Total</span>
+                <span id="summary-total" class="text-base sm:text-lg font-bold text-[#5d3fbb]">Bs 0</span>
               </div>
             </div>
 
-            <div class="space-y-3 mt-6">
+            <p id="cart-shipping-estimate-note" class="mt-3 text-[11px] sm:text-xs leading-snug text-gray-500 hidden"></p>
+
+            <div class="space-y-2.5 sm:space-y-3 mt-4 sm:mt-6">
               <!-- id único: el header ya usa `checkout-btn` en el mini carrito -->
               <a
                 href="/checkout"
                 id="cart-page-checkout-btn"
-                class="flex w-full items-center justify-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-center active:scale-[0.98]"
+                class="flex w-full items-center justify-center gap-2 bg-linear-to-r from-[#5d3fbb] to-[#6d4fcc] hover:from-[#6d4fcc] hover:to-[#7d5fdd] text-white text-sm sm:text-base font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-center active:scale-[0.98]"
                 data-astro-prefetch
               >
                 Proceder al pago
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </a>
               <a
                 href="/products?pet=dog"
-                class="block w-full px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors text-center text-sm"
+                class="block w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition-colors text-center"
                 data-astro-prefetch
               >
                 Seguir comprando
@@ -114,6 +116,40 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { showToast } from '../lib/ui/toast';
+
+  /** Mismos valores que `checkout.astro` (envío sin ubicación en mapa). */
+  const PAID_SHIPPING_FALLBACK_BS = 15;
+  const DEFAULT_DELIVERY_CLIENT = {
+    minPurchaseAmount: 200,
+    coverageRadiusKm: 5,
+    freeDeliveryEnabled: true,
+    messageTeFaltan: 'Te faltan {amount} Bs para envío gratis',
+    messageFueraCobertura: 'Tu dirección está fuera de nuestra zona de cobertura.',
+    messageEnvioGratis: '¡Felicidades! Tienes envío gratis',
+  };
+  let deliverySettings: typeof DEFAULT_DELIVERY_CLIENT = { ...DEFAULT_DELIVERY_CLIENT };
+
+  function mergeDeliveryFromRemote(raw: unknown) {
+    const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+    deliverySettings = {
+      minPurchaseAmount: Number(r.minPurchaseAmount ?? DEFAULT_DELIVERY_CLIENT.minPurchaseAmount),
+      coverageRadiusKm: Number(r.coverageRadiusKm ?? DEFAULT_DELIVERY_CLIENT.coverageRadiusKm),
+      freeDeliveryEnabled: r.freeDeliveryEnabled !== false,
+      messageTeFaltan: String(r.messageTeFaltan || DEFAULT_DELIVERY_CLIENT.messageTeFaltan),
+      messageFueraCobertura: String(r.messageFueraCobertura || DEFAULT_DELIVERY_CLIENT.messageFueraCobertura),
+      messageEnvioGratis: String(r.messageEnvioGratis || DEFAULT_DELIVERY_CLIENT.messageEnvioGratis),
+    };
+  }
+
+  async function loadDeliverySettingsForCart() {
+    try {
+      const { getDeliverySettings } = await import('../lib/db/storeSettings');
+      const res = await getDeliverySettings();
+      mergeDeliveryFromRemote(res.data || {});
+    } catch {
+      deliverySettings = { ...DEFAULT_DELIVERY_CLIENT };
+    }
+  }
 
   // Estado del carrito
   let cartState: {
@@ -170,10 +206,14 @@ import Layout from '../layouts/Layout.astro';
     }, 0);
   }
 
-  // Calcular envío (gratis si el subtotal es mayor a 200)
+  /**
+   * Estimación a domicilio alineada con checkout (tipo envío, sin lat/lng):
+   * mismo `PAID_SHIPPING_FALLBACK_BS` que cuando en checkout aún no hay coordenadas en el mapa.
+   */
   function calculateShipping(): number {
-    const subtotal = getCartSubtotal();
-    return subtotal >= 200 ? 0 : 20;
+    const enabled = deliverySettings.freeDeliveryEnabled !== false;
+    if (!enabled) return PAID_SHIPPING_FALLBACK_BS;
+    return PAID_SHIPPING_FALLBACK_BS;
   }
 
   // Calcular total
@@ -234,48 +274,45 @@ import Layout from '../layouts/Layout.astro';
       const subtotal = (product.price || 0) * item.quantity;
 
       return `
-        <div class="cart-item-row bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-100" data-product-id="${item.productId}">
-          <div class="flex flex-col sm:flex-row gap-4">
-            <!-- Imagen -->
-            <div class="w-full sm:w-32 h-32 sm:h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+        <div class="cart-item-row bg-white rounded-xl shadow-md p-3 sm:p-5 border border-gray-100" data-product-id="${item.productId}">
+          <div class="flex flex-row gap-3 sm:gap-4">
+            <div class="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 shrink-0 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center">
               <img 
                 src="${product.image || ''}" 
                 alt="${product.name}"
-                class="w-full h-full object-cover"
+                class="max-h-full max-w-full w-full h-full object-contain p-1"
                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f3f4f6\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%239ca3af\' font-family=\'Arial\' font-size=\'12\'%3EImagen%3C/text%3E%3C/svg%3E';"
               />
             </div>
 
-            <!-- Información -->
             <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-4 mb-3">
+              <div class="flex items-start justify-between gap-2 mb-2">
                 <div class="flex-1 min-w-0">
-                  ${product.brandName ? `<p class="text-xs text-gray-500 mb-1">${product.brandName}</p>` : ''}
-                  <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 line-clamp-2">${product.name}</h3>
-                  <p class="text-sm text-gray-600">Bs. ${(product.price || 0).toLocaleString()} c/u</p>
+                  ${product.brandName ? `<p class="text-[11px] sm:text-xs text-gray-500 mb-0.5">${product.brandName}</p>` : ''}
+                  <h3 class="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2">${product.name}</h3>
+                  <p class="text-xs sm:text-sm text-gray-600 mt-0.5">Bs. ${(product.price || 0).toLocaleString()} c/u</p>
                 </div>
                 <button
                   type="button"
-                  class="remove-item-btn p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                  class="remove-item-btn p-1.5 sm:p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0 -mr-1"
                   data-product-id="${item.productId}"
                   aria-label="Eliminar del carrito"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              <!-- Controles de cantidad y precio -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2">
                   <button 
                     type="button"
-                    class="decrease-qty-btn w-8 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 transition-colors flex items-center justify-center"
+                    class="decrease-qty-btn w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 transition-colors flex items-center justify-center"
                     data-product-id="${item.productId}"
                     aria-label="Disminuir cantidad"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                     </svg>
                   </button>
@@ -283,25 +320,22 @@ import Layout from '../layouts/Layout.astro';
                     type="number"
                     min="1"
                     value="${item.quantity}"
-                    class="quantity-input w-12 text-center text-sm font-semibold text-gray-900 border border-gray-300 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20"
+                    class="quantity-input w-10 sm:w-12 text-center text-xs sm:text-sm font-semibold text-gray-900 border border-gray-300 rounded-lg py-0.5 sm:py-1 focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20"
                     data-product-id="${item.productId}"
                     readonly
                   />
                   <button 
                     type="button"
-                    class="increase-qty-btn w-8 h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 transition-colors flex items-center justify-center"
+                    class="increase-qty-btn w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 transition-colors flex items-center justify-center"
                     data-product-id="${item.productId}"
                     aria-label="Aumentar cantidad"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
                 </div>
-                
-                <div class="text-right">
-                  <p class="text-lg sm:text-xl font-bold text-[#5d3fbb]">Bs. ${subtotal.toLocaleString()}</p>
-                </div>
+                <p class="text-sm sm:text-lg font-bold text-[#5d3fbb] tabular-nums shrink-0">Bs. ${subtotal.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -394,6 +428,7 @@ import Layout from '../layouts/Layout.astro';
     const totalEl = document.getElementById('summary-total');
     const discountRow = document.getElementById('summary-discount-row');
     const discountEl = document.getElementById('summary-discount');
+    const shippingNote = document.getElementById('cart-shipping-estimate-note');
 
     if (!summary || !productsEl || !shippingEl || !subtotalLineEl || !totalEl) return;
 
@@ -424,6 +459,16 @@ import Layout from '../layouts/Layout.astro';
         discountRow.classList.remove('flex');
       }
     }
+
+    if (shippingNote) {
+      if (cartState.items.length === 0) {
+        shippingNote.classList.add('hidden');
+      } else {
+        shippingNote.textContent =
+          'Envío estimado: misma base que en checkout antes de marcar tu ubicación en el mapa (puede quedar gratis según zona y mínimo de compra).';
+        shippingNote.classList.remove('hidden');
+      }
+    }
   }
 
   // Renderizar carrito completo
@@ -445,6 +490,7 @@ import Layout from '../layouts/Layout.astro';
   // Inicializar página
   async function initCartPage() {
     loadCartFromStorage();
+    await loadDeliverySettingsForCart();
     await loadProductDataForCartItems();
     renderCart();
 

@@ -764,7 +764,7 @@ import './products-page.css';
       async function loadDiscountOffersFromFirestore(): Promise<number> {
         const { getDiscounts } = await import('../lib/db/discounts');
         const { getBrands } = await import('../lib/db/brands');
-        const { getProductById } = await import('../lib/db/products');
+        const { getProductsByIds } = await import('../lib/db/products');
 
         const discRes = await getDiscounts();
         const rawDiscounts = discRes.data || [];
@@ -779,13 +779,14 @@ import './products-page.css';
           productIds.forEach((id) => productIdsFromPromos.add(id));
         });
 
-        await Promise.all(
-          [...productIdsFromPromos].map(async (productId) => {
-            const res = await getProductById(productId);
-            const bid = res.data?.brand;
-            if (bid) brandIdsFromPromos.add(String(bid));
-          })
-        );
+        const promoProductList = [...productIdsFromPromos];
+        const batchRes = await getProductsByIds(promoProductList);
+        const promoProductsById = new Map<string, any>();
+        (batchRes.data || []).forEach((p: any) => {
+          promoProductsById.set(String(p.id), p);
+          const bid = p.brand;
+          if (bid) brandIdsFromPromos.add(String(bid));
+        });
 
         const brandsRes = await getBrands();
         const allBrands = brandsRes.data || [];
@@ -794,9 +795,8 @@ import './products-page.css';
         allBrandsData.forEach((b: any) => brandMap.set(b.id, b));
 
         const mappedOfferProducts: any[] = [];
-        for (const pid of productIdsFromPromos) {
-          const res = await getProductById(pid);
-          const raw = res.data;
+        for (const pid of promoProductList) {
+          const raw = promoProductsById.get(String(pid));
           if (!raw || raw.status !== 'active') continue;
           const mapped = mapRawProductToCard(raw);
           if (petFilter !== 'all' && getProductPetSlug(mapped) !== petFilter) continue;
@@ -1385,23 +1385,44 @@ import './products-page.css';
             return 'all';
           }
 
-          // Obtener productos activos
-          let productsResult;
+          // Productos activos de esta marca (query en Firestore; menos lecturas que traer todo el catálogo)
+          let productsResult: { data: any[]; error?: Error | null };
+          let brandProducts: any[];
+
           try {
-            productsResult = await getProducts({ status: 'active' });
-            
-            if (!productsResult.data || productsResult.data.length === 0 || productsResult.error) {
-              console.log('⚠️ No se obtuvieron productos con status="active", intentando sin filtro...');
-              const allProductsResult = await getProducts();
-              
-              if (allProductsResult.data && allProductsResult.data.length > 0) {
-                productsResult = {
-                  data: allProductsResult.data.filter((p: any) => p.status === 'active'),
-                  error: allProductsResult.error
-                };
-              } else {
-                productsResult = allProductsResult;
+            productsResult = await getProducts({ brand: brandId, status: 'active' });
+            const errCode = productsResult.error && (productsResult.error as { code?: string }).code;
+            const rows = productsResult.data || [];
+            const useFullCatalogFallback =
+              errCode === 'failed-precondition' ||
+              errCode === 'unavailable' ||
+              (!!productsResult.error && rows.length === 0);
+
+            if (!useFullCatalogFallback) {
+              brandProducts = rows;
+            } else {
+              console.log(
+                '[EIPET] Query brand+status no disponible o vacía con error; fallback a todos los activos + filtro por marca.'
+              );
+              productsResult = await getProducts({ status: 'active' });
+
+              if (!productsResult.data || productsResult.data.length === 0 || productsResult.error) {
+                console.log('⚠️ No se obtuvieron productos con status="active", intentando sin filtro...');
+                const allProductsResult = await getProducts();
+
+                if (allProductsResult.data && allProductsResult.data.length > 0) {
+                  productsResult = {
+                    data: allProductsResult.data.filter((p: any) => p.status === 'active'),
+                    error: allProductsResult.error,
+                  };
+                } else {
+                  productsResult = allProductsResult;
+                }
               }
+
+              brandProducts = (productsResult.data || []).filter(
+                (p: any) => String(p.brand || '') === String(brandId)
+              );
             }
           } catch (error) {
             console.error('❌ Error al obtener productos:', error);
@@ -1409,17 +1430,15 @@ import './products-page.css';
             if (allProductsResult.data && allProductsResult.data.length > 0) {
               productsResult = {
                 data: allProductsResult.data.filter((p: any) => p.status === 'active'),
-                error: allProductsResult.error
+                error: allProductsResult.error,
               };
             } else {
               productsResult = { data: [], error: error as Error };
             }
+            brandProducts = (productsResult.data || []).filter(
+              (p: any) => String(p.brand || '') === String(brandId)
+            );
           }
-
-          // Filtrar productos por marca
-          const brandProducts = (productsResult.data || []).filter((p: any) => 
-            String(p.brand || '') === String(brandId)
-          );
 
           // Mapear productos al formato esperado
           let mappedProducts = brandProducts.map((p: any) => {

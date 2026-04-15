@@ -10,6 +10,7 @@ export * from './types';
 export {
   getProducts,
   getProductById,
+  getProductsByIds,
   createProduct,
   updateProduct,
   deleteProduct,

@@ -38,54 +38,7 @@ const { title = 'Eipet', description = 'Tu tienda de mascotas favorita' } = Astr
 			  cacheData?: (key: string, data: any) => Promise<void>;
 			}
 		  }
-		  
-		  // Registrar Service Worker para caché offline
-		  if ('serviceWorker' in navigator) {
-			window.addEventListener('load', () => {
-			  navigator.serviceWorker.register('/sw.js')
-				.then((registration) => {
-				  // Verificar actualizaciones periódicamente
-				  setInterval(() => {
-					registration.update();
-				  }, 60000); // Cada minuto
-				})
-				.catch((error) => {
-				  console.error('❌ Error registrando Service Worker:', error);
-				});
-			  
-			  // Escuchar actualizaciones del Service Worker
-			  navigator.serviceWorker.addEventListener('controllerchange', () => {
-				window.location.reload();
-			  });
-			});
-			
-			// Función para limpiar caché manualmente (útil para desarrollo)
-			window.clearCache = async () => {
-			  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-				const messageChannel = new MessageChannel();
-				messageChannel.port1.onmessage = (event) => {
-				  if (event.data.success) {
-					window.location.reload();
-				  }
-				};
-				navigator.serviceWorker.controller.postMessage(
-				  { type: 'CLEAR_CACHE' },
-				  [messageChannel.port2]
-				);
-			  }
-			};
-			
-			// Función para cachear datos desde el cliente
-			window.cacheData = async (key: string, data: any) => {
-			  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-				navigator.serviceWorker.controller.postMessage({
-				  type: 'CACHE_DATA',
-				  key,
-				  data
-				});
-			  }
-			};
-		  }
+
 		</script>
 	  </body>
 </html>
