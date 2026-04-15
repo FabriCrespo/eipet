@@ -745,6 +745,15 @@ import './products-page.css';
         };
       }
 
+      function isActiveProductStatus(status: unknown): boolean {
+        const normalized = String(status ?? '')
+          .trim()
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/\p{M}/gu, '');
+        return normalized === '' || normalized === 'active' || normalized === 'activo';
+      }
+
       function tsToIso(v: unknown): string | null {
         if (v && typeof v === 'object' && 'toDate' in v && typeof (v as { toDate: () => Date }).toDate === 'function') {
           return (v as { toDate: () => Date }).toDate().toISOString();
@@ -843,9 +852,15 @@ import './products-page.css';
         ) {
           const fb = await getProducts({ status: 'active' });
           rows = (fb.data || []).filter((p: any) => (Number(p.discount) || 0) > 0);
+          if (rows.length === 0) {
+            const allFallback = await getProducts();
+            rows = (allFallback.data || []).filter(
+              (p: any) => isActiveProductStatus(p?.status) && (Number(p?.discount) || 0) > 0
+            );
+          }
         }
         for (const raw of rows) {
-          if (!raw || raw.status !== 'active' || (Number(raw.discount) || 0) <= 0) continue;
+          if (!raw || !isActiveProductStatus(raw.status) || (Number(raw.discount) || 0) <= 0) continue;
           const id = String(raw.id);
           if (seen.has(id)) continue;
           const mapped = mapRawProductToCard(raw);
@@ -899,7 +914,7 @@ import './products-page.css';
         const mappedOfferProducts: any[] = [];
         for (const pid of promoProductList) {
           const raw = promoProductsById.get(String(pid));
-          if (!raw || raw.status !== 'active') continue;
+          if (!raw || !isActiveProductStatus(raw.status)) continue;
           const mapped = mapRawProductToCard(raw);
           if (petFilter !== 'all' && getProductPetSlug(mapped) !== petFilter) continue;
           mappedOfferProducts.push(mapped);
