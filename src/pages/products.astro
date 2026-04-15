@@ -303,15 +303,10 @@ import './products-page.css';
   <script>
     import { showToast } from '../lib/ui/toast';
     import { showConfirmDialog } from '../lib/ui/confirmDialog';
+    import { hideNavigationLoader } from '../lib/ui/navigationLoader';
+    import { loadCategoriesAndOptionalBrandsParallel } from '../lib/pages/products/initialCatalogLoad';
 
-    // Ocultar loader de navegación inmediatamente si existe (previene doble loader)
-    (function() {
-      const navigationLoader = document.getElementById('navigation-loader');
-      if (navigationLoader) {
-        navigationLoader.style.display = 'none';
-        navigationLoader.remove();
-      }
-    })();
+    hideNavigationLoader();
 
     // Asegurar que el script se ejecute cuando el DOM esté listo
     if (document.readyState === 'loading') {
@@ -1300,6 +1295,12 @@ import './products-page.css';
         if (categoryBrands.length === 0) {
           console.log('No hay marcas para esta categoría');
           if (loadingState) loadingState.classList.add('hidden');
+          const cat = categoryMap.get(categoryId);
+          const catLabel = cat?.name ? `«${cat.name}»` : 'Esta categoría';
+          showToast(
+            `${catLabel} aún no tiene marcas registradas. Estarán disponibles próximamente.`,
+            'info',
+          );
           return;
         }
 
@@ -1625,9 +1626,14 @@ import './products-page.css';
         document.getElementById('back-to-brands-btn')?.classList.remove('hidden');
 
         if (brandProducts.length === 0) {
-          // Mostrar empty state
           productsGrid.style.display = 'none';
           if (emptyState) emptyState.classList.remove('hidden');
+          const brandData = brandMap.get(brandId);
+          const brandLabel = brandData?.name ? `«${brandData.name}»` : 'Esta marca';
+          showToast(
+            `${brandLabel} aún no tiene productos registrados. Estarán disponibles próximamente.`,
+            'info',
+          );
           return;
         }
 
@@ -2245,14 +2251,13 @@ import './products-page.css';
       // Cargar productos desde Firebase (TODO se ejecuta en el CLIENTE)
       async function loadProducts() {
         try {
-          // Importar funciones de Firebase (client-side)
-          // Todas estas funciones se ejecutan en el navegador y se conectan directamente a Firestore
-          // @ts-ignore
-          const { getProducts } = await import('../lib/db/products');
-          // @ts-ignore
-          const { getCategoriesByAnimalType } = await import('../lib/db/categories');
-          // @ts-ignore
-          const { getBrands } = await import('../lib/db/brands');
+          const initialBrandId = (urlParams.get('brand') || '').trim();
+          const initialCategoryId = (urlParams.get('category') || '').trim();
+
+          const { allCategoriesResult, brandsPrefetchResult } =
+            await loadCategoriesAndOptionalBrandsParallel({
+              prefetchAllBrands: !!initialBrandId && !discountFilterMode,
+            });
 
           // Mapear parámetro de URL a animalType
           let animalType: 'Perro' | 'Gato' | null = null;
@@ -2265,10 +2270,7 @@ import './products-page.css';
           console.log('🔍 Parámetro de URL (petFilter):', petFilter);
           console.log('🐾 Tipo de animal a filtrar:', animalType || 'Todos');
 
-          // Obtener todas las categorías y filtrar en el cliente (evita problemas de índices)
-          console.log('📂 Obteniendo todas las categorías...');
-          const { getCategories } = await import('../lib/db/categories');
-          const allCategoriesResult = await getCategories();
+          console.log('📂 Categorías (y marcas en paralelo si ?brand=)');
           
           console.log('📋 Todas las categorías sin filtrar:', allCategoriesResult.data || []);
           console.log('📊 Total de categorías sin filtrar:', allCategoriesResult.data?.length || 0);
@@ -2373,9 +2375,30 @@ import './products-page.css';
           } else {
             replaceProductsFlowHistory(productsFlowHistoryState('categories'));
           }
-          
-          // Ocultar loader y mostrar contenido
-          hidePageLoader();
+
+          // Enlace profundo: /products?brand=...&category=... → rejilla de productos de esa marca
+          const deepBrand = initialBrandId && !discountFilterMode;
+          if (deepBrand) {
+            try {
+              (brandsPrefetchResult.data || []).forEach((b: any) => {
+                if (!b?.id) return;
+                brandMap.set(b.id, b);
+                if (!allBrandsData.some((x: any) => String(x.id) === String(b.id))) {
+                  allBrandsData.push(b);
+                }
+              });
+            } catch (e) {
+              console.warn('[products] Precarga de marcas para ?brand=', e);
+            }
+            if (initialCategoryId) {
+              currentCategoryId = initialCategoryId;
+            }
+            // Mostrar shell + skeleton mientras llegan productos de la marca (no bloquear en page-loader)
+            hidePageLoader();
+            await showProductsForBrand(initialBrandId);
+          } else {
+            hidePageLoader();
+          }
         } catch (error) {
           console.error('❌ Error cargando productos:', error);
           const loadingState = document.getElementById('loading-state');
@@ -2397,19 +2420,15 @@ import './products-page.css';
       // Un solo patrón: clase .ready + fade-out del loader (sin reflow ni ramas móvil/desktop)
       function hidePageLoader() {
         const pageLoader = document.getElementById('page-loader');
-        const navigationLoader = document.getElementById('navigation-loader');
         const mainContent = document.getElementById('main-content');
 
-        if (navigationLoader) {
-          navigationLoader.style.display = 'none';
-          navigationLoader.remove();
-        }
+        hideNavigationLoader();
         if (mainContent) mainContent.classList.add('ready');
         if (pageLoader) {
+          pageLoader.style.opacity = '0';
           setTimeout(() => {
-            pageLoader.style.opacity = '0';
-            setTimeout(() => { pageLoader.style.display = 'none'; }, 300);
-          }, 120);
+            pageLoader.style.display = 'none';
+          }, 200);
         }
       }
 

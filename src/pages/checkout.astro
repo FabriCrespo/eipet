@@ -520,12 +520,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
         <!-- Vista móvil: 3 steps (solo step 1 visible por ahora) -->
         <div id="checkout-mobile" class="lg:hidden pb-24">
-          <!-- Step 1: Carrito + Envío/Recoger -->
-          <div id="checkout-step-1" class="checkout-mobile-step">
-            <h1 class="text-xl font-bold text-gray-800 text-center mb-6">Tu carrito</h1>
-
-            <!-- Tabs Envío / Recoger en eipet -->
-            <div class="flex rounded-xl overflow-hidden bg-[#5d3fbb] mb-6" role="tablist">
+          <!-- Envío / Recoger: fuera de los steps para que sigan visibles al ir al paso 2 (igual que desktop) -->
+          <div id="checkout-mobile-delivery-tabs" class="mb-6" role="tablist" aria-label="Tipo de entrega">
+            <div class="flex rounded-xl overflow-hidden bg-[#5d3fbb]">
               <button
                 type="button"
                 id="mobile-tab-envio"
@@ -546,6 +543,11 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 Recoger en eipet
               </button>
             </div>
+          </div>
+
+          <!-- Step 1: Carrito -->
+          <div id="checkout-step-1" class="checkout-mobile-step">
+            <h1 class="text-xl font-bold text-gray-800 text-center mb-6">Tu carrito</h1>
 
             <!-- Lista de productos del carrito -->
             <div id="mobile-order-items" class="space-y-3 mb-4">
@@ -1666,6 +1668,14 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
       function applyCheckoutDeliveryModeUI() {
         const recoger = deliveryType === 'recoger';
+        const mobileTabEnvioEl = document.getElementById('mobile-tab-envio');
+        const mobileTabRecogerEl = document.getElementById('mobile-tab-recoger');
+        if (mobileTabEnvioEl && mobileTabRecogerEl) {
+          mobileTabEnvioEl.classList.toggle('checkout-delivery-tab--active', !recoger);
+          mobileTabRecogerEl.classList.toggle('checkout-delivery-tab--active', recoger);
+          mobileTabEnvioEl.setAttribute('aria-selected', recoger ? 'false' : 'true');
+          mobileTabRecogerEl.setAttribute('aria-selected', recoger ? 'true' : 'false');
+        }
         if (mobileStep2EnvioFlow && mobileStep2RecogerFlow) {
           mobileStep2EnvioFlow.classList.toggle('hidden', recoger);
           mobileStep2RecogerFlow.classList.toggle('hidden', !recoger);
@@ -4017,18 +4027,16 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       if (mobileTabEnvio) {
         mobileTabEnvio.addEventListener('click', () => {
           deliveryType = 'envio';
-          mobileTabEnvio.classList.add('checkout-delivery-tab--active');
-          mobileTabRecoger?.classList.remove('checkout-delivery-tab--active');
           applyCheckoutDeliveryModeUI();
         });
       }
       if (mobileTabRecoger) {
         mobileTabRecoger.addEventListener('click', () => {
           deliveryType = 'recoger';
-          mobileTabRecoger.classList.add('checkout-delivery-tab--active');
-          mobileTabEnvio?.classList.remove('checkout-delivery-tab--active');
           applyCheckoutDeliveryModeUI();
-          goToMobileCheckoutStep2();
+          if (currentMobileStep === 1) {
+            goToMobileCheckoutStep2();
+          }
         });
       }
 

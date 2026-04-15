@@ -4,25 +4,25 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
   <!-- Móvil: modal con overlay. Desktop: página completa con fondo degradado -->
-  <section class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 sm:static sm:min-h-screen sm:py-12 sm:px-6 sm:bg-linear-to-br sm:from-purple-50 sm:via-white sm:to-pink-50 lg:px-8">
-    <div class="max-w-md w-full max-h-[90vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+  <section class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 sm:static sm:min-h-screen sm:py-10 lg:py-12 sm:px-6 sm:bg-linear-to-br sm:from-purple-50 sm:via-white sm:to-pink-50 lg:px-8">
+    <div class="max-w-md w-full max-h-[min(90vh,36rem)] overflow-y-auto sm:max-h-none sm:overflow-visible">
       <!-- En móvil: una sola tarjeta tipo modal. En desktop: sin wrapper visible -->
-      <div class="relative rounded-3xl bg-white shadow-2xl p-6 sm:p-0 sm:bg-transparent sm:shadow-none sm:rounded-none">
+      <div class="relative rounded-2xl bg-white p-5 shadow-xl sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
         <!-- Botón cerrar (solo móvil) -->
         <a
           href="/"
-          class="sm:hidden absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-colors"
+          class="sm:hidden absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 transition-colors"
           aria-label="Cerrar y volver al inicio"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </a>
         <!-- Logo y Título -->
-        <div class="text-center mb-8">
-        <a href="/" class="inline-flex items-center gap-3 mb-4">
-          <div class="bg-[#ffff11] rounded-xl p-2.5 shadow-lg">
-            <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
+        <div class="text-center mb-6 sm:mb-8">
+        <a href="/" class="inline-flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+          <div class="bg-[#ffff11] rounded-lg sm:rounded-xl p-2 sm:p-2.5 shadow-lg">
+            <svg class="w-8 h-8 sm:w-9 sm:h-9" viewBox="0 0 32 32" fill="none" aria-hidden="true">
               <path d="M16 8C16 8 10 2 4 8C-2 14 4 20 4 20L16 28L28 20C28 20 34 14 28 8C22 2 16 8 16 8Z" fill="#5d3fbb"/>
               <circle cx="10" cy="12" r="2" fill="#fff"/>
               <circle cx="22" cy="12" r="2" fill="#fff"/>
@@ -30,18 +30,20 @@ import Layout from '../layouts/Layout.astro';
               <path d="M16 18C16 18 18 20 22 20C26 20 28 18 28 18" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
-          <span class="text-3xl font-bold text-[#5d3fbb]">eipet</span>
+          <span class="text-2xl sm:text-3xl font-bold text-[#5d3fbb]">eipet</span>
         </a>
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Bienvenido de nuevo</h1>
-        <p class="text-gray-600">Inicia sesión en tu cuenta para continuar</p>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1.5 sm:mb-2 tracking-tight">Bienvenido de nuevo</h1>
+        <p class="text-sm sm:text-base text-gray-600 max-w-xs mx-auto leading-relaxed">
+          Inicia sesión en tu cuenta para continuar
+        </p>
       </div>
 
       <!-- Formulario -->
       <div class="bg-transparent border-0 shadow-none p-0 sm:bg-white sm:rounded-3xl sm:shadow-2xl sm:p-8 sm:border sm:border-gray-100">
-        <form id="login-form" class="space-y-6">
+        <form id="login-form" class="space-y-4 sm:space-y-5">
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+            <label for="email" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
               Correo Electrónico
             </label>
             <input
@@ -50,18 +52,18 @@ import Layout from '../layouts/Layout.astro';
               name="email"
               required
               autocomplete="email"
-              class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+              class="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-white text-sm sm:text-base text-gray-800 placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base focus:border-purple-400 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-purple-100 transition-all"
               placeholder="tu@email.com"
             />
           </div>
 
           <!-- Contraseña -->
           <div>
-            <div class="flex items-center justify-between mb-2">
-              <label for="password" class="block text-sm font-semibold text-gray-700">
+            <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mb-1.5 sm:mb-2">
+              <label for="password" class="block text-xs sm:text-sm font-semibold text-gray-700">
                 Contraseña
               </label>
-              <a href="/forgot-password" class="text-sm text-purple-600 hover:text-purple-700 font-medium">
+              <a href="/forgot-password" class="text-xs sm:text-sm text-purple-600 hover:text-purple-700 font-medium shrink-0">
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
@@ -72,20 +74,20 @@ import Layout from '../layouts/Layout.astro';
                 name="password"
                 required
                 autocomplete="current-password"
-                class="w-full px-4 py-3 pr-12 rounded-xl border-2 border-gray-200 bg-white text-gray-800 placeholder-gray-400 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all"
+                class="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 pr-11 sm:pr-12 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-white text-sm sm:text-base text-gray-800 placeholder:text-gray-400 focus:border-purple-400 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-purple-100 transition-all"
                 placeholder="••••••••"
               />
               <button
                 type="button"
                 id="toggle-password"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                class="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="Mostrar/Ocultar contraseña"
               >
-                <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg id="eye-icon" class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                <svg id="eye-off-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg id="eye-off-icon" class="w-4.5 h-4.5 sm:w-5 sm:h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                 </svg>
               </button>
@@ -93,29 +95,29 @@ import Layout from '../layouts/Layout.astro';
           </div>
 
           <!-- Recordar sesión -->
-          <div class="flex items-center">
+          <div class="flex items-center gap-2 sm:gap-2.5 pt-0.5">
             <input
               type="checkbox"
               id="remember"
               name="remember"
-              class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+              class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
             />
-            <label for="remember" class="ml-2 text-sm text-gray-700">
+            <label for="remember" class="text-xs sm:text-sm text-gray-700 leading-snug">
               Recordar sesión
             </label>
           </div>
 
           <!-- Mensaje de error -->
-          <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-            <p id="error-text"></p>
+          <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm">
+            <p id="error-text" class="leading-snug"></p>
           </div>
 
           <!-- Botón de envío -->
           <button
             type="submit"
-            class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
+            class="w-full flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 text-sm sm:text-base bg-linear-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg sm:rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
             <span>Iniciar Sesión</span>
@@ -123,20 +125,20 @@ import Layout from '../layouts/Layout.astro';
         </form>
 
         <!-- Divider -->
-        <div class="my-6 flex items-center">
+        <div class="my-5 sm:my-6 flex items-center">
           <div class="flex-1 border-t border-gray-200"></div>
-          <span class="px-4 text-sm text-gray-500">o</span>
+          <span class="px-3 sm:px-4 text-xs sm:text-sm text-gray-500">o</span>
           <div class="flex-1 border-t border-gray-200"></div>
         </div>
 
         <!-- Botones de autenticación social -->
-        <div class="space-y-3">
+        <div class="space-y-2.5 sm:space-y-3">
           <button
             type="button"
             id="google-login-btn"
-            class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+            class="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-lg sm:rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
           >
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -148,9 +150,9 @@ import Layout from '../layouts/Layout.astro';
           <button
             type="button"
             id="facebook-login-btn"
-            class="w-full flex items-center justify-center gap-3 px-6 py-3 bg-[#1877F2] text-white font-semibold rounded-xl hover:bg-[#166FE5] transition-all duration-200"
+            class="w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base bg-[#1877F2] text-white font-semibold rounded-lg sm:rounded-xl hover:bg-[#166FE5] transition-all duration-200"
           >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
             <span>Continuar con Facebook</span>
@@ -158,15 +160,15 @@ import Layout from '../layouts/Layout.astro';
         </div>
 
         <!-- Divider -->
-        <div class="my-6 flex items-center">
+        <div class="my-5 sm:my-6 flex items-center">
           <div class="flex-1 border-t border-gray-200"></div>
-          <span class="px-4 text-sm text-gray-500">o</span>
+          <span class="px-3 sm:px-4 text-xs sm:text-sm text-gray-500">o</span>
           <div class="flex-1 border-t border-gray-200"></div>
         </div>
 
         <!-- Registro -->
         <div class="text-center">
-          <p class="text-sm text-gray-600">
+          <p class="text-xs sm:text-sm text-gray-600">
             ¿No tienes una cuenta?{' '}
             <a href="/signup" class="text-purple-600 hover:text-purple-700 font-semibold">
               Regístrate aquí
@@ -229,7 +231,7 @@ import Layout from '../layouts/Layout.astro';
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.innerHTML = `
-          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           <span>Iniciando sesión...</span>
@@ -248,7 +250,7 @@ import Layout from '../layouts/Layout.astro';
           if (submitButton) {
             submitButton.disabled = false;
             submitButton.innerHTML = `
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
               <span>Iniciar Sesión</span>
@@ -265,7 +267,7 @@ import Layout from '../layouts/Layout.astro';
           if (submitButton) {
             submitButton.disabled = false;
             submitButton.innerHTML = `
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
               <span>Iniciar Sesión</span>
@@ -290,7 +292,7 @@ import Layout from '../layouts/Layout.astro';
         if (submitButton) {
           submitButton.disabled = false;
           submitButton.innerHTML = `
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
             <span>Iniciar Sesión</span>
@@ -312,7 +314,7 @@ import Layout from '../layouts/Layout.astro';
       try {
         googleLoginBtn.disabled = true;
         googleLoginBtn.innerHTML = `
-          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           <span>Procesando...</span>
@@ -325,7 +327,7 @@ import Layout from '../layouts/Layout.astro';
           showError(result.error || 'Error al iniciar sesión con Google.');
           googleLoginBtn.disabled = false;
           googleLoginBtn.innerHTML = `
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -341,7 +343,7 @@ import Layout from '../layouts/Layout.astro';
           showError('Error al obtener los datos del usuario. Por favor, intenta de nuevo.');
           googleLoginBtn.disabled = false;
           googleLoginBtn.innerHTML = `
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -364,7 +366,7 @@ import Layout from '../layouts/Layout.astro';
         showError(error.message || 'Error al iniciar sesión con Google.');
         googleLoginBtn.disabled = false;
         googleLoginBtn.innerHTML = `
-          <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -381,7 +383,7 @@ import Layout from '../layouts/Layout.astro';
       try {
         facebookLoginBtn.disabled = true;
         facebookLoginBtn.innerHTML = `
-          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           <span>Procesando...</span>
@@ -394,7 +396,7 @@ import Layout from '../layouts/Layout.astro';
           showError(result.error || 'Error al iniciar sesión con Facebook.');
           facebookLoginBtn.disabled = false;
           facebookLoginBtn.innerHTML = `
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
             <span>Continuar con Facebook</span>
@@ -407,7 +409,7 @@ import Layout from '../layouts/Layout.astro';
           showError('Error al obtener los datos del usuario. Por favor, intenta de nuevo.');
           facebookLoginBtn.disabled = false;
           facebookLoginBtn.innerHTML = `
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
             <span>Continuar con Facebook</span>
@@ -427,7 +429,7 @@ import Layout from '../layouts/Layout.astro';
         showError(error.message || 'Error al iniciar sesión con Facebook.');
         facebookLoginBtn.disabled = false;
         facebookLoginBtn.innerHTML = `
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
           </svg>
           <span>Continuar con Facebook</span>
