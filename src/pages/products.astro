@@ -302,7 +302,6 @@ import './products-page.css';
 
   <script>
     import { showToast } from '../lib/ui/toast';
-    import { showConfirmDialog } from '../lib/ui/confirmDialog';
     import { hideNavigationLoader } from '../lib/ui/navigationLoader';
     import { loadCategoriesAndOptionalBrandsParallel } from '../lib/pages/products/initialCatalogLoad';
 
@@ -343,6 +342,116 @@ import './products-page.css';
       // Contadores pre-calculados
       const categoryBrandCounts = new Map<string, number>(); // categoryId -> count
       const brandProductCounts = new Map<string, number>(); // brandId -> count
+      const GUEST_FAVORITES_KEY = 'eipet_guest_favorites_v1';
+
+      function getGuestFavorites(): string[] {
+        try {
+          const raw = localStorage.getItem(GUEST_FAVORITES_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(parsed)) return [];
+          return [...new Set(parsed.map((x: any) => String(x)).filter(Boolean))];
+        } catch {
+          return [];
+        }
+      }
+
+      function setGuestFavorites(ids: string[]) {
+        try {
+          localStorage.setItem(GUEST_FAVORITES_KEY, JSON.stringify([...new Set(ids)]));
+        } catch {}
+      }
+
+      function syncFavoriteButtonsFromState() {
+        document.querySelectorAll('.favorite-btn').forEach((btn) => {
+          const productId = btn.getAttribute('data-product-id');
+          if (!productId) return;
+          updateFavoriteButton(btn, userFavorites.includes(productId));
+        });
+      }
+
+      async function getAuthenticatedUserId(): Promise<string | null> {
+        try {
+          const { getCurrentUser } = await import('../lib/auth');
+          const user = getCurrentUser();
+          if (user?.uid) return user.uid;
+        } catch {}
+        return null;
+      }
+
+      async function migrateGuestFavoritesToUser(userId: string) {
+        const guestIds = getGuestFavorites();
+        if (!guestIds.length) return;
+        try {
+          const { addToFavorites } = await import('../lib/db/favorites');
+          for (const pid of guestIds) {
+            await addToFavorites(userId, pid);
+          }
+          localStorage.removeItem(GUEST_FAVORITES_KEY);
+        } catch (error) {
+          console.warn('No se pudo migrar favoritos invitados:', error);
+        }
+      }
+
+      async function handleFavoriteToggle(productId: string, favoriteBtn: HTMLElement) {
+        const userId = await getAuthenticatedUserId();
+
+        if (!userId) {
+          const current = getGuestFavorites();
+          const isFav = current.includes(productId);
+          const next = isFav ? current.filter((id) => id !== productId) : [...current, productId];
+          setGuestFavorites(next);
+          userFavorites = next;
+          updateFavoriteButton(favoriteBtn, !isFav);
+          showNotification(
+            isFav ? 'Producto quitado de favoritos' : 'Producto agregado a favoritos',
+            isFav ? 'info' : 'success'
+          );
+          return;
+        }
+
+        await migrateGuestFavoritesToUser(userId);
+        try {
+          const { isFavorite, addToFavorites, removeFromFavorites, getUserFavorites } = await import('../lib/db/favorites');
+          const isFav = await isFavorite(userId, productId);
+          if (isFav) {
+            const result = await removeFromFavorites(userId, productId);
+            if (result.success) {
+              updateFavoriteButton(favoriteBtn, false);
+              userFavorites = userFavorites.filter((id) => id !== productId);
+              showNotification('Producto quitado de favoritos', 'info');
+            }
+          } else {
+            const result = await addToFavorites(userId, productId);
+            if (result.success) {
+              updateFavoriteButton(favoriteBtn, true);
+              if (!userFavorites.includes(productId)) userFavorites.push(productId);
+              showNotification('Producto agregado a favoritos exitosamente', 'success');
+            }
+          }
+          const refreshed = await getUserFavorites(userId);
+          if (refreshed.data?.productIds) {
+            userFavorites = refreshed.data.productIds.map((id: any) => String(id));
+          }
+        } catch (err) {
+          console.error(err);
+          const code = (err as { code?: string })?.code || '';
+          if (code === 'permission-denied' || code.endsWith('/permission-denied')) {
+            // Fallback resiliente: si reglas bloquean por sesión/documento, mantener favoritos localmente.
+            const current = getGuestFavorites();
+            const isFav = current.includes(productId);
+            const next = isFav ? current.filter((id) => id !== productId) : [...current, productId];
+            setGuestFavorites(next);
+            userFavorites = next;
+            updateFavoriteButton(favoriteBtn, !isFav);
+            showNotification(
+              isFav ? 'Producto quitado de favoritos (local)' : 'Producto agregado a favoritos (local)',
+              isFav ? 'info' : 'success'
+            );
+            return;
+          }
+          showToast('Error al gestionar favoritos. Por favor, intenta nuevamente.', 'error');
+        }
+      }
 
       /** Si el producto ya está en el carrito, iguala la cantidad del carrito al valor del input de la tarjeta. */
       function syncCardQuantityToCartIfInCart(productId: string) {
@@ -919,44 +1028,7 @@ import './products-page.css';
                 e.stopPropagation();
                 const productId = favoriteBtn.getAttribute('data-product-id');
                 if (!productId) return;
-                let userId: string | null = localStorage.getItem('userId');
-                if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
-                  userId = (window as any).currentUserId;
-                }
-                if (!userId) {
-                  const go = await showConfirmDialog({
-                    title: 'Iniciar sesión',
-                    message: 'Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?',
-                    confirmLabel: 'Ir al login',
-                    cancelLabel: 'Cancelar',
-                    confirmVariant: 'primary',
-                  });
-                  if (go) {
-                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-                  }
-                  return;
-                }
-                try {
-                  const { isFavorite, addToFavorites, removeFromFavorites } = await import('../lib/db/favorites');
-                  const isFav = await isFavorite(userId, productId);
-                  if (isFav) {
-                    const result = await removeFromFavorites(userId, productId);
-                    if (result.success) {
-                      updateFavoriteButton(favoriteBtn, false);
-                      userFavorites = userFavorites.filter((id) => id !== productId);
-                      showNotification('Producto quitado de favoritos', 'info');
-                    }
-                  } else {
-                    const result = await addToFavorites(userId, productId);
-                    if (result.success) {
-                      updateFavoriteButton(favoriteBtn, true);
-                      if (!userFavorites.includes(productId)) userFavorites.push(productId);
-                      showNotification('Producto agregado a favoritos exitosamente', 'success');
-                    }
-                  }
-                } catch (err) {
-                  console.error(err);
-                }
+                await handleFavoriteToggle(productId, favoriteBtn);
                 return;
               }
 
@@ -1874,32 +1946,26 @@ import './products-page.css';
       // Cargar favoritos del usuario
       async function loadUserFavorites() {
         try {
-          let userId: string | null = localStorage.getItem('userId');
-          if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
-            userId = (window as any).currentUserId;
-          }
+          const userId = await getAuthenticatedUserId();
 
           if (!userId) {
-            userFavorites = [];
+            userFavorites = getGuestFavorites();
+            syncFavoriteButtonsFromState();
             return;
           }
 
+          await migrateGuestFavoritesToUser(userId);
           const { getUserFavorites } = await import('../lib/db/favorites');
           const favoritesResult = await getUserFavorites(userId);
           
           if (favoritesResult.data && favoritesResult.data.productIds) {
-            userFavorites = favoritesResult.data.productIds;
-            // Actualizar estado visual de todos los botones de favoritos
-            document.querySelectorAll('.favorite-btn').forEach(btn => {
-              const productId = btn.getAttribute('data-product-id');
-              if (productId && userFavorites.includes(productId)) {
-                updateFavoriteButton(btn, true);
-              }
-            });
+            userFavorites = favoritesResult.data.productIds.map((id: any) => String(id));
+            syncFavoriteButtonsFromState();
           }
         } catch (error) {
           console.warn('Error al cargar favoritos:', error);
-          userFavorites = [];
+          userFavorites = getGuestFavorites();
+          syncFavoriteButtonsFromState();
         }
       }
 
@@ -1932,8 +1998,15 @@ import './products-page.css';
         grid.classList.remove('list-view');
         if (emptyState) emptyState.classList.add('hidden');
 
+        // Favoritos siempre primero, manteniendo el orden relativo del resto.
+        const prioritizedProducts = products.slice().sort((a, b) => {
+          const aFav = userFavorites.includes(String(a.id)) ? 1 : 0;
+          const bFav = userFavorites.includes(String(b.id)) ? 1 : 0;
+          return bFav - aFav;
+        });
+
         // Renderizar productos
-        grid.innerHTML = products.map(product => renderProduct(product)).join('');
+        grid.innerHTML = prioritizedProducts.map(product => renderProduct(product)).join('');
 
         // Actualizar estado visual de botones de favoritos después de renderizar
         document.querySelectorAll('.favorite-btn').forEach(btn => {
@@ -1967,64 +2040,7 @@ import './products-page.css';
 
             console.log('Botón de favoritos clickeado, productId:', productId);
 
-            // Obtener userId
-            let userId: string | null = localStorage.getItem('userId');
-            if (!userId && typeof window !== 'undefined' && (window as any).currentUserId) {
-              userId = (window as any).currentUserId;
-            }
-
-            if (!userId) {
-              const go = await showConfirmDialog({
-                title: 'Iniciar sesión',
-                message: 'Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?',
-                confirmLabel: 'Ir al login',
-                cancelLabel: 'Cancelar',
-                confirmVariant: 'primary',
-              });
-              if (go) {
-                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
-              }
-              return;
-            }
-
-            try {
-              console.log('Gestionando favorito, userId:', userId, 'productId:', productId);
-              const { isFavorite, addToFavorites, removeFromFavorites } = await import('../lib/db/favorites');
-              const isFav = await isFavorite(userId, productId);
-              
-              console.log('¿Está en favoritos?', isFav);
-              
-              if (isFav) {
-                // Quitar de favoritos
-                const result = await removeFromFavorites(userId, productId);
-                if (result.success) {
-                  updateFavoriteButton(favoriteBtn, false);
-                  userFavorites = userFavorites.filter(id => id !== productId);
-                  console.log('Producto quitado de favoritos');
-                  showNotification('Producto quitado de favoritos', 'info');
-                } else {
-                  console.error('Error al quitar de favoritos:', result.error);
-                  showNotification('Error al quitar de favoritos', 'info');
-                }
-              } else {
-                // Agregar a favoritos
-                const result = await addToFavorites(userId, productId);
-                if (result.success) {
-                  updateFavoriteButton(favoriteBtn, true);
-                  if (!userFavorites.includes(productId)) {
-                    userFavorites.push(productId);
-                  }
-                  console.log('Producto agregado a favoritos');
-                  showNotification('Producto agregado a favoritos exitosamente', 'success');
-                } else {
-                  console.error('Error al agregar a favoritos:', result.error);
-                  showNotification('Error al agregar a favoritos', 'info');
-                }
-              }
-            } catch (error) {
-              console.error('Error al gestionar favoritos:', error);
-              showToast('Error al gestionar favoritos. Por favor, intenta nuevamente.', 'error');
-            }
+            await handleFavoriteToggle(productId, favoriteBtn);
           }, true); // Usar capture phase para capturar antes que otros listeners
         }
 

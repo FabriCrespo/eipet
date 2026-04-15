@@ -186,13 +186,11 @@ service cloud.firestore {
       // Solo el dueño o admin puede leer
       allow read: if isOwner(userId) || isAdmin();
       
-      // Solo el dueño puede crear/actualizar (solo para sí mismo)
-      allow create, update: if isAuthenticated() && 
-                               userExists() && 
-                               request.auth.uid == userId;
+      // Solo el dueño puede crear/actualizar (evita bloqueo si aún no existe /users/{uid})
+      allow create, update: if isAuthenticated() && request.auth.uid == userId;
       
-      // Solo admin puede eliminar
-      allow delete: if isAdmin();
+      // El dueño o admin puede eliminar
+      allow delete: if isOwner(userId) || isAdmin();
     }
     
     // ============================================================================
