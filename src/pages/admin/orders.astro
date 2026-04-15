@@ -46,6 +46,18 @@ const availableStatuses = [
       opacity: 0;
     }
   }
+
+  /* Evitar que Leaflet quede por encima de overlays/modales del panel admin */
+  :global(.order-shipping-map.leaflet-container) {
+    position: relative;
+    z-index: 1;
+  }
+
+  :global(.order-shipping-map .leaflet-pane),
+  :global(.order-shipping-map .leaflet-top),
+  :global(.order-shipping-map .leaflet-bottom) {
+    z-index: 1;
+  }
 </style>
 
 <Layout title="Administración de Pedidos - Eipet">
@@ -114,6 +126,18 @@ const availableStatuses = [
               {availableStatuses.map((status) => (
                 <option value={status.value}>{status.label}</option>
               ))}
+            </select>
+          </div>
+
+          <!-- Filtro por tipo de entrega -->
+          <div class="relative">
+            <select
+              id="delivery-filter"
+              class="px-4 py-2.5 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-2 focus:ring-[#5d3fbb]/20 transition-all min-w-[180px]"
+            >
+              <option value="all">Envío y recojo</option>
+              <option value="envio">Solo envío</option>
+              <option value="recoger">Solo recojo</option>
             </select>
           </div>
         </div>
@@ -257,6 +281,7 @@ const availableStatuses = [
       const noResultsMessage = document.getElementById('no-results-message');
       const searchInput = document.getElementById('search-input') as HTMLInputElement;
       const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
+      const deliveryFilter = document.getElementById('delivery-filter') as HTMLSelectElement;
       const statTotal = document.getElementById('stat-total');
       const statPending = document.getElementById('stat-pending');
       const statProcessing = document.getElementById('stat-processing');
@@ -306,6 +331,12 @@ const availableStatuses = [
           const processedOrders = allOrders.map((order: any) => {
             const user = userMap.get(order.userId);
             const statusInfo = statusMap[order.status] || statusMap.pending;
+            const isPickup =
+              order.pickupInStore === true || order.shippingAddress?.pickupInStore === true;
+            const resolvedDeliverySchedule =
+              order.deliveryScheduledAt ||
+              order.shippingAddress?.deliveryScheduledAt ||
+              new Date();
             
             // Asegurarse de que el ID esté presente
             if (!order.id) {
@@ -317,6 +348,7 @@ const availableStatuses = [
               id: order.id, // Asegurar que el ID esté presente
               user,
               statusInfo,
+              deliveryType: isPickup ? 'recoger' : 'envio',
               createdAtFormatted: formatDate(order.createdAt),
               isGuest: order.isGuest || order.userId?.startsWith('guest_'),
               customerName: order.isGuest 
@@ -325,6 +357,7 @@ const availableStatuses = [
               customerEmail: order.isGuest 
                 ? (order.guestEmail || 'N/A')
                 : (user?.email || 'N/A'),
+              deliveryScheduledAtFormatted: formatDate(resolvedDeliverySchedule),
             };
           });
 
@@ -443,6 +476,8 @@ const availableStatuses = [
                   </div>
                   <div class="text-sm text-gray-600 space-y-1">
                       <p><span class="font-medium">Fecha:</span> ${order.createdAtFormatted}</p>
+                      <p><span class="font-medium">Entrega solicitada:</span> ${order.deliveryScheduledAtFormatted}</p>
+                      <p><span class="font-medium">Tipo:</span> ${order.deliveryType === 'recoger' ? 'Recojo en tienda' : 'Envío a domicilio'}</p>
                       <p><span class="font-medium">Cliente:</span> ${order.customerName}</p>
                       <p><span class="font-medium">Email:</span> ${order.customerEmail}</p>
                       ${order.isGuest ? '<span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">Cliente invitado</span>' : ''}
@@ -661,6 +696,7 @@ const availableStatuses = [
 
       const searchTerm = searchInput.value.toLowerCase();
       const statusFilterValue = statusFilter.value;
+      const deliveryFilterValue = deliveryFilter?.value || 'all';
 
         const filtered = allOrders.filter((order: any) => {
         const matchesSearch = !searchTerm || 
@@ -669,8 +705,10 @@ const availableStatuses = [
             order.customerEmail.toLowerCase().includes(searchTerm);
 
           const matchesStatus = statusFilterValue === 'all' || order.status === statusFilterValue;
+          const matchesDelivery =
+            deliveryFilterValue === 'all' || (order.deliveryType || 'envio') === deliveryFilterValue;
 
-          return matchesSearch && matchesStatus;
+          return matchesSearch && matchesStatus && matchesDelivery;
         });
 
         renderOrders(filtered);
@@ -678,6 +716,7 @@ const availableStatuses = [
 
     searchInput.addEventListener('input', filterOrders);
     statusFilter.addEventListener('change', filterOrders);
+    deliveryFilter?.addEventListener('change', filterOrders);
 
       // Variables para modal de rechazo
       let currentRejectReturnId = '';

@@ -263,6 +263,18 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                     placeholder="Ej: Llamar antes de llegar, dejar en recepción, etc."
                   ></textarea>
                 </div>
+
+                <div>
+                  <label for="desktop-delivery-datetime" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Fecha y hora de envío (Opcional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="desktop-delivery-datetime"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30"
+                  />
+                  <p class="text-xs text-gray-500 mt-1">Si no eliges una, usaremos la fecha y hora actuales.</p>
+                </div>
               </form>
               </div>
 
@@ -335,9 +347,12 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   </svg>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-900">Instrucciones para recoger</p>
-                    <p id="desktop-pickup-instructions-note" class="text-xs text-gray-600 mt-1 leading-relaxed">
-                      Por favor asegúrate de que el pedido esté completo al recibirlo; el número de ticket te lo indicamos al confirmar la compra.
-                    </p>
+                    <textarea
+                      id="desktop-pickup-instructions-input"
+                      rows="3"
+                      class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30 resize-none"
+                      placeholder="Ej: Recojo yo personalmente, tocar timbre al llegar, esperar 10 min, etc."
+                    ></textarea>
                   </div>
                 </div>
 
@@ -816,6 +831,21 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs resize-none"
                   placeholder="Instrucciones de entrega"
                 ></textarea>
+                <div class="grid grid-cols-2 gap-2">
+                  <input
+                    id="mobile-delivery-date"
+                    type="date"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                    aria-label="Fecha de envío"
+                  />
+                  <input
+                    id="mobile-delivery-time"
+                    type="time"
+                    step="300"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs"
+                    aria-label="Hora de envío"
+                  />
+                </div>
               </div>
               <div class="pt-1">
                 <button
@@ -924,9 +954,12 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 </svg>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold text-gray-900">Instrucciones para recoger</p>
-                  <p id="mobile-pickup-instructions-note" class="text-xs text-gray-600 mt-1 leading-relaxed">
-                    Por favor asegúrate de que el pedido esté completo al recibirlo; el número de ticket te lo indicamos al confirmar la compra.
-                  </p>
+                  <textarea
+                    id="mobile-pickup-instructions-input"
+                    rows="3"
+                    class="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-700 focus:border-[#5d3fbb] focus:outline-none focus:ring-1 focus:ring-[#5d3fbb]/30 resize-none"
+                    placeholder="Ej: Recojo yo personalmente, tocar timbre al llegar, esperar 10 min, etc."
+                  ></textarea>
                 </div>
               </div>
 
@@ -1464,6 +1497,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mobileCityInput = document.getElementById('mobile-city') as HTMLInputElement | null;
       const mobileDistrictInput = document.getElementById('mobile-district') as HTMLInputElement | null;
       const mobileInstructionsInput = document.getElementById('mobile-instructions-input') as HTMLTextAreaElement | null;
+      const mobileDeliveryDateInput = document.getElementById('mobile-delivery-date') as HTMLInputElement | null;
+      const mobileDeliveryTimeInput = document.getElementById('mobile-delivery-time') as HTMLInputElement | null;
       const mobileBillingNameInput = document.getElementById('mobile-billing-name-input') as HTMLInputElement | null;
       const mobileBillingNitInput = document.getElementById('mobile-billing-nit-input') as HTMLInputElement | null;
       const billingNameInput = document.getElementById('billingName') as HTMLInputElement | null;
@@ -1476,6 +1511,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       const mobileRecogerPhone = document.getElementById('mobile-recoger-phone') as HTMLInputElement | null;
       const mobilePickupDate = document.getElementById('mobile-pickup-date') as HTMLInputElement | null;
       const mobilePickupTime = document.getElementById('mobile-pickup-time') as HTMLInputElement | null;
+      const mobilePickupInstructionsInput = document.getElementById('mobile-pickup-instructions-input') as HTMLTextAreaElement | null;
 
       /** Valor combinado para recogida en tienda (móvil): mismo significado que un datetime-local. */
       function getMobilePickupScheduleValue(): string {
@@ -1485,15 +1521,91 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         return `${d}T${t}`;
       }
 
+      function getPickupInstructionsText(): string {
+        const mobileText = (mobilePickupInstructionsInput?.value || '').trim();
+        const desktopText = (desktopPickupInstructionsInput?.value || '').trim();
+        return mobileText || desktopText;
+      }
+
+      function syncPickupInstructionsInputs(source: 'desktop' | 'mobile') {
+        if (source === 'desktop' && mobilePickupInstructionsInput) {
+          mobilePickupInstructionsInput.value = desktopPickupInstructionsInput?.value || '';
+          return;
+        }
+        if (source === 'mobile' && desktopPickupInstructionsInput) {
+          desktopPickupInstructionsInput.value = mobilePickupInstructionsInput?.value || '';
+        }
+      }
+
       function syncMobilePickupMinDate() {
         if (!mobilePickupDate) return;
         try {
           mobilePickupDate.min = new Date().toISOString().slice(0, 10);
         } catch (_) {}
       }
+
+      function nowLocalDateTimeValue(): string {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${d}T${hh}:${mm}`;
+      }
+
+      function getDesktopDeliveryScheduleValue(): string {
+        return (desktopDeliveryDatetimeInput?.value || '').trim();
+      }
+
+      function getMobileDeliveryScheduleValue(): string {
+        const d = mobileDeliveryDateInput?.value?.trim() ?? '';
+        const t = mobileDeliveryTimeInput?.value?.trim() ?? '';
+        if (!d || !t) return '';
+        return `${d}T${t}`;
+      }
+
+      function getResolvedDeliveryScheduleValue(): string {
+        return getMobileDeliveryScheduleValue() || getDesktopDeliveryScheduleValue() || nowLocalDateTimeValue();
+      }
+
+      function syncDeliveryScheduleInputs(source: 'desktop' | 'mobile') {
+        if (source === 'desktop') {
+          const value = getDesktopDeliveryScheduleValue();
+          if (!value || !mobileDeliveryDateInput || !mobileDeliveryTimeInput) return;
+          const [d, t] = value.split('T');
+          if (d) mobileDeliveryDateInput.value = d;
+          if (t) mobileDeliveryTimeInput.value = t.slice(0, 5);
+          return;
+        }
+        const value = getMobileDeliveryScheduleValue();
+        if (!value || !desktopDeliveryDatetimeInput) return;
+        desktopDeliveryDatetimeInput.value = value;
+      }
+
+      function syncMobileDeliveryMinDate() {
+        if (!mobileDeliveryDateInput) return;
+        try {
+          mobileDeliveryDateInput.min = new Date().toISOString().slice(0, 10);
+        } catch (_) {}
+      }
+
+      function setDefaultDeliveryScheduleIfEmpty() {
+        const nowLocal = nowLocalDateTimeValue();
+        if (desktopDeliveryDatetimeInput && !desktopDeliveryDatetimeInput.value) {
+          desktopDeliveryDatetimeInput.value = nowLocal;
+        }
+        if (mobileDeliveryDateInput && mobileDeliveryTimeInput) {
+          const [datePart, timePart] = nowLocal.split('T');
+          if (!mobileDeliveryDateInput.value) mobileDeliveryDateInput.value = datePart;
+          if (!mobileDeliveryTimeInput.value) mobileDeliveryTimeInput.value = timePart;
+        }
+      }
       const desktopRecogerFullName = document.getElementById('desktop-recoger-fullName') as HTMLInputElement | null;
       const desktopRecogerPhone = document.getElementById('desktop-recoger-phone') as HTMLInputElement | null;
       const desktopPickupDatetime = document.getElementById('desktop-pickup-datetime') as HTMLInputElement | null;
+      const desktopPickupInstructionsInput = document.getElementById('desktop-pickup-instructions-input') as HTMLTextAreaElement | null;
+      const desktopDeliveryDatetimeInput = document.getElementById('desktop-delivery-datetime') as HTMLInputElement | null;
       const desktopShippingEnvioFlow = document.getElementById('desktop-shipping-envio-flow');
       const desktopShippingRecogerFlow = document.getElementById('desktop-shipping-recoger-flow');
       const desktopTabEnvioBtn = document.getElementById('desktop-tab-envio');
@@ -3359,6 +3471,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
 
         applyCheckoutDeliveryModeUI();
         syncMobilePickupMinDate();
+        syncMobileDeliveryMinDate();
+        setDefaultDeliveryScheduleIfEmpty();
       }
 
       /** Móvil: paso 1 → paso 2 (pago y datos). Solo con carrito visible y viewport menor a lg. */
@@ -3607,6 +3721,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const now = Timestamp.now();
             if (deliveryType === 'recoger') {
               const dt = getMobilePickupScheduleValue();
+              const pickupInstructions = getPickupInstructionsText();
               shippingAddress = {
                 id: `pickup-${Date.now()}`,
                 name: 'Recogida en tienda Eipet',
@@ -3615,7 +3730,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 address: 'Recogida en tienda Eipet',
                 city: 'Santa Cruz',
                 district: '—',
-                instructions: `Recogida en tienda. Fecha/hora indicada: ${dt}.`,
+                instructions: pickupInstructions
+                  ? `Recogida en tienda. Fecha/hora indicada: ${dt}. Instrucciones: ${pickupInstructions}`
+                  : `Recogida en tienda. Fecha/hora indicada: ${dt}.`,
                 isDefault: false,
                 latitude: STORE_EIPET_LAT_LNG[0],
                 longitude: STORE_EIPET_LAT_LNG[1],
@@ -3629,6 +3746,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               const lngVal = addressLngInput?.value || '';
               const latitude = latVal ? parseFloat(latVal) : null;
               const longitude = lngVal ? parseFloat(lngVal) : null;
+              const deliveryScheduledAt = getResolvedDeliveryScheduleValue();
 
               shippingAddress = {
                 id: selectedAddressId || `temp-${Date.now()}`,
@@ -3642,6 +3760,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 isDefault: false,
                 latitude,
                 longitude,
+                deliveryScheduledAt,
                 createdAt: now,
                 updatedAt: now,
               };
@@ -3651,6 +3770,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const { Timestamp } = await import('firebase/firestore');
             const now = Timestamp.now();
             const dt = (desktopPickupDatetime?.value || '').trim();
+            const pickupInstructions = getPickupInstructionsText();
             shippingAddress = {
               id: `pickup-${Date.now()}`,
               name: 'Recogida en tienda Eipet',
@@ -3659,7 +3779,9 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               address: 'Recogida en tienda Eipet',
               city: 'Santa Cruz',
               district: '—',
-              instructions: `Recogida en tienda. Fecha/hora indicada: ${dt}.`,
+              instructions: pickupInstructions
+                ? `Recogida en tienda. Fecha/hora indicada: ${dt}. Instrucciones: ${pickupInstructions}`
+                : `Recogida en tienda. Fecha/hora indicada: ${dt}.`,
               isDefault: false,
               latitude: STORE_EIPET_LAT_LNG[0],
               longitude: STORE_EIPET_LAT_LNG[1],
@@ -3671,6 +3793,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
           } else if (!useManualAddress && selectedAddressId) {
             const address = userAddresses.find((a: any) => a.id === selectedAddressId);
             if (address) {
+              const deliveryScheduledAt = getResolvedDeliveryScheduleValue();
               shippingAddress = {
                 id: address.id,
                 name: address.name,
@@ -3682,7 +3805,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 instructions: address.instructions || '',
                 isDefault: address.isDefault,
                 latitude: address.latitude,
-                longitude: address.longitude
+                longitude: address.longitude,
+                deliveryScheduledAt,
               };
             } else {
               useManualAddress = true;
@@ -3697,6 +3821,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
             const lngVal = (formData.get('longitude') as string) || '';
             const latitude = latVal ? parseFloat(latVal) : null;
             const longitude = lngVal ? parseFloat(lngVal) : null;
+            const deliveryScheduledAt = getResolvedDeliveryScheduleValue();
 
             console.log('📍 [CHECKOUT] Datos de ubicación antes de crear dirección:', {
               latVal,
@@ -3717,6 +3842,7 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
               isDefault: false,
               latitude,
               longitude,
+              deliveryScheduledAt,
               createdAt: now,
               updatedAt: now
             };
@@ -3800,6 +3926,10 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
                 ? isMobileView()
                   ? getMobilePickupScheduleValue()
                   : (desktopPickupDatetime?.value || '').trim()
+                : null,
+            deliveryScheduledAt:
+              deliveryType === 'envio'
+                ? (shippingAddress?.deliveryScheduledAt || getResolvedDeliveryScheduleValue())
                 : null,
           };
           
@@ -4053,6 +4183,22 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
         });
       }
 
+      desktopPickupInstructionsInput?.addEventListener('input', () => {
+        syncPickupInstructionsInputs('desktop');
+      });
+      mobilePickupInstructionsInput?.addEventListener('input', () => {
+        syncPickupInstructionsInputs('mobile');
+      });
+      desktopDeliveryDatetimeInput?.addEventListener('input', () => {
+        syncDeliveryScheduleInputs('desktop');
+      });
+      mobileDeliveryDateInput?.addEventListener('input', () => {
+        syncDeliveryScheduleInputs('mobile');
+      });
+      mobileDeliveryTimeInput?.addEventListener('input', () => {
+        syncDeliveryScheduleInputs('mobile');
+      });
+
       setupPickupPanelToggle('mobile-pickup-map-toggle', 'mobile-pickup-map-wrap', initPickupMapMobile);
       setupPickupPanelToggle('mobile-pickup-schedule-toggle', 'mobile-pickup-schedule-wrap');
       setupPickupPanelToggle('desktop-pickup-map-toggle', 'desktop-pickup-map-wrap', initPickupMapDesktop);
@@ -4263,6 +4409,8 @@ import OrderConfirmationModal from '../components/OrderConfirmationModal.astro';
       // Inicializar
       syncMobilePaymentSummary(currentPaymentMethod);
       await loadCheckout();
+      syncMobileDeliveryMinDate();
+      setDefaultDeliveryScheduleIfEmpty();
       applyCheckoutDeliveryModeUI();
     })();
   </script>
