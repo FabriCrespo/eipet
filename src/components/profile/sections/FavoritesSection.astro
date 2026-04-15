@@ -146,7 +146,10 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
   </div>
 
   <script>
-    (function() {
+    import { showToast } from '../../../lib/ui/toast';
+    import { showConfirmDialog } from '../../../lib/ui/confirmDialog';
+
+    (function () {
       // Configuración
       const PRODUCTS_PER_PAGE = 8;
       let allProducts: any[] = [];
@@ -579,14 +582,20 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
 
       // Asignar event listeners
       function attachEventListeners() {
-        document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.remove-favorite-btn').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
             const target = e.currentTarget;
             if (target && target instanceof HTMLButtonElement) {
               const productId = target.getAttribute('data-product-id');
-              if (productId && confirm('¿Estás seguro de quitar este producto de favoritos?')) {
-                removeFromFavorites(productId);
-              }
+              if (!productId) return;
+              const ok = await showConfirmDialog({
+                title: 'Quitar de favoritos',
+                message: '¿Quitar este producto de favoritos?',
+                confirmLabel: 'Quitar',
+                cancelLabel: 'Cancelar',
+                confirmVariant: 'danger',
+              });
+              if (ok) removeFromFavorites(productId);
             }
           });
         });
@@ -632,7 +641,7 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
                 }, 2000);
               }
             } else {
-              alert('Función de carrito no disponible. Por favor, recarga la página.');
+              showToast('Función de carrito no disponible. Recarga la página.', 'warning');
             }
           });
         });
@@ -654,7 +663,7 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
           }
           
           if (!userId) {
-            alert('Usuario no autenticado');
+            showToast('Usuario no autenticado', 'warning');
             return;
           }
 
@@ -685,7 +694,7 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
           setTimeout(() => notification.remove(), 2000);
         } catch (error: any) {
           console.error('Error al quitar de favoritos:', error);
-          alert('Error al quitar de favoritos: ' + (error.message || 'Error desconocido'));
+          showToast('Error al quitar de favoritos: ' + (error.message || 'Error desconocido'), 'error');
         }
       }
 

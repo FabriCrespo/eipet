@@ -128,6 +128,8 @@ import MarcaModal from "../../components/MarcaModal.astro";
   </div>
 
   <script>
+    import { showToast } from "../../lib/ui/toast";
+
     (function () {
       // Esperar a que el DOM esté completamente listo
       async function init() {
@@ -449,8 +451,9 @@ import MarcaModal from "../../components/MarcaModal.astro";
             document.dispatchEvent(new CustomEvent("brandFormSaved"));
           } catch (error) {
             console.error("Error guardando marca:", error);
-            alert(
+            showToast(
               `Error al guardar marca: ${error instanceof Error ? error.message : "Error desconocido"}`,
+              "error",
             );
 
             // Emitir evento de error para resetear estado de carga en el modal

@@ -270,8 +270,9 @@ const addresses: any[] = [];
 
 <script>
   import { showToast } from '../../../lib/ui/toast';
+  import { showConfirmDialog } from '../../../lib/ui/confirmDialog';
 
-  (async function() {
+  (async function () {
     // Variables globales
     let addresses: any[] = [];
     let editingAddressId: string | null = null;
@@ -628,10 +629,14 @@ const addresses: any[] = [];
           }
         });
       } else {
-        // Fallback a confirm si el modal no está disponible
-        if (confirm(`¿Estás seguro de que deseas eliminar "${addressName}"?`)) {
-          await performDelete(addressId);
-        }
+        const ok = await showConfirmDialog({
+          title: 'Eliminar dirección',
+          message: `¿Eliminar "${addressName}"? Esta acción no se puede deshacer.`,
+          confirmLabel: 'Eliminar',
+          cancelLabel: 'Cancelar',
+          confirmVariant: 'danger',
+        });
+        if (ok) await performDelete(addressId);
       }
     }
 

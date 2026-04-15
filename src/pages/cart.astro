@@ -116,6 +116,7 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { showToast } from '../lib/ui/toast';
+  import { showConfirmDialog } from '../lib/ui/confirmDialog';
 
   /** Mismos valores que `checkout.astro` (envío sin ubicación en mapa). */
   const PAID_SHIPPING_FALLBACK_BS = 15;
@@ -377,7 +378,7 @@ import Layout from '../layouts/Layout.astro';
         e.stopPropagation();
         const productId = btn.getAttribute('data-product-id');
         if (productId) {
-          removeFromCart(productId);
+          void removeFromCart(productId);
         }
       });
     });
@@ -391,7 +392,7 @@ import Layout from '../layouts/Layout.astro';
     const newQuantity = item.quantity + change;
 
     if (newQuantity <= 0) {
-      removeFromCart(productId);
+      void removeFromCart(productId);
       return;
     }
 
@@ -407,12 +408,19 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // Eliminar item del carrito
-  function removeFromCart(productId: string) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
-      cartState.items = cartState.items.filter(item => item.productId !== productId);
-      saveCartToStorage();
-      renderCart();
-    }
+  async function removeFromCart(productId: string) {
+    const ok = await showConfirmDialog({
+      title: 'Quitar producto',
+      message: '¿Eliminar este producto del carrito?',
+      confirmLabel: 'Eliminar',
+      cancelLabel: 'Cancelar',
+      confirmVariant: 'danger',
+    });
+    if (!ok) return;
+    cartState.items = cartState.items.filter((item) => item.productId !== productId);
+    saveCartToStorage();
+    renderCart();
+    showToast('Producto quitado del carrito', 'success');
   }
 
   function formatBs(n: number): string {

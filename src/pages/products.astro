@@ -302,6 +302,7 @@ import './products-page.css';
 
   <script>
     import { showToast } from '../lib/ui/toast';
+    import { showConfirmDialog } from '../lib/ui/confirmDialog';
 
     // Ocultar loader de navegación inmediatamente si existe (previene doble loader)
     (function() {
@@ -928,7 +929,14 @@ import './products-page.css';
                   userId = (window as any).currentUserId;
                 }
                 if (!userId) {
-                  if (confirm('Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?')) {
+                  const go = await showConfirmDialog({
+                    title: 'Iniciar sesión',
+                    message: 'Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?',
+                    confirmLabel: 'Ir al login',
+                    cancelLabel: 'Cancelar',
+                    confirmVariant: 'primary',
+                  });
+                  if (go) {
                     window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
                   }
                   return;
@@ -1960,8 +1968,14 @@ import './products-page.css';
             }
 
             if (!userId) {
-              // Redirigir al login si no está autenticado
-              if (confirm('Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?')) {
+              const go = await showConfirmDialog({
+                title: 'Iniciar sesión',
+                message: 'Debes iniciar sesión para agregar productos a favoritos. ¿Deseas ir al login?',
+                confirmLabel: 'Ir al login',
+                cancelLabel: 'Cancelar',
+                confirmVariant: 'primary',
+              });
+              if (go) {
                 window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
               }
               return;

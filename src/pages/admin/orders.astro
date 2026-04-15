@@ -194,6 +194,9 @@ const availableStatuses = [
   </div>
 
   <script>
+    import { showToast } from '../../lib/ui/toast';
+    import { showConfirmDialog } from '../../lib/ui/confirmDialog';
+
     (async function() {
       // Mapear estados a español
       const statusMap: Record<string, { label: string; color: string; icon: string }> = {
@@ -728,12 +731,12 @@ const availableStatuses = [
           submitBtn.addEventListener('click', async () => {
             const reason = reasonTextarea?.value.trim();
             if (!reason) {
-              alert('Por favor, ingresa una razón para el rechazo');
+              showToast('Por favor, ingresa una razón para el rechazo', 'warning');
               return;
             }
 
             if (!currentRejectReturnId) {
-              alert('Error: No se encontró el ID de la devolución');
+              showToast('Error: No se encontró el ID de la devolución', 'error');
               return;
             }
 
@@ -781,7 +784,7 @@ const availableStatuses = [
 
             } catch (error: any) {
               console.error('Error rechazando devolución:', error);
-              alert(error.message || 'Error al rechazar la devolución');
+              showToast(error.message || 'Error al rechazar la devolución', 'error');
               
               btn.disabled = false;
               btn.textContent = 'Rechazar Devolución';
@@ -820,11 +823,18 @@ const availableStatuses = [
             
             const returnId = approveBtn.getAttribute('data-return-id');
             if (!returnId) {
-              alert('Error: No se encontró el ID de la devolución');
+              showToast('Error: No se encontró el ID de la devolución', 'error');
               return;
             }
 
-            if (!confirm('¿Estás seguro de que deseas aprobar esta devolución?')) {
+            const approved = await showConfirmDialog({
+              title: 'Aprobar devolución',
+              message: '¿Estás seguro de que deseas aprobar esta devolución?',
+              confirmLabel: 'Aprobar',
+              cancelLabel: 'Cancelar',
+              confirmVariant: 'primary',
+            });
+            if (!approved) {
               return;
             }
 
@@ -863,7 +873,7 @@ const availableStatuses = [
 
             } catch (error: any) {
               console.error('Error aprobando devolución:', error);
-              alert(error.message || 'Error al aprobar la devolución');
+              showToast(error.message || 'Error al aprobar la devolución', 'error');
               
               approveBtn.disabled = false;
               approveBtn.textContent = 'Aprobar';

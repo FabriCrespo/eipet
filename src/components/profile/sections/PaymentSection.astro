@@ -230,7 +230,9 @@ const title = 'Métodos de Pago';
 <ConfirmModal id="delete-payment-modal" />
 
 <script>
-  (async function() {
+  import { showToast } from '../../../lib/ui/toast';
+
+  (async function () {
     const modalId = 'payment-modal';
     const confirmModalId = 'delete-payment-modal';
     
@@ -496,7 +498,7 @@ const title = 'Métodos de Pago';
     // Establecer como predeterminada
     async function setDefault(id: string) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('Inicia sesión para continuar', 'warning');
         return;
       }
 
@@ -514,12 +516,12 @@ const title = 'Métodos de Pago';
         if (!result.success) {
           // Revertir optimistic update
           await loadPaymentMethods();
-          alert('Error al establecer método predeterminado: ' + (result.error?.message || 'Error desconocido'));
+          showToast('Error al establecer método predeterminado: ' + (result.error?.message || 'Error desconocido'), 'error');
         }
       } catch (error: any) {
         console.error('Error estableciendo método predeterminado:', error);
         await loadPaymentMethods();
-        alert('Error al establecer método predeterminado: ' + (error.message || 'Error desconocido'));
+        showToast('Error al establecer método predeterminado: ' + (error.message || 'Error desconocido'), 'error');
       }
     }
 
@@ -549,7 +551,7 @@ const title = 'Métodos de Pago';
     // Eliminar método
     async function deleteMethod(id: string) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('Inicia sesión para continuar', 'warning');
         return;
       }
 
@@ -565,13 +567,13 @@ const title = 'Métodos de Pago';
         if (!result.success) {
           // Revertir optimistic update
           await loadPaymentMethods();
-          alert('Error al eliminar método de pago: ' + (result.error?.message || 'Error desconocido'));
+          showToast('Error al eliminar método de pago: ' + (result.error?.message || 'Error desconocido'), 'error');
         }
       } catch (error: any) {
         console.error('Error eliminando método de pago:', error);
         // Revertir optimistic update
         await loadPaymentMethods();
-        alert('Error al eliminar método de pago: ' + (error.message || 'Error desconocido'));
+        showToast('Error al eliminar método de pago: ' + (error.message || 'Error desconocido'), 'error');
       }
     }
 
@@ -624,7 +626,7 @@ const title = 'Métodos de Pago';
     // Guardar método
     async function saveMethod(methodData: any) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('Inicia sesión para continuar', 'warning');
         return;
       }
 
@@ -680,7 +682,7 @@ const title = 'Métodos de Pago';
           if (!result.success) {
             // Revertir optimistic update
             await loadPaymentMethods();
-            alert('Error al actualizar método de pago: ' + (result.error?.message || 'Error desconocido'));
+            showToast('Error al actualizar método de pago: ' + (result.error?.message || 'Error desconocido'), 'error');
             return;
           }
         } else {
@@ -688,7 +690,7 @@ const title = 'Métodos de Pago';
           if (!result.success) {
             // Revertir optimistic update
             await loadPaymentMethods();
-            alert('Error al guardar método de pago: ' + (result.error?.message || 'Error desconocido'));
+            showToast('Error al guardar método de pago: ' + (result.error?.message || 'Error desconocido'), 'error');
             return;
           }
         }
@@ -699,7 +701,7 @@ const title = 'Métodos de Pago';
         console.error('Error guardando método de pago:', error);
         // Revertir optimistic update
         await loadPaymentMethods();
-        alert('Error al guardar método de pago: ' + (error.message || 'Error desconocido'));
+        showToast('Error al guardar método de pago: ' + (error.message || 'Error desconocido'), 'error');
       }
     }
 

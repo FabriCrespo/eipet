@@ -103,6 +103,8 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
   </div>
 
   <script>
+    import { showToast } from '../../lib/ui/toast';
+
     (function() {
       // Esperar a que el DOM esté completamente listo
       async function init() {
@@ -423,7 +425,10 @@ import CategoriaModal from '../../components/CategoriaModal.astro';
           document.dispatchEvent(new CustomEvent('categoryFormSaved'));
         } catch (error) {
           console.error('Error guardando categoría:', error);
-          alert(`Error al guardar categoría: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+          showToast(
+            `Error al guardar categoría: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+            'error',
+          );
 
           // Emitir evento de error para resetear estado de carga en el modal
           document.dispatchEvent(new CustomEvent('categoryFormError'));

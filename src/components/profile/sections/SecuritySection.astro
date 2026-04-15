@@ -384,7 +384,9 @@ const activeTab = 'contraseña';
   </div>
 
   <script>
-    (function() {
+    import { showToast } from '../../../lib/ui/toast';
+
+    (function () {
       const tabButtons = document.querySelectorAll('.security-tab');
       const tabContents = document.querySelectorAll('.security-tab-content');
 
@@ -470,18 +472,18 @@ const activeTab = 'contraseña';
 
           // Validaciones básicas
           if (newPassword !== confirmPassword) {
-            alert('Las contraseñas no coinciden');
+            showToast('Las contraseñas no coinciden', 'warning');
             return;
           }
 
           if (newPassword.length < 8) {
-            alert('La contraseña debe tener al menos 8 caracteres');
+            showToast('La contraseña debe tener al menos 8 caracteres', 'warning');
             return;
           }
 
           // Aquí iría la lógica para cambiar la contraseña
           console.log('Cambiar contraseña:', { currentPassword, newPassword });
-          alert('Contraseña cambiada exitosamente');
+          showToast('Contraseña cambiada exitosamente', 'success');
           form.reset();
         });
       }

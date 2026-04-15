@@ -399,14 +399,22 @@ const categoryOptions = ['Todas las categorías', 'Alimentos', 'Accesorios', 'Ju
 
         // Asignar event listeners
         function attachEventListeners() {
-          document.querySelectorAll('.remove-history-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.remove-history-btn').forEach((btn) => {
+            btn.addEventListener('click', async (e) => {
               const target = e.currentTarget;
               if (target && target instanceof HTMLButtonElement) {
                 const productId = target.getAttribute('data-product-id');
-                if (productId && confirm('¿Estás seguro de eliminar este producto del historial?')) {
-                  removeFromHistory(productId);
-                }
+                if (!productId) return;
+                const confirmFn = window.showEipetConfirm;
+                if (typeof confirmFn !== 'function') return;
+                const ok = await confirmFn({
+                  title: 'Eliminar del historial',
+                  message: '¿Eliminar este producto del historial?',
+                  confirmLabel: 'Eliminar',
+                  cancelLabel: 'Cancelar',
+                  confirmVariant: 'danger',
+                });
+                if (ok) removeFromHistory(productId);
               }
             });
           });

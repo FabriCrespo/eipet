@@ -1,5 +1,7 @@
 /** Modal de calificación de pedidos */
 
+import { showToast } from '../../../lib/ui/toast';
+
 let currentRating = 0;
 let currentOrderId = '';
 let hoveredRating = 0;
@@ -102,12 +104,12 @@ export function initRatingModal(): void {
 
   submitBtn?.addEventListener('click', () => {
     if (currentRating === 0) {
-      alert('Por favor, selecciona una calificación');
+      showToast('Por favor, selecciona una calificación', 'warning');
       return;
     }
     const comment = commentTextarea?.value ?? '';
     console.log('Calificación enviada:', { orderId: currentOrderId, rating: currentRating, comment });
-    alert('¡Gracias por tu calificación!');
+    showToast('¡Gracias por tu calificación!', 'success');
     closeRatingModal();
   });
 

@@ -12,6 +12,7 @@ import {
   loadOrdersFromFirebase
 } from './load';
 import { toggleOrderDetails } from './details';
+import { showToast } from '../../../lib/ui/toast';
 import { initRatingModal, openRatingModal, closeRatingModal } from './rating-modal';
 import { initReturnRequestModal, openReturnRequestModal } from './return-modal';
 import { ORDERS_PER_PAGE } from './constants';
@@ -162,13 +163,16 @@ function init(): void {
       const { getOrderById } = await import('../../../lib/db/orders');
       const result = await getOrderById(orderId);
       if (!result.data) {
-        alert('No se pudo encontrar la orden');
+        showToast('No se pudo encontrar la orden', 'error');
         return;
       }
-      alert(`Factura: ${invoiceNumber}\n\nLa funcionalidad de descarga de factura estará disponible pronto.`);
+      showToast(
+        `Factura: ${invoiceNumber}. La descarga de factura estará disponible pronto.`,
+        'info',
+      );
     } catch (error) {
       console.error('Error al obtener factura:', error);
-      alert('Error al obtener la factura');
+      showToast('Error al obtener la factura', 'error');
     }
   };
 

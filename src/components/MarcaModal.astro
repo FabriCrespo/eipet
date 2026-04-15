@@ -162,6 +162,7 @@
 </div>
 
 <script>
+  import { showToast } from '../lib/ui/toast';
   (function () {
     // Esperar a que el DOM esté listo
     if (document.readyState === "loading") {
@@ -399,13 +400,13 @@
               : null;
 
           if (!name || !categoryId) {
-            alert("Por favor, completa todos los campos requeridos");
+            showToast('Completa todos los campos requeridos', 'warning');
             return;
           }
 
           // Validar que hay imagen (nueva o existente)
           if (!imageFile && !currentImageUrl) {
-            alert("Por favor, selecciona una imagen para la marca");
+            showToast('Selecciona una imagen para la marca', 'warning');
             return;
           }
 

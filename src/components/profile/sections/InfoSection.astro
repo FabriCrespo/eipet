@@ -306,8 +306,11 @@ const headerStats = [
   </div>
 
   <script>
+    import { showToast } from '../../../lib/ui/toast';
+    import { showConfirmDialog } from '../../../lib/ui/confirmDialog';
+
     // @ts-ignore - Extender Window interface para currentUserId
-    (function() {
+    (function () {
       // Obtener userId de forma segura
       function getUserId() {
         let userId = localStorage.getItem('userId');
@@ -845,13 +848,13 @@ const headerStats = [
         try {
           // Validar datos antes de guardar
           if (!tempData.firstName || !tempData.lastName) {
-            alert('Por favor, completa tu nombre y apellido');
+            showToast('Completa tu nombre y apellido', 'warning');
             setSavingState(false);
             return;
           }
 
           if (!tempData.email) {
-            alert('Por favor, ingresa tu correo electrónico');
+            showToast('Ingresa tu correo electrónico', 'warning');
             setSavingState(false);
             return;
           }
@@ -876,7 +879,7 @@ const headerStats = [
         } catch (error) {
           console.error('Error saving:', error);
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-          alert(`Error al guardar: ${errorMessage}`);
+          showToast(`Error al guardar: ${errorMessage}`, 'error');
           setSavingState(false);
         }
       });
@@ -914,13 +917,13 @@ const headerStats = [
         
         // Validar tipo de archivo
         if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
-          alert('Formato de imagen no válido. Usa JPG, PNG, GIF o WEBP.');
+          showToast('Formato no válido. Usa JPG, PNG, GIF o WEBP.', 'warning');
           return;
         }
         
         // Validar tamaño
         if (file.size > 5 * 1024 * 1024) {
-          alert('La imagen es demasiado grande. Máximo 5 MB.');
+          showToast('La imagen es demasiado grande (máx. 5 MB).', 'warning');
           return;
         }
 
@@ -932,7 +935,7 @@ const headerStats = [
             : localStorage.getItem('userId');
           
           if (!userId) {
-            alert('Debes estar autenticado para subir una imagen');
+            showToast('Debes iniciar sesión para subir una imagen', 'warning');
             return;
           }
 
@@ -1017,7 +1020,7 @@ const headerStats = [
         } catch (error) {
           console.error('Error uploading avatar:', error);
           const errorMessage = error instanceof Error ? error.message : 'Error desconocido al subir la imagen';
-          alert(`Error: ${errorMessage}`);
+          showToast(`Error: ${errorMessage}`, 'error');
           
           // Restaurar imagen anterior si hay error
           if (currentUser?.avatar) {
@@ -1030,18 +1033,23 @@ const headerStats = [
       });
 
       logoutButton?.addEventListener('click', async () => {
-        if (confirm('¿Seguro que deseas cerrar sesión?')) {
-          try {
-            const { logout } = await import('../../../lib/auth.js');
-            await logout();
-            localStorage.removeItem('user');
-            window.location.href = '/';
-          } catch (error) {
-            console.error('Error al cerrar sesión:', error);
-            // Intentar redirigir de todas formas
-            localStorage.removeItem('user');
-            window.location.href = '/';
-          }
+        const ok = await showConfirmDialog({
+          title: 'Cerrar sesión',
+          message: '¿Seguro que deseas cerrar sesión?',
+          confirmLabel: 'Cerrar sesión',
+          cancelLabel: 'Cancelar',
+          confirmVariant: 'primary',
+        });
+        if (!ok) return;
+        try {
+          const { logout } = await import('../../../lib/auth.js');
+          await logout();
+          localStorage.removeItem('user');
+          window.location.href = '/';
+        } catch (error) {
+          console.error('Error al cerrar sesión:', error);
+          localStorage.removeItem('user');
+          window.location.href = '/';
         }
       });
 

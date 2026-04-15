@@ -236,6 +236,8 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
 </style>
 
 <script>
+  import { showConfirmDialog } from '../lib/ui/confirmDialog';
+
   // Tipos e interfaces
   interface User {
     id?: string;
@@ -583,16 +585,21 @@ const bottomSections = sectionConfig.filter(s => ['settings', 'security'].includ
   });
 
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.removeItem('currentUser');
-        
-        // Llamar callback si existe
-        if (profileWindow?.onProfileLogout) {
-          profileWindow.onProfileLogout();
-        } else {
-          profileWindow && (profileWindow.location.href = '/');
-        }
+    logoutBtn.addEventListener('click', async () => {
+      const ok = await showConfirmDialog({
+        title: 'Cerrar sesión',
+        message: '¿Seguro que quieres salir de tu cuenta?',
+        confirmLabel: 'Cerrar sesión',
+        cancelLabel: 'Cancelar',
+        confirmVariant: 'primary',
+      });
+      if (!ok) return;
+      localStorage.removeItem('currentUser');
+
+      if (profileWindow?.onProfileLogout) {
+        profileWindow.onProfileLogout();
+      } else {
+        profileWindow && (profileWindow.location.href = '/');
       }
     });
   }

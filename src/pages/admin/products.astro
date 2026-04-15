@@ -868,6 +868,8 @@ const stats = {
   />
 
   <script>
+    import { showToast } from '../../lib/ui/toast';
+
     (function () {
       // Obtener datos
       let productsData: any[] = [];
@@ -998,7 +1000,7 @@ const stats = {
             document.getElementById("stock-adjustment") as HTMLInputElement
           )?.value;
           console.log("Ajustar stock:", productId, adjustment);
-          alert("Stock ajustado exitosamente");
+          showToast("Stock ajustado exitosamente", "success");
           closeModal(stockModal);
         });
       }
@@ -1008,7 +1010,7 @@ const stats = {
         newForm.addEventListener("submit", (e) => {
           e.preventDefault();
           console.log("Nuevo producto creado");
-          alert("Producto creado exitosamente");
+          showToast("Producto creado exitosamente", "success");
           closeModal(newModal);
           (newForm as HTMLFormElement).reset();
         });
@@ -1061,6 +1063,8 @@ const stats = {
 />
 
 <script>
+  import { showToast } from '../../lib/ui/toast';
+
   (function () {
     // Helper para leer datos JSON
     const getJsonData = (id: string) => {
@@ -2140,7 +2144,7 @@ const stats = {
             );
           }
 
-          alert("✓ Producto creado exitosamente");
+          showToast("Producto creado exitosamente", "success");
 
           // Cerrar modal y resetear formulario
           closeModal(newModal);
@@ -2163,7 +2167,7 @@ const stats = {
             error instanceof Error
               ? error.message
               : "Error desconocido al crear el producto";
-          alert("✗ " + errorMessage);
+          showToast(errorMessage, "error");
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;

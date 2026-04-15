@@ -105,6 +105,7 @@
 </div>
 
 <script>
+  import { showToast } from '../lib/ui/toast';
   (function() {
     // Esperar a que el DOM esté listo
     if (document.readyState === 'loading') {
@@ -262,13 +263,13 @@
           const imageFile = imageFileInput && imageFileInput.files ? imageFileInput.files[0] : null;
 
           if (!name || !animalType) {
-            alert('Por favor, completa todos los campos requeridos');
+            showToast('Completa todos los campos requeridos', 'warning');
             return;
           }
 
           // Validar que hay imagen (nueva o existente)
           if (!imageFile && !currentImageUrl) {
-            alert('Por favor, selecciona una imagen para la categoría');
+            showToast('Selecciona una imagen para la categoría', 'warning');
             return;
           }
 
