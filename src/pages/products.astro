@@ -4,6 +4,7 @@ import PageLoader from '../components/PageLoader.astro';
 import ProductsCategoriesSection from '../components/products/ProductsCategoriesSection.astro';
 import ProductsBrandsSection from '../components/products/ProductsBrandsSection.astro';
 import ProductsFlowBackBar from '../components/products/ProductsFlowBackBar.astro';
+import ProductsFilters from '../components/products/ProductsFilters.astro';
 import { SlidersHorizontal } from '@lucide/astro';
 import './products-page.css';
 ---
@@ -116,213 +117,19 @@ import './products-page.css';
         </div>
 
         <!-- Chips de Filtros Activos -->
-        <div id="active-filters-chips" class="mb-6 hidden p-4 bg-linear-to-r from-purple-50/50 to-pink-50/50 rounded-xl border border-purple-100 shadow-sm" style="display: none;">
+        <div
+          id="active-filters-chips"
+          class="active-filters-chips mb-3 sm:mb-5 hidden rounded-lg border border-purple-100/70 bg-linear-to-r from-purple-50/40 to-pink-50/40 px-2 py-2 shadow-sm sm:rounded-xl sm:px-3 sm:py-2.5"
+          style="display: none;"
+        >
           <!-- Los chips se agregarán dinámicamente -->
         </div>
       </div>
 
-      <!-- Botón Flotante de Filtros (Solo Móvil) - compacto -->
-      <button
-        id="mobile-filters-btn"
-        class="lg:hidden fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white rounded-full p-3 sm:p-4 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2"
-        aria-label="Abrir filtros"
-      >
-        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-        </svg>
-        <span class="font-semibold text-xs sm:text-sm">Filtros</span>
-        <span id="active-filters-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 items-center justify-center hidden" style="display: none;">0</span>
-      </button>
-
-      <!-- Overlay para móvil -->
-      <div id="mobile-filters-overlay" class="lg:hidden fixed inset-0 bg-black/50 z-50 hidden transition-opacity duration-300" style="display: none;"></div>
-
-      <!-- Drawer de Filtros Móvil -->
-      <aside id="mobile-filters-drawer" class="lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 overflow-y-auto">
-        <div class="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between z-10">
-          <div>
-            <h2 class="text-xl font-bold text-[#5d3fbb]">Filtros</h2>
-            <p class="text-xs text-gray-600 mt-0.5">Personaliza tu búsqueda</p>
-          </div>
-          <button
-            id="close-mobile-filters-btn"
-            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Cerrar filtros"
-          >
-            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="p-5" id="mobile-filters-content">
-          <!-- El contenido se copiará del sidebar desktop -->
-        </div>
-        <div class="sticky bottom-0 bg-white border-t border-gray-200 px-5 py-4 flex gap-3">
-          <button
-            id="clear-filters-btn"
-            class="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
-          >
-            Limpiar
-          </button>
-          <button
-            id="apply-filters-btn"
-            class="flex-1 px-4 py-3 bg-[#5d3fbb] hover:bg-[#6d4fcc] text-white font-semibold rounded-lg transition-colors"
-          >
-            Aplicar
-          </button>
-        </div>
-      </aside>
+      <ProductsFilters variant="floating" />
 
       <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <!-- Sidebar de Filtros (Desktop) - Oculto completamente en móvil -->
-        <aside class="hidden lg:block lg:w-64 shrink-0" id="desktop-filters-sidebar">
-          <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24" id="desktop-filters-container">
-            <div class="mb-6">
-              <h2 class="text-xl font-bold text-[#5d3fbb] mb-1">Filtros</h2>
-              <p class="text-sm text-gray-600">Filtros pensados para tu mascota</p>
-            </div>
-
-            <!-- Filtro: Precio -->
-            <div class="mb-6">
-              <button 
-                id="price-filter-btn"
-                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
-              >
-                <div class="flex items-center gap-3">
-                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span class="font-semibold text-gray-800">Precio</span>
-                </div>
-                <svg class="w-4 h-4 text-gray-400 transition-transform" id="price-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="price-filter-content" data-filter-panel="price" class="hidden mt-2 pl-8 space-y-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="0-100">
-                  <span class="text-sm text-gray-700">Bs. 0 - 100</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="100-200">
-                  <span class="text-sm text-gray-700">Bs. 100 - 200</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="200-300">
-                  <span class="text-sm text-gray-700">Bs. 200 - 300</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="300+">
-                  <span class="text-sm text-gray-700">Bs. 300+</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Filtro: Etapa de Vida -->
-            <div class="mb-6">
-              <button 
-                id="life-stage-filter-btn"
-                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
-              >
-                <div class="flex items-center gap-3">
-                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span class="font-semibold text-gray-800">Etapa de Vida</span>
-                </div>
-                <svg class="w-4 h-4 text-gray-400 transition-transform" id="life-stage-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="life-stage-filter-content" data-filter-panel="life-stage" class="hidden mt-2 pl-8 space-y-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="cachorro">
-                  <span class="text-sm text-gray-700">Cachorro</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="adulto">
-                  <span class="text-sm text-gray-700">Adulto</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="senior">
-                  <span class="text-sm text-gray-700">Senior</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Filtro: Tamaño de Raza -->
-            <div class="mb-6">
-              <button 
-                id="breed-size-filter-btn"
-                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
-              >
-                <div class="flex items-center gap-3">
-                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                  <span class="font-semibold text-gray-800">Tamaño de Raza</span>
-                </div>
-                <svg class="w-4 h-4 text-gray-400 transition-transform" id="breed-size-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="breed-size-filter-content" data-filter-panel="breed-size" class="hidden mt-2 pl-8 space-y-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="pequeña">
-                  <span class="text-sm text-gray-700">Pequeña</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="mediana">
-                  <span class="text-sm text-gray-700">Mediana</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="grande">
-                  <span class="text-sm text-gray-700">Grande</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="todos">
-                  <span class="text-sm text-gray-700">Todos los tamaños</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Filtro: Tipo -->
-            <div>
-              <button 
-                id="type-filter-btn"
-                class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-purple-50 transition-colors"
-              >
-                <div class="flex items-center gap-3">
-                  <svg class="w-5 h-5 text-[#5d3fbb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                  <span class="font-semibold text-gray-800">Tipo</span>
-                </div>
-                <svg class="w-4 h-4 text-gray-400 transition-transform" id="type-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div id="type-filter-content" data-filter-panel="product-type" class="hidden mt-2 pl-8 space-y-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="food">
-                  <span class="text-sm text-gray-700">Alimento</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="toy">
-                  <span class="text-sm text-gray-700">Juguetes</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="cleaning">
-                  <span class="text-sm text-gray-700">Limpieza</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" class="w-4 h-4 text-[#5d3fbb] rounded" value="accessory">
-                  <span class="text-sm text-gray-700">Accesorios</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </aside>
+        <ProductsFilters variant="sidebar" />
 
         <!-- Grid de Productos -->
         <div class="flex-1">
@@ -494,6 +301,8 @@ import './products-page.css';
   </section>
 
   <script>
+    import { showToast } from '../lib/ui/toast';
+
     // Ocultar loader de navegación inmediatamente si existe (previene doble loader)
     (function() {
       const navigationLoader = document.getElementById('navigation-loader');
@@ -592,45 +401,117 @@ import './products-page.css';
       }
 
       /**
-       * Etapa: coincide por campo Firestore o por texto en el nombre ("Adulto", "Cachorro", "Pódium Cachorro"...).
+       * Etapa de vida leyendo el nombre del producto (p. ej. "0.9kg Podium Gato Adulto").
+       * Prioridad práctica: el catálogo suele llevar la etapa en el título aunque el campo en Firestore venga vacío o "todos".
+       */
+      function lifeStageMatchesName(n: string, stage: string): boolean {
+        if (!n) return false;
+        if (stage === 'adulto') {
+          return (
+            n.includes('adulto') ||
+            /\badultos\b/.test(n) ||
+            /\badult\b/.test(n)
+          );
+        }
+        if (stage === 'cachorro') {
+          return (
+            n.includes('cachorro') ||
+            n.includes('cachorros') ||
+            n.includes('gatito') ||
+            n.includes('gatitos') ||
+            /\bpuppy\b/.test(n) ||
+            /\bkitten\b/.test(n) ||
+            n.includes('primer mes') ||
+            n.includes('starter')
+          );
+        }
+        if (stage === 'senior') {
+          return (
+            n.includes('senior') ||
+            n.includes('seniors') ||
+            /\bmaduro\b/.test(n) ||
+            /\bmaduros\b/.test(n) ||
+            /\bmature\b/.test(n) ||
+            n.includes('geriatrico') ||
+            n.includes('geriatric') ||
+            n.includes('+7') ||
+            n.includes('7+')
+          );
+        }
+        return false;
+      }
+
+      /**
+       * Tamaño de raza desde el nombre (p. ej. "Raza Pequeña", "MAXI", "Mini").
+       */
+      function breedSizeMatchesName(n: string, size: string): boolean {
+        if (!n) return false;
+        if (size === 'pequeña') {
+          return (
+            n.includes('raza pequena') ||
+            n.includes('raza peque') ||
+            n.includes('pequena raza') ||
+            n.includes('pequena') ||
+            /\bmini\b/.test(n) ||
+            n.includes('miniatura') ||
+            n.includes('toy') ||
+            /\bxs\b/.test(n) ||
+            /\bxxs\b/.test(n) ||
+            /\bsmall\b/.test(n)
+          );
+        }
+        if (size === 'mediana') {
+          return (
+            n.includes('raza mediana') ||
+            /\bmediana\b/.test(n) ||
+            n.includes('medium') ||
+            /\bmidi\b/.test(n)
+          );
+        }
+        if (size === 'grande') {
+          return (
+            n.includes('raza grande') ||
+            n.includes('raza grand') ||
+            /\bmaxi\b/.test(n) ||
+            /\bgrande\b/.test(n) ||
+            n.includes('large') ||
+            /\bxl\b/.test(n) ||
+            /\bxxl\b/.test(n)
+          );
+        }
+        if (size === 'todos') {
+          return (
+            /todos\s+los\s+tamanos/.test(n) ||
+            /todas\s+las\s+razas/.test(n) ||
+            /todas\s+las\s+tamanos/.test(n) ||
+            /todas\s+edades/.test(n)
+          );
+        }
+        return false;
+      }
+
+      /**
+       * Etapa: campo Firestore explícito o coincidencia en el nombre del producto.
        */
       function productMatchesLifeStageFilter(p: any, stages: string[]): boolean {
-        const rawDb = normalizeLifeStageField(String(p.lifeStage || ''));
-        if (rawDb === 'todos') return true;
-        const eff = effectiveLifeStage(p);
-        if (eff === 'todos') return true;
         const n = productNameNorm(p);
+        const rawDb = normalizeLifeStageField(String(p.lifeStage || ''));
         return stages.some((stage) => {
-          if (eff === stage) return true;
-          if (stage === 'adulto') return n.includes('adulto');
-          if (stage === 'cachorro') return n.includes('cachorro') || n.includes('gatito');
-          if (stage === 'senior') return n.includes('senior');
-          return false;
+          if (rawDb && rawDb !== 'todos' && rawDb === stage) return true;
+          return lifeStageMatchesName(n, stage);
         });
       }
 
       /**
-       * Tamaño raza: por campo o por "Raza Pequeña" / "Raza Mediana" / "Raza Grande" en el nombre.
+       * Tamaño de raza: campo Firestore explícito o texto en el nombre.
        */
       function productMatchesBreedSizeFilter(p: any, sizes: string[]): boolean {
-        const rawDb = normalizeBreedSizeField(String(p.breedSize || ''));
-        if (rawDb === 'todos') return true;
-        const eff = effectiveBreedSize(p);
-        if (eff === 'todos') return true;
         const n = productNameNorm(p);
+        const rawDb = normalizeBreedSizeField(String(p.breedSize || ''));
         return sizes.some((size) => {
-          if (eff === size) return true;
-          if (size === 'pequeña') {
-            return n.includes('raza pequena') || n.includes('raza peque');
-          }
-          if (size === 'mediana') {
-            return n.includes('raza mediana');
-          }
-          if (size === 'grande') {
-            return n.includes('raza grande');
-          }
           if (size === 'todos') return true;
-          return false;
+          if (rawDb && rawDb !== 'todos' && rawDb === size) return true;
+          return breedSizeMatchesName(n, size);
         });
       }
 
@@ -2103,7 +1984,7 @@ import './products-page.css';
               }
             } catch (error) {
               console.error('Error al gestionar favoritos:', error);
-              alert('Error al gestionar favoritos. Por favor, intenta nuevamente.');
+              showToast('Error al gestionar favoritos. Por favor, intenta nuevamente.', 'error');
             }
           }, true); // Usar capture phase para capturar antes que otros listeners
         }
@@ -2571,8 +2452,7 @@ import './products-page.css';
         if (desktopFiltersContainer) {
           // Clonar el contenido de los filtros (deep clone para no afectar el original)
           const filtersClone = desktopFiltersContainer.cloneNode(true) as HTMLElement;
-          // Remover el header
-          const header = filtersClone.querySelector('.mb-6:first-child');
+          const header = filtersClone.querySelector('#desktop-filters-header');
           if (header) header.remove();
           
           mobileFiltersContent.innerHTML = filtersClone.innerHTML;
@@ -2731,9 +2611,9 @@ import './products-page.css';
         if (searchQuery.trim()) {
           chips.push(`
             <div class="filter-chip" data-filter-type="search" data-filter-value="${searchQuery}">
-              <span>🔍 "${searchQuery}"</span>
-              <button type="button" aria-label="Eliminar búsqueda">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span class="filter-chip__label">🔍 "${searchQuery}"</span>
+              <button type="button" class="filter-chip__close" aria-label="Eliminar búsqueda">
+                <svg class="filter-chip__close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -2756,9 +2636,9 @@ import './products-page.css';
             const label = getFilterLabel(type, value);
             chips.push(`
               <div class="filter-chip" data-filter-type="${type}" data-filter-value="${value}">
-                <span>${prefix}${label}</span>
-                <button type="button" aria-label="Eliminar filtro">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="filter-chip__label">${prefix}${label}</span>
+                <button type="button" class="filter-chip__close" aria-label="Eliminar filtro">
+                  <svg class="filter-chip__close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -2770,15 +2650,15 @@ import './products-page.css';
         // Renderizar chips
         if (chips.length > 0) {
           chipsContainer.innerHTML = `
-            <div class="flex items-center gap-2 mb-2 w-full">
-              <span class="text-sm font-semibold text-gray-700">Filtros activos:</span>
+            <div class="active-filters-chips__head flex items-baseline gap-1.5 mb-1.5 w-full sm:mb-2 sm:gap-2">
+              <span class="text-[11px] font-medium uppercase tracking-wide text-gray-500 sm:text-xs sm:normal-case sm:tracking-normal sm:font-semibold sm:text-gray-700">Activos</span>
             </div>
-            <div class="flex flex-wrap gap-2 w-full">
+            <div class="active-filters-chips__row flex flex-wrap items-center gap-1.5 w-full sm:gap-2">
               ${chips.join('')}
             </div>
           `;
           chipsContainer.classList.remove('hidden');
-          chipsContainer.classList.add('flex', 'flex-col', 'gap-2');
+          chipsContainer.classList.add('flex', 'flex-col', 'gap-1', 'sm:gap-1.5');
           chipsContainer.style.display = 'flex';
           
           // Agregar event listeners a los botones de eliminar
@@ -2823,7 +2703,7 @@ import './products-page.css';
           });
         } else {
           chipsContainer.classList.add('hidden');
-          chipsContainer.classList.remove('flex', 'flex-wrap', 'gap-2');
+          chipsContainer.classList.remove('flex', 'flex-col', 'gap-1', 'sm:gap-1.5');
           chipsContainer.style.display = 'none';
         }
       }

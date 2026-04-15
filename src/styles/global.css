@@ -60,3 +60,26 @@ html,
 body {
   -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
 }
+
+/* Toasts globales (showToast en src/lib/ui/toast.ts) */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}

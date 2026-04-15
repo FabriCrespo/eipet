@@ -113,6 +113,8 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
+  import { showToast } from '../lib/ui/toast';
+
   // Estado del carrito
   let cartState: {
     items: Array<{
@@ -361,7 +363,7 @@ import Layout from '../layouts/Layout.astro';
 
     // Validar stock si está disponible
     if (item.product?.stock !== undefined && newQuantity > item.product.stock) {
-      alert(`Stock insuficiente. Disponible: ${item.product.stock}`);
+      showToast(`Stock insuficiente. Disponible: ${item.product.stock}`, 'warning');
       return;
     }
 

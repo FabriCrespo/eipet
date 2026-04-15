@@ -1,0 +1,260 @@
+---
+/**
+ * Filtros de catálogo: variant "floating" (FAB + overlay + drawer móvil) o "sidebar" (panel desktop).
+ * Los IDs se mantienen para el script de `products.astro` (clonación al drawer, lectura de checkboxes).
+ */
+export interface Props {
+  variant: 'floating' | 'sidebar';
+}
+
+const { variant } = Astro.props;
+---
+
+{variant === 'floating' && (
+  <>
+    <button
+      type="button"
+      id="mobile-filters-btn"
+      class="products-filters-fab lg:hidden fixed bottom-4 right-4 z-40 flex items-center justify-center gap-1.5 rounded-full bg-[#5d3fbb] p-2.5 text-white shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#6d4fcc] active:scale-95 sm:bottom-5 sm:right-5 sm:gap-2 sm:p-3"
+      aria-label="Abrir filtros"
+    >
+      <svg class="h-4 w-4 shrink-0 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+      </svg>
+      <span class="text-xs font-semibold sm:text-sm">Filtros</span>
+      <span
+        id="active-filters-count"
+        class="absolute -right-0.5 -top-0.5 hidden h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white sm:h-5 sm:min-w-[1.25rem] sm:text-xs"
+        style="display: none;"
+      >
+        0
+      </span>
+    </button>
+
+    <div
+      id="mobile-filters-overlay"
+      class="lg:hidden fixed inset-0 z-50 hidden bg-black/50 transition-opacity duration-300"
+      style="display: none;"
+      aria-hidden="true"
+    />
+
+    <aside
+      id="mobile-filters-drawer"
+      class="products-filters-drawer lg:hidden fixed right-0 top-0 z-50 flex h-[100dvh] w-[min(100vw-0.75rem,18.5rem)] max-w-[calc(100vw-0.75rem)] translate-x-full flex-col bg-white shadow-2xl transition-transform duration-300 sm:w-80 sm:max-w-[85vw]"
+      aria-labelledby="mobile-filters-title"
+    >
+      <div class="flex shrink-0 items-center justify-between border-b border-gray-200 px-3 py-2.5 sm:px-4 sm:py-3">
+        <div class="min-w-0 pr-2">
+          <h2 id="mobile-filters-title" class="truncate text-base font-bold text-[#5d3fbb] sm:text-lg">
+            Filtros
+          </h2>
+          <p class="text-[11px] leading-tight text-gray-600 sm:text-xs">Ajusta y toca Aplicar</p>
+        </div>
+        <button
+          type="button"
+          id="close-mobile-filters-btn"
+          class="shrink-0 rounded-lg p-1.5 hover:bg-gray-100 sm:p-2"
+          aria-label="Cerrar filtros"
+        >
+          <svg class="h-5 w-5 text-gray-500 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="mobile-filters-content" class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2 sm:px-4 sm:py-3">
+        <!-- Clon desde #desktop-filters-container (script de la página) -->
+      </div>
+      <div class="flex shrink-0 gap-2 border-t border-gray-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+        <button
+          type="button"
+          id="clear-filters-btn"
+          class="flex-1 rounded-lg bg-gray-100 py-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-200 sm:py-2.5 sm:text-sm"
+        >
+          Limpiar
+        </button>
+        <button
+          type="button"
+          id="apply-filters-btn"
+          class="flex-1 rounded-lg bg-[#5d3fbb] py-2 text-xs font-semibold text-white transition-colors hover:bg-[#6d4fcc] sm:py-2.5 sm:text-sm"
+        >
+          Aplicar
+        </button>
+      </div>
+    </aside>
+  </>
+)}
+
+{variant === 'sidebar' && (
+  <aside class="hidden shrink-0 lg:block lg:w-56 xl:w-64" id="desktop-filters-sidebar">
+    <div
+      class="products-filters-desktop rounded-xl border border-gray-100 bg-white p-4 shadow-lg lg:sticky lg:top-24 xl:p-5"
+      id="desktop-filters-container"
+    >
+      <div id="desktop-filters-header" class="mb-4 lg:mb-5">
+        <h2 class="text-lg font-bold text-[#5d3fbb] xl:text-xl">Filtros</h2>
+        <p class="mt-0.5 text-xs text-gray-600 lg:text-sm">Pensados para tu mascota</p>
+      </div>
+
+      <div class="products-filter-block mb-3 lg:mb-4">
+        <button
+          type="button"
+          id="price-filter-btn"
+          class="flex w-full items-center justify-between rounded-lg p-2 text-left transition-colors hover:bg-purple-50 lg:p-2.5"
+        >
+          <div class="flex min-w-0 items-center gap-2 lg:gap-3">
+            <svg class="h-4 w-4 shrink-0 text-[#5d3fbb] lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="truncate text-sm font-semibold text-gray-800 lg:text-base">Precio</span>
+          </div>
+          <svg class="h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform lg:h-4 lg:w-4" id="price-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="price-filter-content" data-filter-panel="price" class="mt-1.5 hidden space-y-1 pl-6 lg:mt-2 lg:space-y-1.5 lg:pl-8">
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="0-100" />
+            <span class="text-xs text-gray-700 lg:text-sm">Bs. 0 - 100</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="100-200" />
+            <span class="text-xs text-gray-700 lg:text-sm">Bs. 100 - 200</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="200-300" />
+            <span class="text-xs text-gray-700 lg:text-sm">Bs. 200 - 300</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="300+" />
+            <span class="text-xs text-gray-700 lg:text-sm">Bs. 300+</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="products-filter-block mb-3 lg:mb-4">
+        <button
+          type="button"
+          id="life-stage-filter-btn"
+          class="flex w-full items-center justify-between rounded-lg p-2 text-left transition-colors hover:bg-purple-50 lg:p-2.5"
+        >
+          <div class="flex min-w-0 items-center gap-2 lg:gap-3">
+            <svg class="h-4 w-4 shrink-0 text-[#5d3fbb] lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span class="truncate text-sm font-semibold text-gray-800 lg:text-base">Etapa de vida</span>
+          </div>
+          <svg class="h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform lg:h-4 lg:w-4" id="life-stage-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="life-stage-filter-content" data-filter-panel="life-stage" class="mt-1.5 hidden space-y-1 pl-6 lg:mt-2 lg:space-y-1.5 lg:pl-8">
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="cachorro" />
+            <span class="text-xs text-gray-700 lg:text-sm">Cachorro</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="adulto" />
+            <span class="text-xs text-gray-700 lg:text-sm">Adulto</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="senior" />
+            <span class="text-xs text-gray-700 lg:text-sm">Senior</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="products-filter-block mb-3 lg:mb-4">
+        <button
+          type="button"
+          id="breed-size-filter-btn"
+          class="flex w-full items-center justify-between rounded-lg p-2 text-left transition-colors hover:bg-purple-50 lg:p-2.5"
+        >
+          <div class="flex min-w-0 items-center gap-2 lg:gap-3">
+            <svg class="h-4 w-4 shrink-0 text-[#5d3fbb] lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+            <span class="truncate text-sm font-semibold text-gray-800 lg:text-base">Tamaño de raza</span>
+          </div>
+          <svg class="h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform lg:h-4 lg:w-4" id="breed-size-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="breed-size-filter-content" data-filter-panel="breed-size" class="mt-1.5 hidden space-y-1 pl-6 lg:mt-2 lg:space-y-1.5 lg:pl-8">
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="pequeña" />
+            <span class="text-xs text-gray-700 lg:text-sm">Pequeña</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="mediana" />
+            <span class="text-xs text-gray-700 lg:text-sm">Mediana</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="grande" />
+            <span class="text-xs text-gray-700 lg:text-sm">Grande</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="todos" />
+            <span class="text-xs text-gray-700 lg:text-sm">Todos los tamaños</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="products-filter-block">
+        <button
+          type="button"
+          id="type-filter-btn"
+          class="flex w-full items-center justify-between rounded-lg p-2 text-left transition-colors hover:bg-purple-50 lg:p-2.5"
+        >
+          <div class="flex min-w-0 items-center gap-2 lg:gap-3">
+            <svg class="h-4 w-4 shrink-0 text-[#5d3fbb] lg:h-5 lg:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <span class="truncate text-sm font-semibold text-gray-800 lg:text-base">Tipo</span>
+          </div>
+          <svg class="h-3.5 w-3.5 shrink-0 text-gray-400 transition-transform lg:h-4 lg:w-4" id="type-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div id="type-filter-content" data-filter-panel="product-type" class="mt-1.5 hidden space-y-1 pl-6 lg:mt-2 lg:space-y-1.5 lg:pl-8">
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="food" />
+            <span class="text-xs text-gray-700 lg:text-sm">Alimento</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="toy" />
+            <span class="text-xs text-gray-700 lg:text-sm">Juguetes</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="cleaning" />
+            <span class="text-xs text-gray-700 lg:text-sm">Limpieza</span>
+          </label>
+          <label class="flex cursor-pointer items-center gap-2 rounded-md py-1 lg:py-1.5">
+            <input type="checkbox" class="filter-checkbox h-3.5 w-3.5 rounded text-[#5d3fbb] lg:h-4 lg:w-4" value="accessory" />
+            <span class="text-xs text-gray-700 lg:text-sm">Accesorios</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </aside>
+)}
+
+<style>
+  .products-filters-fab {
+    animation: products-filters-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes products-filters-pulse {
+    0%,
+    100% {
+      box-shadow: 0 10px 25px -5px rgb(93 63 187 / 0.35);
+    }
+    50% {
+      box-shadow: 0 14px 32px -6px rgb(93 63 187 / 0.55);
+    }
+  }
+  .products-filters-drawer :global(.products-filter-block button) {
+    min-height: 2.25rem;
+  }
+  .products-filters-drawer :global(.filter-checkbox) {
+    flex-shrink: 0;
+  }
+</style>

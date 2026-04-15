@@ -269,6 +269,8 @@ const addresses: any[] = [];
 <ConfirmModal id="delete-address-modal" />
 
 <script>
+  import { showToast } from '../../../lib/ui/toast';
+
   (async function() {
     // Variables globales
     let addresses: any[] = [];
@@ -503,7 +505,7 @@ const addresses: any[] = [];
     // Función para guardar dirección
     async function saveAddress(formData: FormData) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('No hay usuario autenticado. Por favor, inicia sesión.', 'warning');
         return;
       }
 
@@ -518,7 +520,7 @@ const addresses: any[] = [];
       const lng = longitudeInput?.value || '';
       
       if (!lat || !lng) {
-        alert('Por favor, selecciona una ubicación en el mapa haciendo clic en él');
+        showToast('Por favor, selecciona una ubicación en el mapa haciendo clic en él', 'warning');
         return;
       }
 
@@ -561,13 +563,13 @@ const addresses: any[] = [];
           if (!result.success) {
             // Revertir optimistic update
             await loadAddresses();
-            alert('Error al actualizar la dirección: ' + (result.error?.message || 'Error desconocido'));
+            showToast('Error al actualizar la dirección: ' + (result.error?.message || 'Error desconocido'), 'error');
             return;
           }
         } else {
           const result = await addAddress(currentUserId, addressData);
           if (!result.success) {
-            alert('Error al guardar la dirección: ' + (result.error?.message || 'Error desconocido'));
+            showToast('Error al guardar la dirección: ' + (result.error?.message || 'Error desconocido'), 'error');
             return;
           }
         }
@@ -584,7 +586,7 @@ const addresses: any[] = [];
         console.error('Error guardando dirección:', error);
         // Revertir optimistic update
         await loadAddresses();
-        alert('Error al guardar la dirección: ' + (error.message || 'Error desconocido'));
+        showToast('Error al guardar la dirección: ' + (error.message || 'Error desconocido'), 'error');
       } finally {
         // Ocultar loader
         if (saveBtn) saveBtn.disabled = false;
@@ -599,7 +601,7 @@ const addresses: any[] = [];
     // Función para eliminar dirección
     async function deleteAddress(addressId: string) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('No hay usuario autenticado. Por favor, inicia sesión.', 'warning');
         return;
       }
 
@@ -636,7 +638,7 @@ const addresses: any[] = [];
     // Función auxiliar para realizar la eliminación
     async function performDelete(addressId: string) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('No hay usuario autenticado. Por favor, inicia sesión.', 'warning');
         return;
       }
 
@@ -655,7 +657,7 @@ const addresses: any[] = [];
             addresses.push(addressToDelete);
             await loadAddresses();
           }
-          alert('Error al eliminar la dirección: ' + (result.error?.message || 'Error desconocido'));
+          showToast('Error al eliminar la dirección: ' + (result.error?.message || 'Error desconocido'), 'error');
           return;
         }
 
@@ -665,14 +667,14 @@ const addresses: any[] = [];
         console.error('Error eliminando dirección:', error);
         // Revertir optimistic update
         await loadAddresses();
-        alert('Error al eliminar la dirección: ' + (error.message || 'Error desconocido'));
+        showToast('Error al eliminar la dirección: ' + (error.message || 'Error desconocido'), 'error');
       }
     }
 
     // Función para establecer como predeterminada
     async function setDefaultAddress(addressId: string) {
       if (!currentUserId) {
-        alert('No hay usuario autenticado. Por favor, inicia sesión.');
+        showToast('No hay usuario autenticado. Por favor, inicia sesión.', 'warning');
         return;
       }
 
@@ -692,7 +694,7 @@ const addresses: any[] = [];
           // Revertir optimistic update
           addresses = previousAddresses;
           renderAddresses();
-          alert('Error al establecer la dirección como predeterminada: ' + (result.error?.message || 'Error desconocido'));
+          showToast('Error al establecer la dirección como predeterminada: ' + (result.error?.message || 'Error desconocido'), 'error');
           return;
         }
 
@@ -702,7 +704,7 @@ const addresses: any[] = [];
         console.error('Error estableciendo dirección predeterminada:', error);
         // Revertir optimistic update
         await loadAddresses();
-        alert('Error al establecer la dirección como predeterminada: ' + (error.message || 'Error desconocido'));
+        showToast('Error al establecer la dirección como predeterminada: ' + (error.message || 'Error desconocido'), 'error');
       }
     }
 

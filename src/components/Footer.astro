@@ -203,8 +203,8 @@
           Suscríbete y recibe ofertas exclusivas y novedades para tu mascota 🐾
         </p>
         <form 
+          id="footer-newsletter-form"
           class="space-y-2" 
-          onsubmit="event.preventDefault(); alert('¡Gracias por suscribirte! 🎉');"
         >
           <input 
             type="email" 
@@ -290,3 +290,12 @@
     </div>
   </div>
 </footer>
+
+<script>
+  import { showToast } from '../lib/ui/toast';
+
+  document.getElementById('footer-newsletter-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    showToast('¡Gracias por suscribirte! 🎉', 'success');
+  });
+</script>

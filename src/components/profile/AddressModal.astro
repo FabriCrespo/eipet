@@ -238,6 +238,8 @@
 </div>
 
 <script>
+  import { showToast } from '../../lib/ui/toast';
+
   // API pública del modal de direcciones
   (function() {
     let map: any = null;
@@ -264,7 +266,7 @@
     // Obtener ubicación del usuario y centrar mapa + colocar marcador
     function useUserLocation(callback?: () => void) {
       if (!navigator.geolocation) {
-        alert('Tu navegador no soporta la geolocalización.');
+        showToast('Tu navegador no soporta la geolocalización.', 'warning');
         if (callback) callback();
         return;
       }
@@ -287,9 +289,9 @@
           useMyLocationBtn?.removeAttribute('disabled');
           if (btnText) btnText.textContent = 'Usar mi ubicación';
           if (err.code === 1) {
-            alert('Ubicación denegada. Puedes marcar la dirección haciendo clic en el mapa.');
+            showToast('Ubicación denegada. Puedes marcar la dirección haciendo clic en el mapa.', 'warning');
           } else {
-            alert('No se pudo obtener tu ubicación. Marca la dirección en el mapa.');
+            showToast('No se pudo obtener tu ubicación. Marca la dirección en el mapa.', 'warning');
           }
           if (callback) callback();
         },
@@ -481,7 +483,7 @@
         const formLng = longitudeInput?.value || '';
         
         if (!formLat || !formLng) {
-          alert('Por favor, selecciona una ubicación en el mapa haciendo clic en él');
+          showToast('Por favor, selecciona una ubicación en el mapa haciendo clic en él', 'warning');
           return;
         }
 

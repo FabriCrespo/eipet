@@ -1,3 +1,5 @@
+import { showToast } from "../../lib/ui/toast";
+
 let els: ReturnType<typeof getCartEls>;
 
 function getCartEls() {
@@ -254,7 +256,7 @@ function changeQty(pid: string, delta: number): void {
     return;
   }
   if (item.product?.stock != null && q > item.product.stock) {
-    alert(`Stock insuficiente. Disponible: ${item.product.stock}`);
+    showToast(`Stock insuficiente. Disponible: ${item.product.stock}`, "warning");
     return;
   }
   item.quantity = q;
@@ -282,7 +284,7 @@ export function setCartProductQuantity(productId: string, quantity: number): boo
     return true;
   }
   if (item.product?.stock != null && q > item.product.stock) {
-    alert(`Stock insuficiente. Disponible: ${item.product.stock}`);
+    showToast(`Stock insuficiente. Disponible: ${item.product.stock}`, "warning");
     return false;
   }
   item.quantity = q;
@@ -348,13 +350,13 @@ export function addToCart(product: CartProduct, qty = 1): boolean {
   const item = cartState.items.find((i) => i.productId === product.id);
   if (item) {
     if (product.stock != null && item.quantity + qty > product.stock) {
-      alert(`Stock insuficiente. Disponible: ${product.stock}`);
+      showToast(`Stock insuficiente. Disponible: ${product.stock}`, "warning");
       return false;
     }
     item.quantity += qty;
   } else {
     if (product.stock != null && qty > product.stock) {
-      alert(`Stock insuficiente. Disponible: ${product.stock}`);
+      showToast(`Stock insuficiente. Disponible: ${product.stock}`, "warning");
       return false;
     }
     cartState.items.push({ productId: product.id, quantity: qty, product });
