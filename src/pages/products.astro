@@ -387,9 +387,7 @@ import './products-page.css';
             await addToFavorites(userId, pid);
           }
           localStorage.removeItem(GUEST_FAVORITES_KEY);
-        } catch (error) {
-          console.warn('No se pudo migrar favoritos invitados:', error);
-        }
+        } catch (_error) {}
       }
 
       async function handleFavoriteToggle(productId: string, favoriteBtn: HTMLElement) {
@@ -873,7 +871,6 @@ import './products-page.css';
 
         const discRes = await getDiscounts();
         const rawDiscounts = discRes.data || [];
-        console.log('[EIPET] Lista de descuentos (Firestore)', rawDiscounts.map(logDiscountForConsole));
 
         const brandIdsFromPromos = new Set<string>();
         const productIdsFromPromos = new Set<string>();
@@ -927,10 +924,6 @@ import './products-page.css';
             return getCategorySlugFromData(cat) === petFilter;
           });
         }
-
-        const brandsSummary = withDiscountBrands.map((b: any) => ({ id: b.id, name: b.name, categoryId: b.categoryId }));
-        console.log('[EIPET] Marcas con descuento (listado tienda)', brandsSummary);
-        console.log('[EIPET] Productos en oferta (listado tienda)', mappedOfferProducts.map((p: any) => ({ id: p.id, name: p.name })));
 
         renderDiscountBrandsSection(withDiscountBrands);
         renderDiscountProductsSection(mappedOfferProducts);
@@ -1290,8 +1283,6 @@ import './products-page.css';
           return brandsCache.get(categoryId) || [];
         }
 
-        console.log(`🏷️ Cargando marcas para categoría ${categoryId}...`);
-        
         try {
           // Importar función de marcas
           const { getBrands } = await import('../lib/db/brands');
@@ -1324,9 +1315,6 @@ import './products-page.css';
           brandsByCategoryMap.set(categoryId, brandIds);
           categoryBrandCounts.set(categoryId, categoryBrands.length);
 
-          console.log(`✅ Marcas cargadas para categoría ${categoryId}:`, categoryBrands.length);
-          console.log(`   Contador pre-calculado: ${categoryBrands.length} marcas`);
-          
           // Cachear marcas en Service Worker para acceso offline
           if (typeof window !== 'undefined' && (window as any).cacheData) {
             (window as any).cacheData(`brands-${categoryId}`, categoryBrands);
@@ -1365,7 +1353,6 @@ import './products-page.css';
         if (loadingState) loadingState.classList.add('hidden');
 
         if (categoryBrands.length === 0) {
-          console.log('No hay marcas para esta categoría');
           if (loadingState) loadingState.classList.add('hidden');
           const cat = categoryMap.get(categoryId);
           const catLabel = cat?.name ? `«${cat.name}»` : 'Esta categoría';
@@ -1447,8 +1434,6 @@ import './products-page.css';
           return productsCache.get(brandId) || [];
         }
 
-        console.log(`📦 Cargando productos para marca ${brandId}...`);
-        
         try {
           // Importar función de productos
           const { getProducts } = await import('../lib/db/products');
@@ -1482,13 +1467,10 @@ import './products-page.css';
             if (!useFullCatalogFallback) {
               brandProducts = rows;
             } else {
-              console.log(
-                '[EIPET] Query brand+status no disponible o vacía con error; fallback a todos los activos + filtro por marca.'
-              );
+              
               productsResult = await getProducts({ status: 'active' });
 
               if (!productsResult.data || productsResult.data.length === 0 || productsResult.error) {
-                console.log('⚠️ No se obtuvieron productos con status="active", intentando sin filtro...');
                 const allProductsResult = await getProducts();
 
                 if (allProductsResult.data && allProductsResult.data.length > 0) {
@@ -1586,9 +1568,6 @@ import './products-page.css';
           productsByBrandMap.set(brandId, productIds);
           brandProductCounts.set(brandId, mappedProducts.length);
 
-          console.log(`✅ Productos cargados para marca ${brandId}:`, mappedProducts.length);
-          console.log(`   Contador pre-calculado: ${mappedProducts.length} productos`);
-          
           // Cachear productos en Service Worker para acceso offline
           if (typeof window !== 'undefined' && (window as any).cacheData) {
             (window as any).cacheData(`products-${brandId}`, mappedProducts);
@@ -1609,19 +1588,11 @@ import './products-page.css';
         }
         
         // Si no están en caché, filtrar de allProducts (fallback)
-        console.log(`🔍 Filtrando productos por brand ID: "${brandId}"`);
-        console.log(`📊 Total de productos disponibles en allProducts: ${allProducts.length}`);
         
         if (allProducts.length === 0) {
           console.error('❌ ERROR: allProducts está vacío. Los productos no se cargaron correctamente.');
           return [];
         }
-        
-        // Mostrar todos los productos y sus brand IDs para debug
-        console.log('🔍 Todos los productos y sus brand IDs:');
-        allProducts.forEach((p: any, index: number) => {
-          console.log(`  ${index + 1}. ID: ${p.id}, Nombre: "${p.name}", brand: "${p.brand}" (tipo: ${typeof p.brand}), brandId: "${p.brandId}" (tipo: ${typeof p.brandId}), status: "${p.status}"`);
-        });
         
         const filtered = allProducts.filter((product: any) => {
           // Usar brandId si existe, sino usar brand
@@ -1631,32 +1602,8 @@ import './products-page.css';
           const brandMatch = productBrandId === targetBrandId;
           const matches = brandMatch && statusMatch;
           
-          // Log detallado para productos que no coinciden
-          if (!brandMatch && (product.brand || product.brandId)) {
-            console.log(`  ⚠️ Producto "${product.name}":`);
-            console.log(`     - brand del producto: "${productBrandId}" (tipo: ${typeof productBrandId})`);
-            console.log(`     - brand buscado: "${targetBrandId}" (tipo: ${typeof targetBrandId})`);
-            console.log(`     - ¿Coinciden?: ${brandMatch}`);
-            console.log(`     - status: "${product.status}" (¿activo?: ${statusMatch})`);
-          }
-          
           return matches;
         });
-        
-        console.log(`✅ Productos encontrados para brand "${brandId}":`, filtered.length);
-        if (filtered.length > 0) {
-          console.log('📋 Productos encontrados:');
-          filtered.forEach((p: any, index: number) => {
-            console.log(`  ${index + 1}. ID: ${p.id}, Nombre: "${p.name}", brand: "${p.brand}", brandId: "${p.brandId}"`);
-          });
-        } else {
-          console.log('⚠️ No se encontraron productos para esta marca');
-          console.log(`   Buscando brand ID: "${brandId}"`);
-          console.log(`   Productos disponibles: ${allProducts.length}`);
-          // Mostrar todos los brand IDs únicos disponibles
-          const uniqueBrands = [...new Set(allProducts.map((p: any) => p.brand || p.brandId).filter(Boolean))];
-          console.log(`   Brand IDs únicos en productos:`, uniqueBrands);
-        }
         
         return filtered;
       }
@@ -1681,9 +1628,6 @@ import './products-page.css';
 
         // Ocultar loading state
         if (loadingState) loadingState.classList.add('hidden');
-
-        console.log(`📦 Productos de la marca ${brandId}:`, brandProducts);
-        console.log(`📊 Total de productos: ${brandProducts.length}`);
 
         // Ocultar marcas (flujo normal y rejilla de ofertas) y mostrar productos
         if (brandsSection) brandsSection.classList.add('hidden');
@@ -1923,10 +1867,7 @@ import './products-page.css';
       // Función para actualizar el estado visual del botón de favoritos
       function updateFavoriteButton(button: Element, isFavorite: boolean) {
         const svg = button.querySelector('.favorite-icon') as SVGElement;
-        if (!svg) {
-          console.warn('No se encontró el SVG con clase favorite-icon');
-          return;
-        }
+        if (!svg) return;
         
         const btn = button as HTMLElement;
         btn.setAttribute('data-is-favorite', String(isFavorite));
@@ -1962,8 +1903,7 @@ import './products-page.css';
             userFavorites = favoritesResult.data.productIds.map((id: any) => String(id));
             syncFavoriteButtonsFromState();
           }
-        } catch (error) {
-          console.warn('Error al cargar favoritos:', error);
+        } catch (_error) {
           userFavorites = getGuestFavorites();
           syncFavoriteButtonsFromState();
         }
@@ -2033,12 +1973,7 @@ import './products-page.css';
             e.stopImmediatePropagation();
             
             const productId = favoriteBtn.getAttribute('data-product-id');
-            if (!productId) {
-              console.warn('No se encontró productId en el botón de favoritos');
-              return;
-            }
-
-            console.log('Botón de favoritos clickeado, productId:', productId);
+            if (!productId) return;
 
             await handleFavoriteToggle(productId, favoriteBtn);
           }, true); // Usar capture phase para capturar antes que otros listeners
@@ -2141,7 +2076,6 @@ import './products-page.css';
                   }
                 } else {
                   // Fallback si no está disponible la función
-                  console.warn('Función addToCart no disponible');
                   button.innerHTML = originalText;
                   button.disabled = false;
                 }
@@ -2283,36 +2217,15 @@ import './products-page.css';
             animalType = 'Gato';
           }
 
-          console.log('🔍 Parámetro de URL (petFilter):', petFilter);
-          console.log('🐾 Tipo de animal a filtrar:', animalType || 'Todos');
-
-          console.log('📂 Categorías (y marcas en paralelo si ?brand=)');
-          
-          console.log('📋 Todas las categorías sin filtrar:', allCategoriesResult.data || []);
-          console.log('📊 Total de categorías sin filtrar:', allCategoriesResult.data?.length || 0);
-          
-          // Mostrar detalles de cada categoría para debug
-          if (allCategoriesResult.data && allCategoriesResult.data.length > 0) {
-            console.log('🔍 Detalles de categorías:');
-            allCategoriesResult.data.forEach((c: any, index: number) => {
-              console.log(`  ${index + 1}. ID: ${c.id}, Nombre: ${c.name}, animalType: "${c.animalType}", status: "${c.status}"`);
-            });
-          }
-          
           // Filtrar categorías en el cliente según el tipo de animal
           let categoriesResult;
           if (animalType) {
-            console.log(`🔍 Filtrando categorías para: "${animalType}" (tipo exacto)`);
             if (allCategoriesResult.data) {
               const filtered = allCategoriesResult.data.filter((c: any) => {
                 const matches = c.animalType === animalType && c.status === 'Activo';
-                if (!matches && c.animalType === animalType) {
-                  console.log(`  ⚠️ Categoría "${c.name}" tiene animalType="${c.animalType}" pero status="${c.status}"`);
-                }
                 return matches;
               });
               categoriesResult = { data: filtered };
-              console.log(`✅ Categorías filtradas encontradas: ${filtered.length}`);
             } else {
               categoriesResult = { data: [] };
             }
@@ -2326,9 +2239,6 @@ import './products-page.css';
               categoriesResult = { data: [] };
             }
           }
-
-          console.log('✅ Categorías obtenidas (después de filtrar):', categoriesResult.data || []);
-          console.log('📊 Total de categorías filtradas:', categoriesResult.data?.length || 0);
 
           // Guardar todas las categorías para referencia
           allCategoriesData = categoriesResult.data || [];
@@ -2346,8 +2256,6 @@ import './products-page.css';
             discountOffersProductCount = await loadDiscountOffersFromFirestore();
             categoriesResult = { data: [] };
           }
-          
-          console.log('✅ Estructura de datos optimizada: Maps creados para búsquedas O(1)');
           
           // Cachear categorías en Service Worker para acceso offline
           if (typeof window !== 'undefined' && (window as any).cacheData) {
@@ -2384,7 +2292,6 @@ import './products-page.css';
           }
 
           // NO cargar marcas ni productos al inicio - se cargarán bajo demanda
-          console.log('✅ Carga bajo demanda activada: marcas y productos se cargarán cuando se necesiten');
 
           if (discountFilterMode) {
             replaceProductsFlowHistory(productsFlowHistoryState('discount-brands'));
@@ -2403,9 +2310,7 @@ import './products-page.css';
                   allBrandsData.push(b);
                 }
               });
-            } catch (e) {
-              console.warn('[products] Precarga de marcas para ?brand=', e);
-            }
+            } catch (_e) {}
             if (initialCategoryId) {
               currentCategoryId = initialCategoryId;
             }
